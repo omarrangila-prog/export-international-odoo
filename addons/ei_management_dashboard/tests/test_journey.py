@@ -302,3 +302,14 @@ class TestJourney(AccountTestInvoicingCommon):
         self.assertEqual(len(people), 3)       # importer / approver / poster are three different users
         self.assertNotEqual(self.contract.create_uid, self.contract.approved_by)
         self.assertNotEqual(self.stmt.imported_by, self.stmt.signed_by)
+
+    def test_15_ceo_can_open_every_drilldown(self):
+        """Regression (found 25 Oct 2026): the CEO saw the money KPIs but got an access error opening the journal
+        items behind them, because the management role had no read access to the books."""
+        dash = self.env['ei.dashboard'].with_user(self.ceo).create({})
+        for kpi in ('ar', 'ap', 'revenue', 'costs', 'contracts', 'bank_pending', 'suspense', 'intake', 'recon', 'pending_orders'):
+            act = dash.with_context(kpi=kpi).action_open_kpi()
+            n = self.env[act['res_model']].with_user(self.ceo).search_count(act['domain'])
+            self.assertGreaterEqual(n, 0, kpi)
+        self.assertFalse(self.env['account.move.line'].with_user(self.ceo).has_access('write'),
+                         "reading the books must not allow changing them")

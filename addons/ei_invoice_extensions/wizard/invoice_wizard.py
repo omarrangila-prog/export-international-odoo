@@ -73,7 +73,7 @@ class EiInvoiceWizard(models.TransientModel):
             if self.post:
                 move.action_post()
             moves += move
-        return {'type': 'ir.actions.act_window', 'res_model': 'account.move', 'view_mode': 'list,form',
+        return {'type': 'ir.actions.act_window', 'res_model': 'account.move', 'views': [(False, 'list'), (False, 'form')],
                 'domain': [('id', 'in', moves.ids)], 'name': _('Customer invoices')}
 
 

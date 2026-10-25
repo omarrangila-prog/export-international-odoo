@@ -3,6 +3,6 @@
     <record id="group_ei_management" model="res.groups">
         <field name="name">Management / CEO (reporting)</field>
         <field name="privilege_id" ref="ei_legacy_master.res_groups_privilege_ei_master"/>
-        <field name="implied_ids" eval="[(6, 0, [ref('ei_legacy_master.group_ei_auditor')])]"/>
+        <field name="implied_ids" eval="[(6, 0, [ref('ei_legacy_master.group_ei_auditor'), ref('account.group_account_readonly')])]"/>
     </record>
 </odoo>

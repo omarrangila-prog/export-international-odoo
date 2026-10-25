@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="ei_party360.Party360">
+        <div class="o_action ei-p360">
+            <div class="ei-p360-inner">
+
+                <!-- Search -->
+                <header class="ei-p360-head">
+                    <div>
+                        <h1 class="ei-p360-title">Party 360</h1>
+                        <p class="ei-p360-sub">Everything about one customer or supplier, on one page.</p>
+                    </div>
+                    <div class="ei-p360-search">
+                        <label for="ei-p360-q" class="visually-hidden">Find a customer or supplier</label>
+                        <span class="ei-p360-search-ico"><svg class="ei-p360-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.icon('search')"/></svg></span>
+                        <input id="ei-p360-q" type="search" autocomplete="off" autofocus="autofocus"
+                               placeholder="Type a name, nickname or old code, e.g. 4.20"
+                               role="combobox" aria-autocomplete="list" aria-controls="ei-p360-list"
+                               t-att-aria-expanded="this.state.open ? 'true' : 'false'"
+                               t-att-aria-activedescendant="this.state.active &gt;= 0 ? 'ei-p360-opt-' + this.state.active : ''"
+                               t-att-value="this.state.query"
+                               t-on-input="(ev) => this.onInput(ev)" t-on-keydown="(ev) => this.onKeydown(ev)"/>
+                        <ul t-if="this.state.open" id="ei-p360-list" class="ei-p360-results" role="listbox" aria-label="Matching parties">
+                            <li t-foreach="this.state.results" t-as="r" t-key="r_index"
+                                t-att-id="'ei-p360-opt-' + r_index" role="option"
+                                t-att-aria-selected="r_index === this.state.active ? 'true' : 'false'"
+                                t-att-class="'ei-p360-opt' + (r_index === this.state.active ? ' is-active' : '') + (r.partner_id ? '' : ' is-unlinked')"
+                                t-on-mousedown.prevent="() => this.pick(r)">
+                                <span class="ei-p360-opt-title" t-out="r.title"/>
+                                <span class="ei-p360-opt-sub" t-out="r.subtitle"/>
+                            </li>
+                            <li t-if="!this.state.results.length" class="ei-p360-none" role="option" aria-selected="false">
+                                No party found. Try part of the name, a nickname, or the old code.
+                            </li>
+                        </ul>
+                    </div>
+                </header>
+
+                <!-- Loading / error -->
+                <div t-if="this.state.loading" class="ei-p360-loading" role="status"><span class="ei-p360-spin"/> Loading this party...</div>
+                <div t-elif="this.state.error" class="ei-p360-card ei-p360-error" role="alert">
+                    <h3>This page could not be loaded</h3>
+                    <p t-out="this.state.error"/>
+                </div>
+
+                <!-- Empty state -->
+                <section t-elif="!this.state.data" class="ei-p360-card ei-p360-empty">
+                    <h2>Find a customer or supplier</h2>
+                    <p>Type at least two letters of the name or nickname, or the old code exactly as it was written (for example <b>4.20</b> or <b>16.10</b>).
+                        Use the arrow keys and Enter to choose.</p>
+                    <div t-if="this.state.recent.length" class="ei-p360-recent">
+                        <span class="ei-p360-recent-label">Recently opened</span>
+                        <button t-foreach="this.state.recent" t-as="r" t-key="r.id" class="ei-p360-chip-btn" t-on-click="() => this.load(r.id)" t-out="r.name"/>
+                    </div>
+                </section>
+
+                <!-- The party -->
+                <t t-else="">
+                    <t t-set="d" t-value="this.state.data"/>
+                    <section class="ei-p360-card ei-p360-party">
+                        <div class="ei-p360-party-main">
+                            <h2 class="ei-p360-name" t-out="d.partner.name"/>
+                            <div class="ei-p360-codes" t-if="d.partner.codes.length or d.partner.ref">
+                                <span t-foreach="d.partner.codes" t-as="c" t-key="c.id" class="ei-p360-code" t-att-title="c.name + ' - ' + c.sheet + ' - ' + c.status">
+                                    <span class="ei-p360-code-num" t-out="c.code"/> <span class="ei-p360-code-sheet" t-out="c.sheet"/>
+                                </span>
+                                <span t-if="d.partner.ref and !d.partner.codes.length" class="ei-p360-code"><span class="ei-p360-code-num" t-out="d.partner.ref"/></span>
+                            </div>
+                            <p class="ei-p360-muted" t-if="!d.partner.codes.length">No approved old code is linked to this party yet.</p>
+                            <p class="ei-p360-muted" t-if="d.partner.aliases.length">Also known as: <span t-out="d.partner.aliases.join(', ')"/></p>
+                            <p class="ei-p360-muted" t-if="d.partner.city or d.partner.phone or d.partner.email"><span t-out="[d.partner.city, d.partner.phone, d.partner.email].filter(Boolean).join(' · ')"/></p>
+                        </div>
+                        <div class="ei-p360-party-side">
+                            <span class="ei-p360-asof">Read from the system at <b t-out="d.as_of"/></span>
+                            <div class="ei-p360-actions">
+                                <button class="ei-p360-btn" t-on-click="() => this.openContact()">Open contact</button>
+                                <button class="ei-p360-btn ei-p360-btn-ghost" t-on-click="() => this.reload()">
+                                    <svg class="ei-p360-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.icon('refresh')"/></svg> Refresh</button>
+                            </div>
+                        </div>
+                    </section>
+
+                    <p t-if="d.hidden.length" class="ei-p360-notice" role="note">
+                        Your role cannot see these sections: <b t-out="d.hidden.join(', ')"/>. They are left out; they are not zero. Ask the team that owns them if you need a number.
+                    </p>
+
+                    <!-- Figures -->
+                    <section t-foreach="d.groups" t-as="g" t-key="g.key" t-if="this.hasMetrics(g)" class="ei-p360-section">
+                        <h2 class="ei-p360-h2" t-out="g.label"/>
+                        <div class="ei-p360-grid">
+                            <article t-foreach="this.metricsOf(g)" t-as="m" t-key="m.key" t-att-class="'ei-p360-kpi ei-tone-' + m.tone">
+                                <div class="ei-p360-kpi-label" t-out="m.label"/>
+                                <div class="ei-p360-kpi-value" t-out="m.text"/>
+                                <div class="ei-p360-kpi-basis" t-out="m.basis"/>
+                                <div class="ei-p360-kpi-actions">
+                                    <button t-if="m.count" class="ei-p360-link" t-on-click="() => this.openFigure(m)">Show the records</button>
+                                    <button class="ei-p360-link" t-att-aria-expanded="this.state.explain[m.key] ? 'true' : 'false'"
+                                            t-att-aria-controls="'ei-p360-ex-' + m.key" t-on-click="() => this.toggleExplain(m.key)">
+                                        <svg class="ei-p360-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.icon('info')"/></svg>
+                                        How is this worked out?
+                                    </button>
+                                </div>
+                                <p t-if="this.state.explain[m.key]" t-att-id="'ei-p360-ex-' + m.key" class="ei-p360-explain" t-out="m.explain"/>
+                            </article>
+                        </div>
+                    </section>
+
+                    <!-- Chains -->
+                    <section class="ei-p360-section" t-if="d.chains !== null">
+                        <h2 class="ei-p360-h2">From contract to payment</h2>
+                        <div t-if="!d.chains.length" class="ei-p360-card ei-p360-muted-card">No delivery advices for this party yet.</div>
+                        <div t-else="" class="ei-p360-card ei-p360-chains">
+                            <div t-foreach="d.chains" t-as="c" t-key="c.da_id" class="ei-p360-chain">
+                                <div class="ei-p360-chain-head"><b t-out="c.da"/> <span class="ei-p360-muted" t-out="c.total"/></div>
+                                <ol class="ei-p360-stages">
+                                    <li t-foreach="c.stages" t-as="s" t-key="s.key" t-att-class="'ei-p360-stage is-' + s.tone">
+                                        <t t-set="clickable" t-value="s.model and s.res_id"/>
+                                        <button t-if="clickable" class="ei-p360-stage-body" t-on-click="() => this.openRecord(s.model, s.res_id)">
+                                            <span class="ei-p360-stage-label" t-out="s.label"/>
+                                            <span class="ei-p360-stage-text"><svg class="ei-p360-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.stageIcon(s.tone)"/></svg><span class="visually-hidden" t-out="this.stageWord(s.tone) + ': '"/><span t-out="s.text"/></span>
+                                        </button>
+                                        <div t-else="" class="ei-p360-stage-body">
+                                            <span class="ei-p360-stage-label" t-out="s.label"/>
+                                            <span class="ei-p360-stage-text"><svg class="ei-p360-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.stageIcon(s.tone)"/></svg><span class="visually-hidden" t-out="this.stageWord(s.tone) + ': '"/><span t-out="s.text"/></span>
+                                        </div>
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Timeline -->
+                    <section class="ei-p360-section" t-if="d.timeline.length">
+                        <h2 class="ei-p360-h2">What happened, newest first</h2>
+                        <ul class="ei-p360-card ei-p360-timeline">
+                            <li t-foreach="d.timeline" t-as="e" t-key="e_index">
+                                <button class="ei-p360-event" t-on-click="() => this.openRecord(e.model, e.res_id)">
+                                    <span class="ei-p360-event-date" t-out="e.date"/>
+                                    <span class="ei-p360-event-kind" t-out="this.kindLabel(e.kind)"/>
+                                    <span class="ei-p360-event-title" t-out="e.title"/>
+                                    <span class="ei-p360-event-detail" t-out="e.detail"/>
+                                </button>
+                            </li>
+                        </ul>
+                    </section>
+                </t>
+            </div>
+        </div>
+    </t>
+</templates>

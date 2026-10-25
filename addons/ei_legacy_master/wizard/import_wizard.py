@@ -18,7 +18,7 @@ class EiImportWizard(models.TransientModel):
             raise AccessError(_("Only legacy-code importers can run an import."))
         batch = self.env['ei.import.batch'].import_file(self.filename, base64.b64decode(self.file))
         return {'type': 'ir.actions.act_window', 'res_model': 'ei.import.batch', 'res_id': batch.id,
-                'view_mode': 'form', 'target': 'current'}
+                'views': [(False, 'form')], 'target': 'current'}
 
 
 class EiApproveWizard(models.TransientModel):

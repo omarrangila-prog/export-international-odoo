@@ -29,3 +29,16 @@ Not done: performance/load test, penetration/security review, UAT with the clien
 | Plain labels applied, menu structure, empty-state help, card views, next-step banners present | GREEN | ei_ui_theme tests |
 | Screens open with no error dialog or console error (admin, CEO, cash clerk, mobile dispatch) | GREEN, manual run | `node tests/ui_smoke.js`; screenshots `docs/ui/final/` |
 | Keyboard-only walkthrough, WCAG contrast audit, screen reader, supervised user testing | NOT DONE | needs real users |
+
+## Party 360 (ei_party360, added 25 Oct 2026)
+| Check | Status | Evidence |
+|---|---|---|
+| Figures equal the journey records (10 requested, 4 lifted, 6 remaining; invoice, bank receipt) | GREEN | test_p01-p04 |
+| Party ledger equals the management dashboard (T18) | GREEN | test_p05 |
+| Every figure opens exactly the records counted | GREEN | test_p06 |
+| Suggested bank money is not counted as received (T03) | GREEN | test_p07 |
+| Role limits, no false zeros, only listed record types can be opened (T12) | GREEN | test_p08, p09 |
+| Old codes searched as text (1.3 does not find 1.03); wildcards literal; real parties rank before unlinked codes | GREEN | test_p10, p10b, p11 |
+| Opening a page writes nothing; other company sees none of it (T13); query count bounded | GREEN | test_p12-p14 |
+| Keyboard search, explain toggle, drill-down, role-limited view in a real browser | GREEN (manual script) | `node tests/ui_party360.js` |
+| Screen reader pass, WCAG contrast audit, supervised user test | NOT DONE | |

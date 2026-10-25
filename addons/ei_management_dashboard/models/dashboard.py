@@ -235,7 +235,7 @@ class EiDashboard(models.TransientModel):
     @api.model
     def open_dashboard(self):
         d = self.create({})
-        return {'type': 'ir.actions.act_window', 'res_model': self._name, 'res_id': d.id, 'view_mode': 'form',
+        return {'type': 'ir.actions.act_window', 'res_model': self._name, 'res_id': d.id, 'views': [(False, 'form')],
                 'target': 'current', 'name': _('Dashboard')}
 
     def action_open_kpi(self):
@@ -257,14 +257,14 @@ class EiDashboard(models.TransientModel):
         if k in ('aging_30', 'aging_60', 'aging_90', 'aging_90plus', 'aging_current'):
             k = 'ar'
         model, dom, name = M[k]
-        return {'type': 'ir.actions.act_window', 'name': name, 'res_model': model, 'view_mode': 'list,form',
+        return {'type': 'ir.actions.act_window', 'name': name, 'res_model': model, 'views': [(False, 'list'), (False, 'form')],
                 'domain': dom, 'target': 'current'}
 
     def action_open_queue(self):
         self.ensure_one()
         idx = int(self.env.context.get('queue', 0))
         label, model, dom = self.QUEUES[idx]
-        return {'type': 'ir.actions.act_window', 'name': _(label), 'res_model': model, 'view_mode': 'list,form', 'domain': dom}
+        return {'type': 'ir.actions.act_window', 'name': _(label), 'res_model': model, 'views': [(False, 'list'), (False, 'form')], 'domain': dom}
 
     # --------------------------------------------------------------- summary
     def daily_summary_html(self):

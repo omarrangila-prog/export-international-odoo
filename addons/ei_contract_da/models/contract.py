@@ -140,7 +140,7 @@ class EiContract(models.Model):
             raise UserError(_("Only an approved or active contract can be revised."))
         new = self.copy({'revision': self.revision + 1, 'previous_id': self.id, 'state': 'draft', 'name': 'New',
                          'maker_id': self.env.user.id})
-        return {'type': 'ir.actions.act_window', 'res_model': self._name, 'res_id': new.id, 'view_mode': 'form'}
+        return {'type': 'ir.actions.act_window', 'res_model': self._name, 'res_id': new.id, 'views': [(False, 'form')]}
 
     def _refresh_fulfilment(self):
         for r in self.filtered(lambda c: c.state in ('active', 'fulfilled')):

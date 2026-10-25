@@ -17,3 +17,5 @@
 | 13 | Weighbridge tolerance | Lifting verification | 0 (any difference needs an approved note) |
 | 14 | Whether customer invoice wording may vary per customer | Invoice layouts | One optional switch (show gate pass/truck) |
 | 15 | Which users hold which role | Production role assignment | None assigned |
+| 9 | CEO/management role now holds Odoo's read-only accounting group so KPI drill-downs open the journal items (it could not before). Finance to confirm the CEO may read all posted journal items; the role still cannot write | Permissions | read-only (applied 25 Oct 2026) |
+| 10 | Party 360 shows ledger balances to finance roles, management and the auditor only (same rule as the dashboard). Confirm who else may see a party's balance | Permissions | finance + management + auditor |

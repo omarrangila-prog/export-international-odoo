@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_partner_form_ei_party360" model="ir.ui.view">
+        <field name="name">res.partner.form.ei.party360</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="before">
+                <header groups="ei_legacy_master.group_ei_user">
+                    <button name="action_open_party360" type="object" string="Party 360 - see everything" class="btn-primary"
+                            invisible="not id"/>
+                </header>
+            </xpath>
+        </field>
+    </record>
+</odoo>

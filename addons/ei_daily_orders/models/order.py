@@ -119,7 +119,7 @@ class EiDailyOrder(models.Model):
         tmpl = self.env.ref('ei_daily_orders.mail_template_daily_order')
         ctx = {'default_model': self._name, 'default_res_ids': self.ids, 'default_template_id': tmpl.id,
                'default_composition_mode': 'comment', 'force_email': True}
-        return {'type': 'ir.actions.act_window', 'res_model': 'mail.compose.message', 'view_mode': 'form',
+        return {'type': 'ir.actions.act_window', 'res_model': 'mail.compose.message', 'views': [(False, 'form')],
                 'target': 'new', 'context': ctx}
 
 
@@ -217,4 +217,4 @@ class EiDa(models.Model):
     def action_generate_order(self):
         self.ensure_one()
         order = self.env['ei.daily.order'].generate_from_da(self)
-        return {'type': 'ir.actions.act_window', 'res_model': 'ei.daily.order', 'res_id': order.id, 'view_mode': 'form'}
+        return {'type': 'ir.actions.act_window', 'res_model': 'ei.daily.order', 'res_id': order.id, 'views': [(False, 'form')]}

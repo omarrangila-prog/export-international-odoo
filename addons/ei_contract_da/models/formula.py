@@ -90,7 +90,7 @@ class EiFormulaDefinition(models.Model):
             s.copy({'definition_id': new.id})
         for t in self.test_ids:
             t.copy({'definition_id': new.id})
-        return {'type': 'ir.actions.act_window', 'res_model': self._name, 'res_id': new.id, 'view_mode': 'form'}
+        return {'type': 'ir.actions.act_window', 'res_model': self._name, 'res_id': new.id, 'views': [(False, 'form')]}
 
     def action_retire(self):
         if not self.env.user.has_group('ei_contract_da.group_ei_formula_approver'):

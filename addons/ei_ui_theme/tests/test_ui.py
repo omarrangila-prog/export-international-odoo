@@ -105,7 +105,7 @@ class TestEasyInterface(TransactionCase):
     def test_10_short_top_menu_in_plain_words(self):
         root = self.env.ref('ei_legacy_master.menu_ei_root')
         names = [m.name for m in self.env['ir.ui.menu'].search([('parent_id', '=', root.id)], order='sequence')]
-        self.assertEqual(names, ['Home', 'Money', 'Orders & Trucks', 'Bills & Invoices', 'Month-end', 'Approvals', 'Setup'])
+        self.assertEqual([n for n in names if n != 'Customers & Suppliers'], ['Home', 'Money', 'Orders & Trucks', 'Bills & Invoices', 'Month-end', 'Approvals', 'Setup'])
         parent_of = lambda xid: self.env.ref(xid).parent_id.name
         self.assertEqual(parent_of('ei_cashbook.menu_ei_cash_vouchers'), 'Money')
         self.assertEqual(parent_of('ei_material_lifting.menu_ei_lifting'), 'Orders & Trucks')
@@ -138,3 +138,31 @@ class TestEasyInterface(TransactionCase):
             self.assertEqual(u.action_id.id, self.env.ref('ei_ui_theme.action_ei_home').id)
             self.assertFalse(u.tour_enabled)
         self.assertFalse(self.plain.action_id)             # not an Export International user
+
+    def test_15_window_actions_returned_from_python_carry_views(self):
+        """Regression (found 25 Oct 2026): Odoo 20's web client fails with "Cannot read properties of undefined
+        (reading 'map')" when Python returns an act_window with `view_mode` but no `views`. The server-side work
+        succeeded and the user still saw an error dialog (amend, import wizards, invoice wizard, KPI drill-downs).
+        Every window action built in our Python code must carry `views`."""
+        import ast
+        import os
+        from odoo.modules import get_module_path
+        offenders = []
+        names = self.env['ir.module.module'].search([('name', '=like', 'ei\\_%'), ('state', '=', 'installed')]).mapped('name')
+        for name in names:
+            for folder, _dirs, files in os.walk(get_module_path(name)):
+                if os.sep + 'tests' in folder:
+                    continue
+                for fname in files:
+                    if not fname.endswith('.py'):
+                        continue
+                    path = os.path.join(folder, fname)
+                    with open(path) as fh:
+                        tree = ast.parse(fh.read())
+                    for node in ast.walk(tree):
+                        if isinstance(node, ast.Dict):
+                            keys = {k.value: v for k, v in zip(node.keys, node.values) if isinstance(k, ast.Constant)}
+                            t = keys.get('type')
+                            if isinstance(t, ast.Constant) and t.value == 'ir.actions.act_window' and 'views' not in keys:
+                                offenders.append('%s:%s' % (os.path.relpath(path, get_module_path(name)), node.lineno))
+        self.assertEqual(offenders, [], "window actions without `views` break in the Odoo 20 web client")

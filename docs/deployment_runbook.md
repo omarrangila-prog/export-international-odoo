@@ -1,16 +1,17 @@
 # Deployment runbook (what was actually exercised on this machine)
 
 Target: **Odoo 20.0 Community (nightly 20261018)**, PostgreSQL 16, Python 3.12. Odoo 20 is unpacked in `~/odoo20` and started with the isolating launcher `~/odoo20/odoo20`, so the system Odoo 19 Enterprise used by other projects is never touched.
-The 11 modules depend only on Community apps (`base mail account analytic product uom web_tour`).
+The 12 modules depend only on Community apps (`base mail account analytic product uom web_tour`).
 
 ## 1. Fresh install and tests
 ```
-tests/run_all.sh                      # creates DB ei_fulltest, installs all 11 modules, runs all tests, writes docs/test_results.md
+tests/run_all.sh                      # creates DB ei_fulltest, installs all 12 modules, runs all tests, writes docs/test_results.md
 ```
 ## 2. Staging database (one command)
 ```
 migration/build_staging.sh ei20b      # DB, modules, PKR company + Pakistan chart, 639 codes, UAT roles, synthetic demo data
-~/odoo20/odoo20 -c /dev/null -d ei20b --addons-path=$HOME/odoo20/root/usr/lib/python3/dist-packages/odoo/addons,$PWD/addons --http-port=8369
+~/odoo20/odoo20 -c /dev/null -d ei20b --addons-path=$HOME/odoo20/root/usr/lib/python3/dist-packages/odoo/addons,$PWD/addons --http-interface=127.0.0.1 --http-port=8369
+# or: migration/serve.sh ei20b          (loopback only; stop with kill $(cat ~/.ei_server.pid))
 ```
 Logins: `admin`/`admin` (all roles, UAT only) and `demo.<role>`/`demo` (one role each). The demo data is synthetic and must not be loaded in production.
 The Home page, readable labels and card views come from `ei_ui_theme`; to refresh them after code changes run the server once with `-u ei_ui_theme`.

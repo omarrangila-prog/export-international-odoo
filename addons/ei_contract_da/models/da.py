@@ -143,7 +143,7 @@ class EiDa(models.Model):
                                ('name', '=', self.name)]).mapped('amendment_no'))
         new = self.copy({'name': self.name, 'amendment_no': top + 1, 'previous_id': self.id, 'state': 'draft',
                          'maker_id': self.env.user.id})
-        return {'type': 'ir.actions.act_window', 'res_model': self._name, 'res_id': new.id, 'view_mode': 'form'}
+        return {'type': 'ir.actions.act_window', 'res_model': self._name, 'res_id': new.id, 'views': [(False, 'form')]}
 
     def _cancel_for_revision(self, new_contract):
         self._sys({'state': 'cancelled', 'cancel_reason': _('Contract revised to %s; re-enter the DA against it.', new_contract.name)})

@@ -18,4 +18,4 @@ class EiParentImportWizard(models.TransientModel):
                                                           base64.b64decode(self.file))
         if st.state != 'rejected':
             st.action_match()
-        return {'type': 'ir.actions.act_window', 'res_model': 'ei.parent.statement', 'res_id': st.id, 'view_mode': 'form'}
+        return {'type': 'ir.actions.act_window', 'res_model': 'ei.parent.statement', 'res_id': st.id, 'views': [(False, 'form')]}

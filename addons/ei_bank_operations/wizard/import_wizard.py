@@ -19,7 +19,7 @@ class EiBankImportWizard(models.TransientModel):
         batch = self.env['ei.bank.import'].import_file(
             self.journal_id, self.filename, base64.b64decode(self.file), self.opening_balance, self.closing_balance)
         return {'type': 'ir.actions.act_window', 'res_model': 'ei.bank.import', 'res_id': batch.id,
-                'view_mode': 'form'}
+                'views': [(False, 'form')]}
 
 
 class EiBankLineWizard(models.TransientModel):
