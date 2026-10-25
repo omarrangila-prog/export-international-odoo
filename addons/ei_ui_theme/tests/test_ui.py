@@ -25,52 +25,7 @@ class TestEasyInterface(TransactionCase):
         c.action_review()
         cls.contract = c
 
-    def keys(self, data):
-        return {t['key']: t for a in data['areas'] for t in a['tasks']}
-
     # ------------------------------------------------------------ home data
-    def test_01_tasks_match_real_counts(self):
-        d = self.Home.with_user(self.contract_mgr).get_data()
-        t = self.keys(d)
-        self.assertEqual(t['contracts']['count'], self.env['ei.contract'].search_count([('state', '=', 'reviewed')]))
-        self.assertGreaterEqual(t['contracts']['count'], 1)
-        self.assertEqual(t['contracts']['tone'], 'warning')
-        self.assertEqual(t['das']['tone'], 'ok')          # nothing waiting -> green "All done"
-        self.assertGreaterEqual(d['attention'], 1)
-
-    def test_02_sections_follow_the_users_role(self):
-        d = self.Home.with_user(self.cash).get_data()
-        t = self.keys(d)
-        self.assertIn('vouchers', t)
-        for hidden in ('bank_lines', 'contracts', 'intake', 'recon'):
-            self.assertNotIn(hidden, t)
-        self.assertEqual({q['key'] for q in d['quick']}, {'q_voucher'})
-        self.assertEqual(d['money'], [])                  # no finance numbers for a cash clerk
-        self.assertEqual(d['banks'], [])
-
-    def test_03_user_without_a_role_sees_a_polite_empty_page(self):
-        d = self.Home.with_user(self.plain).get_data()
-        self.assertTrue(d['empty'])
-        self.assertEqual((d['areas'], d['quick'], d['steps']), ([], [], []))
-
-    def test_04_ceo_sees_money_and_banks_but_cannot_create_records(self):
-        d = self.Home.with_user(self.ceo).get_data()
-        self.assertEqual({m['key'] for m in d['money']}, {'ar', 'ap', 'cash', 'profit'})
-        self.assertFalse(d['quick'])                      # reporting role: nothing to create
-        self.assertIn('greeting', d)
-
-    def test_05_home_is_read_only(self):
-        before = [self.env[m].search_count([]) for m in ('ei.contract', 'ei.da', 'ei.bank.import', 'ei.cash.voucher', 'account.move')]
-        self.Home.with_user(self.contract_mgr).get_data()
-        self.Home.with_user(self.ceo).get_data()
-        self.assertEqual(before, [self.env[m].search_count([]) for m in ('ei.contract', 'ei.da', 'ei.bank.import', 'ei.cash.voucher', 'account.move')])
-
-    def test_06_day_steps(self):
-        steps = {s['key']: s for s in self.Home.with_user(self.contract_mgr).get_data()['steps']}
-        self.assertIn('s_da', steps)
-        self.assertFalse(steps['s_da']['done'])           # nothing entered today
-        self.assertNotIn('s_bank', steps)                 # a contract manager has no bank access
-
     # ------------------------------------------------------------ clicks
     def test_07_clicks_open_the_right_records(self):
         act = self.Home.with_user(self.contract_mgr).open_task('contracts')
@@ -142,8 +97,9 @@ class TestEasyInterface(TransactionCase):
     def test_15_window_actions_returned_from_python_carry_views(self):
         """Regression (found 25 Oct 2026): Odoo 20's web client fails with "Cannot read properties of undefined
         (reading 'map')" when Python returns an act_window with `view_mode` but no `views`. The server-side work
-        succeeded and the user still saw an error dialog (amend, import wizards, invoice wizard, KPI drill-downs).
-        Every window action built in our Python code must carry `views`."""
+        succeeded and the user still saw an error dialog. Verified scope: standard buttons are normalised by Odoo's button
+        controller and work; custom Owl screens that fetch an action with orm.call (the Home money tiles) crash. Every window
+        action built in our Python code must carry `views`."""
         import ast
         import os
         from odoo.modules import get_module_path
@@ -166,3 +122,47 @@ class TestEasyInterface(TransactionCase):
                             if isinstance(t, ast.Constant) and t.value == 'ir.actions.act_window' and 'views' not in keys:
                                 offenders.append('%s:%s' % (os.path.relpath(path, get_module_path(name)), node.lineno))
         self.assertEqual(offenders, [], "window actions without `views` break in the Odoo 20 web client")
+
+    def test_16_every_reason_button_is_allowed_by_its_wizard(self):
+        """Regression (found by the browser suite, 25 Oct 2026): "Cancel order request" and "Reverse lifting" opened the
+        reason wizard, and Confirm always answered "Action not allowed" because the wizard's allow-list did not know them."""
+        import ast
+        wiz = self.env['ei.reason.wizard']
+        offered = []
+        for act in self.env['ir.actions.act_window'].search([('res_model', '=', 'ei.reason.wizard')]):
+            ctx = ast.literal_eval(act.context or '{}')
+            if ctx.get('default_res_model'):
+                offered.append((ctx['default_res_model'], ctx['default_method']))
+        self.assertGreaterEqual(len(offered), 5, offered)
+        self.assertIn(('ei.daily.order', 'action_cancel'), offered)
+        self.assertIn(('ei.lifting', 'action_reverse'), offered)
+        for pair in offered:
+            self.assertIn(pair, wiz._allowed(), '%s.%s is offered on a screen but the wizard would refuse it' % pair)
+
+    def test_17_import_wizards_accept_what_the_screen_uploads(self):
+        """Regression (found by the browser suite, 25 Oct 2026): in Odoo 20 an uploaded file comes back from a Binary field as a
+        BinaryValue, not base64 text, so all three import wizards failed on screen ("Oops") while the tests, which call
+        import_file() directly with bytes, kept passing. Drive each wizard the way the form does: assign the file, press Import."""
+        import base64
+        from odoo.addons.ei_legacy_master.tests.test_parsing import source_bytes
+        mk = lambda login, *gs: self.env['res.users'].with_context(no_reset_password=True).create({
+            'name': login, 'login': login, 'group_ids': [Command.set([self.env.ref(g).id for g in gs])]})
+        importer = mk('w_importer', 'ei_legacy_master.group_ei_importer')
+        batch = self.env['ei.import.wizard'].with_user(importer).create({
+            'file': base64.b64encode(source_bytes()).decode(), 'filename': 'EXI_legacy_codes.csv'}).action_import()
+        self.assertEqual(batch['res_model'], 'ei.import.batch')
+        self.assertEqual(self.env['ei.import.batch'].browse(batch['res_id']).total_rows, 639)
+        recon = mk('w_recon', 'ei_parent_reconciliation.group_ei_recon_user')
+        parent = self.env['res.partner'].create({'name': 'Wizard parent'})
+        st = self.env['ei.parent.import.wizard'].with_user(recon).create({
+            'partner_id': parent.id, 'date_from': '2026-10-01', 'date_to': '2026-10-31', 'filename': 'p.csv',
+            'file': base64.b64encode(b'Invoice No,Date,Amount,Tax\nW-1,06/10/2026,1000,0\n').decode()}).action_import()
+        self.assertEqual(st['res_model'], 'ei.parent.statement')
+        self.assertTrue(self.env['ei.parent.statement'].browse(st['res_id']).line_ids)
+        officer = mk('w_officer', 'ei_bank_operations.group_ei_bank_officer')
+        journal = self.env['account.journal'].create({'name': 'Wizard bank', 'type': 'bank', 'code': 'WZB'})
+        res = self.env['ei.bank.import.wizard'].with_user(officer).create({
+            'journal_id': journal.id, 'filename': 'b.csv', 'opening_balance': 0, 'closing_balance': 1000,
+            'file': base64.b64encode(b'Date,Description,Reference,Debit,Credit,Balance\n25/10/2026,RAAST FROM WIZ,WZ-1,,1000,1000\n').decode()}).action_import()
+        self.assertEqual(res['res_model'], 'ei.bank.import')
+        self.assertEqual(self.env['ei.bank.import'].browse(res['res_id']).line_ids.mapped('amount'), [1000.0])

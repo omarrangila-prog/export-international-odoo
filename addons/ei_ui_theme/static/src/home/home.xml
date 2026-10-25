@@ -1,125 +1,306 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
     <t t-name="ei_ui_theme.Home">
-        <div class="o_action ei-home">
+        <div class="o_action ei-home" t-att-data-profile="this.state.data ? this.state.data.profile : ''">
             <div class="ei-home-inner">
+
+                <!-- Loading skeleton: shape of the page, not a spinner -->
                 <t t-if="this.state.loading and !this.state.data">
-                    <div class="ei-loading"><span class="ei-spin"/> Loading your day...</div>
+                    <div class="ei-skel-top ei-skel" role="status" aria-label="Loading your page"/>
+                    <div class="ei-grid-kpi"><div class="ei-skel ei-skel-kpi" t-foreach="[1,2,3,4]" t-as="n" t-key="n"/></div>
+                    <div class="ei-skel ei-skel-block"/>
                 </t>
-                <t t-elif="this.state.error">
-                    <div class="ei-card ei-error">
-                        <h3>We could not load your page</h3>
-                        <p>Please check your connection and try again.</p>
+                <t t-elif="this.state.error and !this.state.data">
+                    <section class="ei-card ei-state" role="alert">
+                        <h2>We could not load your page</h2>
+                        <p>Nothing was changed. Check your connection and try again.</p>
                         <button class="ei-btn ei-btn-primary" t-on-click="() => this.onRefresh()">Try again</button>
-                    </div>
+                    </section>
                 </t>
                 <t t-else="">
                     <t t-set="d" t-value="this.state.data"/>
 
-                    <!-- Header -->
-                    <header class="ei-hero">
-                        <div>
-                            <div class="ei-hero-date" t-out="d.date"/>
-                            <h1 class="ei-hero-title"><span t-out="d.greeting"/>, <span t-out="d.name"/></h1>
-                            <p class="ei-hero-sub" t-if="d.empty">No work areas are assigned to you yet. Please ask your administrator.</p>
-                            <p class="ei-hero-sub" t-elif="d.attention">
-                                <b t-out="d.attention"/> <t t-if="d.attention == 1">thing is</t><t t-else="">things are</t> waiting for you today. Start with the red and yellow cards below.
+                    <!-- ===== compact header ===== -->
+                    <header class="ei-top">
+                        <div class="ei-top-id">
+                            <h1 class="ei-top-title"><span t-out="d.header.company"/></h1>
+                            <p class="ei-top-sub">
+                                <span class="ei-role"><svg class="ei-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.icon('user')"/></svg><span t-out="d.header.user"/> · <span t-out="d.header.role"/></span>
+                                <span class="ei-sep" aria-hidden="true">·</span><span t-out="d.header.date"/>
                             </p>
-                            <p class="ei-hero-sub" t-else="">Everything is up to date. Nothing needs your attention right now.</p>
                         </div>
-                        <button class="ei-btn ei-btn-ghost" t-on-click="() => this.onRefresh()" title="Refresh">
-                            <svg t-att-class="this.state.loading ? 'ei-svg ei-rot' : 'ei-svg'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path t-att-d="this.icon('fa-refresh')"/></svg> Updated <span t-out="d.updated"/>
-                        </button>
+                        <EiSearchBox/>
+                        <div class="ei-top-tools">
+                            <span class="ei-fresh" title="When this page was read from the system">
+                                Updated <b t-out="d.header.time"/><t t-if="d.header.bank_confirmed"><br class="ei-fresh-br"/><span class="ei-fresh-dot" aria-hidden="true"> · </span>Bank confirmed <b t-out="d.header.bank_confirmed"/></t>
+                            </span>
+                            <button class="ei-iconbtn" t-on-click="() => this.onRefresh()" aria-label="Refresh this page" title="Refresh">
+                                <svg t-att-class="this.state.loading ? 'ei-svg ei-rot' : 'ei-svg'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.icon('refresh')"/></svg>
+                            </button>
+                            <span class="ei-pill ei-pill-warning" t-if="d.header.approvals" t-att-title="d.header.approvals + ' approvals are waiting for you'"><svg class="ei-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.icon('clip')"/></svg><b t-out="d.header.approvals"/> to approve</span>
+                            <span class="ei-pill ei-pill-info" t-if="d.header.reminders" title="Reminders assigned to you"><svg class="ei-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.icon('bell')"/></svg><b t-out="d.header.reminders"/> <t t-if="d.header.reminders == 1">reminder</t><t t-else="">reminders</t></span>
+                            <button class="ei-iconbtn" t-on-click="() => this.toggleTheme()" t-att-aria-pressed="this.isDark ? 'true' : 'false'" t-att-aria-label="this.isDark ? 'Switch to the light theme' : 'Switch to the dark theme'" t-att-title="this.isDark ? 'Light theme' : 'Dark theme'">
+                                <svg class="ei-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.icon(this.isDark ? 'sun' : 'moon')"/></svg>
+                            </button>
+                        </div>
                     </header>
 
-                    <!-- Quick start -->
-                    <section t-if="d.quick.length" class="ei-section">
-                        <h2 class="ei-h2">What do you want to do?</h2>
-                        <div class="ei-quick">
-                            <button t-foreach="d.quick" t-as="q" t-key="q.key" class="ei-quick-btn" t-on-click="() => this.onQuick(q.key)">
-                                <span class="ei-quick-ico"><svg class="ei-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path t-att-d="this.icon(q.icon)"/></svg></span>
-                                <span class="ei-quick-label" t-out="q.label"/>
+                    <p t-if="this.state.error" class="ei-banner ei-banner-bad" role="alert">The page could not be refreshed. What you see is from the last successful load.</p>
+                    <p t-if="d.empty" class="ei-banner ei-banner-info">No work areas are assigned to you yet. Please ask your administrator.</p>
+
+                    <t t-foreach="this.layout" t-as="sec" t-key="sec">
+
+                    <!-- ===== layer 1: figures ===== -->
+                    <section t-if="sec === 'kpis'" class="ei-section" aria-labelledby="ei-h-kpis">
+                        <h2 class="ei-h2" id="ei-h-kpis">At a glance</h2>
+                        <div class="ei-grid-kpi">
+                            <button t-foreach="this.kpiMain" t-as="k" t-key="k.key" t-att-class="'ei-kpi ei-tone-' + k.tone" t-on-click="() => this.onKpi(k)" t-att-aria-label="k.label + ': ' + k.value + '. ' + k.sub + '. Open the records.'">
+                                <span class="ei-kpi-head"><span class="ei-kpi-ico"><svg class="ei-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.icon(k.icon)"/></svg></span><span class="ei-kpi-label" t-out="k.label"/></span>
+                                <span class="ei-kpi-value" t-out="k.value"/>
+                                <span class="ei-kpi-sub" t-out="k.sub"/>
+                                <span class="ei-kpi-basis" t-out="k.basis"/>
+                            </button>
+                        </div>
+                        <div t-if="this.kpiMore.length" class="ei-grid-kpi ei-grid-kpi-small">
+                            <button t-foreach="this.kpiMore" t-as="k" t-key="k.key" t-att-class="'ei-kpi ei-kpi-small ei-tone-' + k.tone" t-on-click="() => this.onKpi(k)" t-att-aria-label="k.label + ': ' + k.value + '. ' + k.sub + '. Open the records.'">
+                                <span class="ei-kpi-head"><span class="ei-kpi-ico"><svg class="ei-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.icon(k.icon)"/></svg></span><span class="ei-kpi-label" t-out="k.label"/></span>
+                                <span class="ei-kpi-value" t-out="k.value"/>
+                                <span class="ei-kpi-sub" t-out="k.sub"/>
+                                <span class="ei-kpi-basis" t-out="k.basis"/>
                             </button>
                         </div>
                     </section>
 
-                    <!-- Needs attention -->
-                    <section t-foreach="d.areas" t-as="area" t-key="area.key" class="ei-section">
-                        <h2 class="ei-h2" t-out="area.label"/>
-                        <div class="ei-grid">
-                            <button t-foreach="area.tasks" t-as="t" t-key="t.key" t-att-class="'ei-task ei-tone-' + t.tone" t-on-click="() => this.onTask(t.key)">
-                                <span class="ei-task-ico"><svg class="ei-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path t-att-d="this.icon(t.count ? t.icon : 'fa-check')"/></svg></span>
-                                <span class="ei-task-body">
-                                    <span class="ei-task-count" t-out="t.count"/>
-                                    <span class="ei-task-label" t-out="t.label"/>
-                                    <span class="ei-task-hint" t-if="t.count" t-out="t.hint"/>
-                                    <span class="ei-task-hint" t-else="">All done</span>
-                                </span>
-                            </button>
+                    <!-- ===== layer 2: alerts ===== -->
+                    <section t-if="sec === 'alerts'" class="ei-section" aria-labelledby="ei-h-alerts">
+                        <h2 class="ei-h2" id="ei-h-alerts">Needs attention <span t-if="d.alerts.length" class="ei-count" t-out="d.alerts.length"/></h2>
+                        <div t-if="!d.alerts.length" class="ei-card ei-allclear" role="status">
+                            <svg class="ei-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.icon('check')"/></svg>
+                            <span><b>No alerts.</b> No duplicate payments, unmatched invoices or stuck approvals right now.</span>
+                        </div>
+                        <ul t-else="" class="ei-card ei-alerts">
+                            <li t-foreach="d.alerts" t-as="a" t-key="a.key">
+                                <button t-att-class="'ei-alert ei-sev-' + a.severity" t-on-click="() => this.onAlert(a)">
+                                    <span class="ei-alert-ico"><svg class="ei-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.icon(a.severity === 'danger' ? 'alert' : 'flag')"/></svg></span>
+                                    <span class="ei-alert-text"><span class="ei-alert-label"><span class="visually-hidden" t-out="a.severity === 'danger' ? 'Problem: ' : 'Warning: '"/><span t-out="a.label"/></span><span class="ei-alert-detail" t-out="a.detail"/></span>
+                                    <span class="ei-alert-count" t-out="a.count"/>
+                                    <svg class="ei-svg ei-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.icon('chevron')"/></svg>
+                                </button>
+                            </li>
+                        </ul>
+                    </section>
+
+                    <!-- ===== My work today ===== -->
+                    <section t-if="sec === 'work'" class="ei-section" aria-labelledby="ei-h-work">
+                        <div class="ei-work-head">
+                            <h2 class="ei-h2" id="ei-h-work"><t t-if="d.work.oversight">What is stuck across the company</t><t t-else="">My work today</t> <span class="ei-count" t-out="d.work.total"/></h2>
+                            <div class="ei-chips" role="group" aria-label="Filter my work">
+                                <button t-foreach="this.filters" t-as="f" t-key="f.key" t-att-class="'ei-chip' + (this.state.filter === f.key ? ' is-on' : '')" t-att-aria-pressed="this.state.filter === f.key ? 'true' : 'false'" t-on-click="() => this.setFilter(f.key)"><span t-out="f.label"/> <span class="ei-chip-n" t-out="this.filterCount(f.key)"/></button>
+                                <button t-if="d.work.counts.snoozed or this.state.filter === 'snoozed'" t-att-class="'ei-chip' + (this.state.filter === 'snoozed' ? ' is-on' : '')" t-att-aria-pressed="this.state.filter === 'snoozed' ? 'true' : 'false'" t-on-click="() => this.toggleSnoozed()">Put aside <span class="ei-chip-n" t-out="d.work.counts.snoozed"/></button>
+                            </div>
+                        </div>
+                        <p class="ei-rules" t-out="d.work.rules"/>
+                        <div t-if="!this.tasks.length" class="ei-card ei-allclear" role="status">
+                            <svg class="ei-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.icon('check')"/></svg>
+                            <span t-if="this.state.filter === 'all'"><b>Nothing is waiting for you.</b> <t t-if="d.work.counts.others">The <t t-out="d.work.counts.others"/> items that need a second person are waiting for someone else, because you prepared them.</t></span>
+                            <span t-else="">Nothing matches this filter.</span>
+                        </div>
+                        <ul t-else="" class="ei-card ei-tasks">
+                            <li t-foreach="this.tasks" t-as="t" t-key="t.id" t-att-class="'ei-task ei-prio-' + t.priority + (t.overdue ? ' is-overdue' : '')">
+                                <span t-att-class="'ei-prio ei-prio-' + t.priority"><span class="ei-prio-dot" aria-hidden="true"/><span t-out="this.priorityWord(t.priority)"/></span>
+                                <div class="ei-task-main">
+                                    <span class="ei-task-step" t-out="t.step"/>
+                                    <span class="ei-task-title" t-out="this.shortName(t)"/>
+                                    <span class="ei-task-meta">
+                                        <span t-if="t.party" t-out="t.party"/><span t-if="t.party and t.amount" class="ei-sep" aria-hidden="true">·</span><span t-if="t.amount" class="ei-num" t-out="t.amount"/>
+                                    </span>
+                                    <span t-if="!t.view_only" class="ei-task-next">Next: <t t-out="t.next"/></span>
+                                </div>
+                                <div class="ei-task-state">
+                                    <span t-att-class="'ei-age' + (t.overdue ? ' is-late' : '')" t-out="(t.overdue ? 'Overdue - ' : '') + t.age_text"/>
+                                    <span t-if="t.assignee" class="ei-assignee"><svg class="ei-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.icon('user')"/></svg><t t-if="t.assignee_me">Assigned to you</t><t t-else="">Assigned to <span t-out="t.assignee"/></t><t t-if="t.due"> · due <span t-out="t.due"/></t></span>
+                                    <span t-if="t.status === 'escalated'" class="ei-pill ei-pill-bad"><svg class="ei-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.icon('flag')"/></svg>Escalated</span>
+                                    <span t-if="t.status === 'snoozed'" class="ei-pill ei-pill-neutral">Back on <span t-out="t.snoozed_until"/></span>
+                                    <span t-if="t.view_only" class="ei-pill ei-pill-neutral">View only</span>
+                                </div>
+                                <div class="ei-task-act">
+                                    <button class="ei-btn ei-btn-primary ei-btn-sm" t-on-click="() => this.onTask(t)" t-att-title="t.next" t-att-aria-label="t.verb + ': ' + t.title + '. ' + t.next"><t t-out="t.view_only ? 'Open' : t.verb"/></button>
+                                    <button t-if="t.status === 'snoozed'" class="ei-btn ei-btn-sm" t-on-click="() => this.unsnooze(t)">Bring back</button>
+                                    <div t-elif="!t.bulk" class="ei-menu-wrap">
+                                        <button class="ei-iconbtn ei-more" t-on-click="(ev) => this.toggleMenu(t, ev)" aria-haspopup="menu" t-att-aria-expanded="this.state.menu === t.id ? 'true' : 'false'" t-att-aria-label="'More actions for ' + t.title"><svg class="ei-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.icon('dots')"/></svg></button>
+                                        <div t-if="this.state.menu === t.id" class="ei-menu" role="menu">
+                                            <button t-if="t.can_assign" role="menuitem" t-on-click="() => this.openAssign(t)">Assign to someone...</button>
+                                            <button t-foreach="this.snoozeChoices" t-as="c" t-key="c[0]" role="menuitem" t-on-click="() => this.snooze(t, c[0])">Put aside <t t-out="c[1].toLowerCase()"/></button>
+                                            <button t-if="t.can_escalate" role="menuitem" t-on-click="() => this.openEscalate(t)">Escalate to management...</button>
+                                            <button t-if="t.my_activity" role="menuitem" t-on-click="() => this.markDone(t)">Close my reminder</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                        <div t-if="this.hiddenTasks > 0 or this.state.allTasks and this.filteredTasks.length > 8" class="ei-more-row">
+                            <button class="ei-btn" t-on-click="() => this.state.allTasks = !this.state.allTasks" t-att-aria-expanded="this.state.allTasks ? 'true' : 'false'"><t t-if="this.state.allTasks">Show fewer</t><t t-else="">Show all <t t-out="this.filteredTasks.length"/> (most urgent are first)</t></button>
+                        </div>
+                        <p t-if="d.work.total > d.work.items.length" class="ei-rules">The list is limited to the <t t-out="d.work.items.length"/> most urgent of <t t-out="d.work.total"/>.</p>
+                    </section>
+
+                    <!-- ===== layer 3: charts ===== -->
+                    <section t-if="sec === 'charts'" class="ei-section" aria-labelledby="ei-h-charts">
+                        <h2 class="ei-h2" id="ei-h-charts">Trends and balances</h2>
+                        <div class="ei-grid-charts">
+                            <article t-if="d.charts.cashflow" class="ei-card ei-chart">
+                                <div class="ei-chart-head">
+                                    <h3 t-out="d.charts.cashflow.title"/>
+                                    <button class="ei-link" t-on-click="() => this.state.tables.cashflow = !this.state.tables.cashflow" t-att-aria-pressed="this.state.tables.cashflow ? 'true' : 'false'"><t t-out="this.state.tables.cashflow ? 'Show chart' : 'Show as table'"/></button>
+                                </div>
+                                <p class="ei-chart-sum" t-out="d.charts.cashflow.summary"/>
+                                <t t-if="d.charts.cashflow.empty"><p class="ei-chart-empty">No invoices or receipts in this period.</p></t>
+                                <t t-elif="this.state.tables.cashflow">
+                                    <div class="ei-table-wrap"><table class="ei-table"><caption class="visually-hidden">Invoiced and received per day</caption><thead><tr><th scope="col">Day</th><th scope="col" class="ei-r">Invoiced</th><th scope="col" class="ei-r">Received</th></tr></thead>
+                                        <tbody><tr t-foreach="d.charts.cashflow.days" t-as="r" t-key="r.iso"><th scope="row" t-out="r.date"/><td class="ei-r ei-num" t-out="r.invoiced"/><td class="ei-r ei-num" t-out="r.received"/></tr></tbody></table></div>
+                                </t>
+                                <t t-else="">
+                                    <t t-set="cf" t-value="this.cashflow"/>
+                                    <div class="ei-legend" aria-hidden="true"><span><i class="ei-sw ei-s1"/>Invoiced</span><span><i class="ei-sw ei-s2"/>Received in the bank</span></div>
+                                    <div class="ei-bars" role="group" t-att-aria-label="d.charts.cashflow.summary" t-on-mouseleave="() => this.hideTip()">
+                                        <div class="ei-bars-y" aria-hidden="true"><span t-foreach="cf.ticks" t-as="tk" t-key="tk.f" t-att-style="'bottom:' + (tk.f * 100) + '%'" t-out="tk.label"/></div>
+                                        <div class="ei-bars-plot">
+                                            <div class="ei-bars-col" role="img" t-foreach="cf.cols" t-as="c" t-key="c.iso" tabindex="0" t-on-mouseenter="() => this.showTip(c)" t-on-focus="() => this.showTip(c)" t-on-blur="() => this.hideTip()" t-att-aria-label="c.date + ': invoiced ' + c.invoiced + ', received ' + c.received">
+                                                <span class="ei-bar ei-s1" t-att-style="'height:' + c.hi + '%'"/><span class="ei-bar ei-s2" t-att-style="'height:' + c.hr + '%'"/>
+                                            </div>
+                                        </div>
+                                        <div class="ei-bars-x" aria-hidden="true"><span t-out="cf.cols[0].date"/><span t-out="cf.cols[cf.cols.length - 1].date"/></div>
+                                        <div t-if="this.state.tip" class="ei-tip" role="status"><b t-out="this.state.tip.date"/><span><i class="ei-sw ei-s1"/>Invoiced <b class="ei-num" t-out="this.state.tip.invoiced"/></span><span><i class="ei-sw ei-s2"/>Received <b class="ei-num" t-out="this.state.tip.received"/></span></div>
+                                    </div>
+                                </t>
+                            </article>
+                            <article t-if="d.charts.aging" class="ei-card ei-chart">
+                                <div class="ei-chart-head">
+                                    <h3 t-out="d.charts.aging.title"/>
+                                    <button class="ei-link" t-on-click="() => this.state.tables.aging = !this.state.tables.aging" t-att-aria-pressed="this.state.tables.aging ? 'true' : 'false'"><t t-out="this.state.tables.aging ? 'Show chart' : 'Show as table'"/></button>
+                                </div>
+                                <p class="ei-chart-sum" t-out="d.charts.aging.summary"/>
+                                <t t-if="d.charts.aging.empty"><p class="ei-chart-empty">Customers owe nothing right now.</p></t>
+                                <t t-elif="this.state.tables.aging">
+                                    <div class="ei-table-wrap"><table class="ei-table"><caption class="visually-hidden">Receivables by how late they are</caption><thead><tr><th scope="col">How late</th><th scope="col" class="ei-r">Amount</th></tr></thead>
+                                        <tbody><tr t-foreach="d.charts.aging.rows" t-as="r" t-key="r.label"><th scope="row" t-out="r.label"/><td class="ei-r ei-num" t-out="r.text"/></tr></tbody></table></div>
+                                </t>
+                                <t t-else="">
+                                    <ul class="ei-hbars"><li t-foreach="this.aging.rows" t-as="r" t-key="r.label"><span class="ei-hbar-label" t-out="r.label"/><span class="ei-hbar-track"><span t-att-class="'ei-hbar-fill ei-step-' + r.step" t-att-style="'width:' + r.w + '%'"/></span><span class="ei-hbar-val ei-num" t-out="r.text"/></li></ul>
+                                </t>
+                            </article>
+                            <article t-if="d.charts.material" class="ei-card ei-chart">
+                                <div class="ei-chart-head"><h3 t-out="d.charts.material.title"/></div>
+                                <div class="ei-meter" role="img" t-att-aria-label="d.charts.material.lifted + ' MTL lifted, ' + d.charts.material.allocated + ' MTL promised, ' + d.charts.material.ordered + ' MTL on contracts'">
+                                    <div class="ei-meter-alloc" t-att-style="'width:' + d.charts.material.pct_alloc + '%'"/><div class="ei-meter-lift" t-att-style="'width:' + d.charts.material.pct_lift + '%'"/>
+                                </div>
+                                <ul class="ei-meter-legend">
+                                    <li><i class="ei-sw ei-s1"/><b class="ei-num" t-out="d.charts.material.lifted"/> MTL truly lifted</li>
+                                    <li><i class="ei-sw ei-sw-alloc"/><b class="ei-num" t-out="d.charts.material.allocated"/> MTL promised on delivery advices</li>
+                                    <li><i class="ei-sw ei-sw-free"/><b class="ei-num" t-out="d.charts.material.left"/> MTL still free</li>
+                                </ul>
+                                <p class="ei-chart-sum">Out of <b class="ei-num" t-out="d.charts.material.ordered"/> MTL on active contracts.</p>
+                            </article>
                         </div>
                     </section>
 
-                    <!-- Your day step by step -->
-                    <section t-if="d.steps.length" class="ei-section">
-                        <h2 class="ei-h2">Your day, step by step</h2>
-                        <div class="ei-card ei-steps">
-                            <button t-foreach="d.steps" t-as="s" t-key="s.key" class="ei-step" t-on-click="() => this.onStep(s.key)">
-                                <span t-att-class="'ei-step-mark ' + (s.done ? 'is-done' : 'is-todo')">
-                                    <svg class="ei-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path t-att-d="this.icon(s.done ? 'fa-check' : 'fa-circle-o')"/></svg>
-                                </span>
-                                <span class="ei-step-text">
-                                    <span class="ei-step-label" t-out="s.label"/>
-                                    <span class="ei-step-hint" t-out="s.hint"/>
-                                </span>
-                                <span t-att-class="'ei-step-info ' + (s.done ? 'is-done' : 'is-todo')" t-out="s.info"/>
-                                <svg class="ei-svg ei-step-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path t-att-d="this.icon('fa-angle-right')"/></svg>
-                            </button>
-                        </div>
+                    <!-- ===== pipeline ===== -->
+                    <section t-if="sec === 'pipeline'" class="ei-section" aria-labelledby="ei-h-pipe">
+                        <h2 class="ei-h2" id="ei-h-pipe">From contract to payment</h2>
+                        <ol class="ei-pipe">
+                            <li t-foreach="d.pipeline" t-as="s" t-key="s.key">
+                                <button t-att-class="'ei-stage ei-tone-' + s.tone" t-on-click="() => this.onStage(s)" t-att-aria-label="s.label + ': ' + s.main + '. ' + s.sub + '. Open the records.'">
+                                    <span class="ei-stage-ico"><svg class="ei-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.icon(s.icon)"/></svg></span>
+                                    <span class="ei-stage-label" t-out="s.label"/>
+                                    <span class="ei-stage-main" t-out="s.main"/>
+                                    <span class="ei-stage-sub"><svg t-if="s.waiting" class="ei-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.icon('dots')"/></svg><svg t-else="" class="ei-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.icon('check')"/></svg><span t-out="s.sub"/></span>
+                                </button>
+                            </li>
+                        </ol>
                     </section>
 
-                    <!-- Money -->
-                    <section t-if="d.money.length" class="ei-section">
-                        <h2 class="ei-h2">Money at a glance</h2>
-                        <div class="ei-grid ei-grid-4">
-                            <button t-foreach="d.money" t-as="m" t-key="m.key" t-att-class="'ei-kpi ei-kpi-' + m.tone" t-on-click="() => this.onMoney(m.key)">
-                                <span class="ei-kpi-ico"><svg class="ei-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path t-att-d="this.icon(m.icon)"/></svg></span>
-                                <span class="ei-kpi-label" t-out="m.label"/>
-                                <span class="ei-kpi-value" t-out="m.value"/>
-                                <span class="ei-kpi-hint" t-out="m.hint"/>
-                            </button>
-                        </div>
+                    <!-- ===== recent activity ===== -->
+                    <section t-if="sec === 'activity'" class="ei-section" aria-labelledby="ei-h-act">
+                        <h2 class="ei-h2" id="ei-h-act">What happened recently</h2>
+                        <ul class="ei-card ei-feed">
+                            <li t-foreach="d.activity" t-as="a" t-key="a_index">
+                                <button class="ei-feed-item" t-on-click="() => this.onActivity(a)">
+                                    <span class="ei-feed-when ei-num" t-out="a.when"/>
+                                    <span class="ei-feed-main"><b t-out="a.what"/> <span t-out="a.text"/></span>
+                                    <span class="ei-feed-who" t-out="a.who"/>
+                                </button>
+                            </li>
+                        </ul>
+                        <t t-if="d.steps.length and d.profile !== 'executive'">
+                            <h3 class="ei-h3">Today's routine</h3>
+                            <ul class="ei-card ei-steps">
+                                <li t-foreach="d.steps" t-as="s" t-key="s.key">
+                                    <button class="ei-step" t-on-click="() => this.onStep(s)">
+                                        <span t-att-class="'ei-step-mark ' + (s.done ? 'is-done' : 'is-todo')"><svg class="ei-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.icon(s.done ? 'check' : 'circle')"/></svg><span class="visually-hidden" t-out="s.done ? 'Done' : 'Not done'"/></span>
+                                        <span class="ei-step-text"><span class="ei-step-label" t-out="s.label"/><span class="ei-step-hint" t-out="s.hint"/></span>
+                                        <span t-att-class="'ei-step-info ' + (s.done ? 'is-done' : 'is-todo')" t-out="s.info"/>
+                                    </button>
+                                </li>
+                            </ul>
+                        </t>
                     </section>
 
-                    <!-- Banks -->
-                    <section t-if="d.banks.length" class="ei-section">
-                        <h2 class="ei-h2">Bank accounts</h2>
-                        <div class="ei-grid">
-                            <div t-foreach="d.banks" t-as="b" t-key="b_index" class="ei-card ei-bank">
-                                <div class="ei-bank-name"><svg class="ei-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path t-att-d="this.icon('fa-university')"/></svg> <span t-out="b.name"/></div>
-                                <div class="ei-bank-balance" t-out="b.balance"/>
-                                <div t-att-class="'ei-pill ei-pill-' + b.tone"><span class="ei-dot"/> <span t-out="b.text"/></div>
-                                <div class="ei-bank-note">Balance according to your books</div>
+                    <!-- ===== quick actions, grouped ===== -->
+                    <section t-if="sec === 'quick'" class="ei-section" aria-labelledby="ei-h-quick">
+                        <h2 class="ei-h2" id="ei-h-quick">Start something</h2>
+                        <div class="ei-launch">
+                            <div t-foreach="d.quick" t-as="g" t-key="g.key" class="ei-card ei-launch-group" role="group" t-att-aria-label="g.label">
+                                <h3 class="ei-launch-title" t-out="g.label"/>
+                                <button t-foreach="g.items" t-as="q" t-key="q.key" class="ei-launch-item" t-on-click="() => this.onQuick(q)" t-att-title="q.hint">
+                                    <span class="ei-launch-ico"><svg class="ei-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.icon(q.icon)"/></svg></span>
+                                    <span class="ei-launch-text"><span class="ei-launch-label" t-out="q.label"/><span class="ei-launch-hint" t-out="q.hint"/></span>
+                                </button>
                             </div>
                         </div>
                     </section>
 
-                    <!-- Material -->
-                    <section t-if="d.material and d.material.ordered" class="ei-section">
-                        <h2 class="ei-h2">Material on active contracts</h2>
-                        <div class="ei-card ei-material">
-                            <div class="ei-bar">
-                                <div class="ei-bar-alloc" t-att-style="'width:' + d.material.pct_alloc + '%'"/>
-                                <div class="ei-bar-lift" t-att-style="'width:' + d.material.pct_lift + '%'"/>
-                            </div>
-                            <div class="ei-legend">
-                                <div><span class="ei-sw ei-sw-lift"/> <b t-out="d.material.lifted"/> MTL lifted</div>
-                                <div><span class="ei-sw ei-sw-alloc"/> <b t-out="d.material.allocated"/> MTL promised on delivery advices</div>
-                                <div><span class="ei-sw ei-sw-left"/> <b t-out="d.material.left"/> MTL still free</div>
-                                <div class="ei-muted">of <b t-out="d.material.ordered"/> MTL on contracts</div>
-                            </div>
-                        </div>
+                    <!-- ===== system health (administrators) ===== -->
+                    <section t-if="sec === 'system'" class="ei-section" aria-labelledby="ei-h-sys">
+                        <h2 class="ei-h2" id="ei-h-sys">System checks</h2>
+                        <ul class="ei-card ei-checks">
+                            <li t-foreach="d.system.checks" t-as="c" t-key="c.label">
+                                <span t-att-class="'ei-check-mark ' + (c.ok ? 'is-ok' : 'is-bad')"><svg class="ei-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.icon(c.ok ? 'check' : 'alert')"/></svg><span class="visually-hidden" t-out="c.ok ? 'OK' : 'Problem'"/></span>
+                                <span class="ei-check-label" t-out="c.label"/><span class="ei-check-text" t-out="c.text"/>
+                            </li>
+                        </ul>
                     </section>
+
+                    </t>
                 </t>
+
+                <!-- ===== dialogs (assign / escalate) ===== -->
+                <div t-if="this.state.dialog" class="ei-modal-back" t-on-mousedown.self="() => this.closeDialog()">
+                    <div class="ei-modal" role="dialog" aria-modal="true" aria-labelledby="ei-dlg-title">
+                        <h2 id="ei-dlg-title"><t t-if="this.state.dialog.kind === 'assign'">Assign this task</t><t t-else="">Escalate to management</t></h2>
+                        <p class="ei-modal-task"><b t-out="this.state.dialog.task.step"/> - <span t-out="this.shortName(this.state.dialog.task)"/></p>
+                        <t t-if="this.state.dialog.kind === 'assign'">
+                            <p t-if="!this.state.dialog.users.length" class="ei-banner ei-banner-info">Nobody else has the role needed for this step.</p>
+                            <label class="ei-field"><span>Who should do it?</span>
+                                <select t-on-change="(ev) => this.state.dialog.user_id = ev.target.value"><option t-foreach="this.state.dialog.users" t-as="u" t-key="u.id" t-att-value="u.id" t-att-selected="u.id == this.state.dialog.user_id" t-out="u.name"/></select></label>
+                            <label class="ei-field"><span>Due date (optional)</span><input type="date" t-att-value="this.state.dialog.deadline" t-on-input="(ev) => this.state.dialog.deadline = ev.target.value"/></label>
+                            <label class="ei-field"><span>Note (optional)</span><textarea rows="2" t-att-value="this.state.dialog.note" t-on-input="(ev) => this.state.dialog.note = ev.target.value"/></label>
+                        </t>
+                        <t t-else="">
+                            <p class="ei-rules">Every manager gets a reminder and a note is left on the record. Say why it cannot wait.</p>
+                            <label class="ei-field"><span>Why can this not wait?</span><textarea rows="3" t-att-value="this.state.dialog.note" t-on-input="(ev) => this.state.dialog.note = ev.target.value" autofocus="autofocus"/></label>
+                        </t>
+                        <p t-if="this.state.dialog.error" class="ei-banner ei-banner-bad" role="alert" t-out="this.state.dialog.error"/>
+                        <div class="ei-modal-act">
+                            <button class="ei-btn" t-on-click="() => this.closeDialog()">Cancel</button>
+                            <button class="ei-btn ei-btn-primary" t-on-click="() => this.submitDialog()" t-att-disabled="this.state.busy"><t t-if="this.state.dialog.kind === 'assign'">Assign</t><t t-else="">Escalate</t></button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===== quiet confirmation (screen readers hear it too) ===== -->
+                <div class="ei-toast-region" role="status" aria-live="polite">
+                    <div t-if="this.state.toast" t-att-class="'ei-toast ei-toast-' + this.state.toast.kind" t-out="this.state.toast.text"/>
+                </div>
             </div>
         </div>
     </t>

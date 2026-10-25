@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="ei_ui_theme.SearchBox">
+        <div class="ei-search" role="search">
+            <label for="ei-search-q" class="visually-hidden">Search customers, suppliers, contracts, invoices and bank references</label>
+            <svg class="ei-svg ei-search-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.icon('search')"/></svg>
+            <input id="ei-search-q" type="search" autocomplete="off" t-att-placeholder="this.props.placeholder or 'Search customers, contracts, invoices, bank references...'"
+                   role="combobox" aria-autocomplete="list" aria-controls="ei-search-list" aria-haspopup="listbox"
+                   t-att-aria-expanded="this.state.open ? 'true' : 'false'"
+                   t-att-aria-activedescendant="this.state.active &gt;= 0 ? 'ei-search-opt-' + this.state.active : ''"
+                   t-att-value="this.state.q" t-on-input="(ev) => this.onInput(ev)" t-on-keydown="(ev) => this.onKeydown(ev)"
+                   t-on-focus="() => this.onFocus()" t-on-blur="() => this.onBlur()"/>
+            <kbd class="ei-kbd" aria-hidden="true">/</kbd>
+            <span t-if="this.state.loading" class="ei-spin ei-search-spin" role="status" aria-label="Searching"/>
+            <div t-if="this.state.open" id="ei-search-list" class="ei-search-pop" role="listbox" aria-label="Search results">
+                <t t-if="this.state.failed"><div class="ei-search-empty">The search could not run. Check your connection and try again.</div></t>
+                <t t-elif="!this.state.data.total"><div class="ei-search-empty">Nothing found for "<b t-out="this.state.q"/>". Try part of a name, an invoice number or an old code like 4.20.</div></t>
+                <t t-else="">
+                    <div t-foreach="this.state.data.groups" t-as="g" t-key="g.label" class="ei-search-group" role="group" t-att-aria-label="g.label">
+                        <div class="ei-search-group-label" t-out="g.label"/>
+                        <div t-foreach="g.hits" t-as="h" t-key="h_index" role="option" t-att-id="'ei-search-opt-' + this.indexOf(h)"
+                             t-att-aria-selected="this.indexOf(h) === this.state.active ? 'true' : 'false'"
+                             t-att-class="'ei-search-hit' + (this.indexOf(h) === this.state.active ? ' is-active' : '')"
+                             t-on-mousedown.prevent="() => this.pick(h)" t-on-mouseenter="() => this.state.active = this.indexOf(h)">
+                            <svg class="ei-svg ei-search-hit-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.icon(h.icon)"/></svg>
+                            <span class="ei-search-hit-text">
+                                <span class="ei-search-hit-title"><t t-foreach="this.parts(h.title)" t-as="p" t-key="p_index"><mark t-if="p.m" t-out="p.t"/><t t-else="" t-out="p.t"/></t></span>
+                                <span class="ei-search-hit-sub" t-out="h.subtitle"/>
+                            </span>
+                        </div>
+                    </div>
+                </t>
+            </div>
+        </div>
+    </t>
+</templates>

@@ -1,0 +1,79 @@
+// Dark theme: the same token names, stepped for a dark surface (not an inversion). Loaded only in Odoo's dark bundle
+// (web.assets_web_dark), which the server picks when the user's colour-scheme cookie is "dark".
+:root {
+    --ei-ink: #F1F5F9;         --ei-on-ink: #0B1220;      --ei-nav-bg: #0A1020;
+    --ei-text: #E2E8F0;
+    --ei-muted: #9AA7BA;       --ei-faint: #8693A7;
+    --ei-line: #26324A;        --ei-line-strong: #3A4863;
+    --ei-bg: #0E1626;          --ei-card: #162033;        --ei-surface-2: #1B2740;
+    --ei-primary: #7AA2FF;     --ei-primary-hover: #9DBBFF; --ei-primary-soft: #1E2F57; --ei-primary-line: #34508F; --ei-on-primary: #0B1220;
+    --ei-focus: #9DBBFF;       --ei-mark: #6B5B00;
+    --ei-ok: #4ADE80;          --ei-ok-soft: #123524;     --ei-ok-line: #1F5C3B;
+    --ei-warn: #FBBF5B;        --ei-warn-soft: #3A2A10;   --ei-warn-line: #6B4A17;
+    --ei-bad: #F87171;         --ei-bad-soft: #3F1A1D;    --ei-bad-line: #7A2E33;
+    --ei-info: #5EC4F0;        --ei-info-soft: #10303F;   --ei-info-line: #1F5A73;
+    --ei-s1: #3987E5;          --ei-s2: #D95926;
+    --ei-seq-0: #184F95; --ei-seq-1: #256ABF; --ei-seq-2: #3987E5; --ei-seq-3: #6DA7EC; --ei-seq-4: #86B6EF;     // in dark, more = lighter
+    --ei-shadow: 0 1px 2px rgba(0,0,0,.35);
+    --ei-shadow-hover: 0 4px 14px rgba(0,0,0,.45);
+    --ei-shadow-pop: 0 12px 32px rgba(0,0,0,.6);
+}
+
+// ---- Odoo's own surfaces. Community has no dark colours of its own, so the surfaces we meet every day are mapped to
+// the same tokens. Anything not listed keeps Odoo's default; the end-to-end suite screenshots and checks contrast.
+:root {
+    color-scheme: dark;
+    --bs-body-bg: var(--ei-bg); --bs-body-color: var(--ei-text); --bs-emphasis-color: var(--ei-ink); --bs-heading-color: var(--ei-ink);
+    --bs-border-color: var(--ei-line); --bs-secondary-color: var(--ei-muted); --bs-secondary-bg: var(--ei-surface-2);
+    --bs-tertiary-bg: var(--ei-surface-2); --bs-tertiary-color: var(--ei-muted); --bs-link-color: var(--ei-primary); --bs-link-hover-color: var(--ei-primary-hover);
+}
+body, .o_web_client, .o_action_manager, .o_content, .o_action { background: var(--ei-bg); color: var(--ei-text); }
+.o_control_panel, .o_control_panel_main { background: var(--ei-card) !important; color: var(--ei-text); border-color: var(--ei-line) !important; }
+.o_control_panel .o_breadcrumb .active, .breadcrumb-item.active, .o_breadcrumb a { color: var(--ei-ink); }
+.o_searchview, .o_searchview_input, .o_searchview .o_searchview_facet { background: var(--ei-surface-2) !important; color: var(--ei-text); border-color: var(--ei-line) !important; }
+.o_searchview .o_searchview_facet .o_facet_values { color: var(--ei-text); }
+.o_cp_buttons .btn, .o_pager button, .o_cp_switch_buttons .btn { background: var(--ei-surface-2); color: var(--ei-text); border-color: var(--ei-line-strong); }
+.dropdown-menu, .o-dropdown--menu, .modal-content, .popover, .o_popover, .o-autocomplete--dropdown-menu { background: var(--ei-card) !important; color: var(--ei-text); border-color: var(--ei-line) !important; }
+.dropdown-item, .o-dropdown-item { color: var(--ei-text) !important; }
+.dropdown-item:hover, .dropdown-item.focus, .o-dropdown-item:hover, .o-dropdown-item.focus { background: var(--ei-primary-soft) !important; color: var(--ei-ink) !important; }
+.modal-header, .modal-footer { border-color: var(--ei-line) !important; background: var(--ei-card); }
+// lists
+.o_list_view .o_list_renderer, .o_list_view .o_list_table { background: var(--ei-card); color: var(--ei-text); }
+.o_list_view thead th, .o_list_view .o_list_table thead th { background: var(--ei-surface-2) !important; color: var(--ei-muted) !important; border-color: var(--ei-line) !important; }
+.o_list_view tbody td, .o_list_view .o_data_row td { background: var(--ei-card); color: var(--ei-text); border-color: var(--ei-line) !important; }
+.o_list_view .o_data_row td a, .o_list_view .o_data_cell { color: var(--ei-text); }
+.o_list_view tbody tr.o_data_row:hover td { background: var(--ei-primary-soft) !important; }
+.o_list_view tfoot td, .o_list_footer td { background: var(--ei-surface-2); color: var(--ei-text); }
+.o_list_view .o_group_header td { background: var(--ei-surface-2) !important; color: var(--ei-text); }
+// forms
+.o_form_view, .o_form_view .o_form_sheet_bg { background: var(--ei-bg); color: var(--ei-text); }
+.o_form_view .o_form_sheet { background: var(--ei-card); border-color: var(--ei-line); color: var(--ei-text); }
+.o_form_view .o_form_label, .o_form_view label, .o_form_view .o_group .o_td_label label { color: var(--ei-muted); }
+.o_form_view .oe_title h1, .o_form_view h1, .o_form_view h2 { color: var(--ei-ink); }
+.o_field_widget input, .o_field_widget textarea, .o_field_widget select, .o_input, .form-control, .form-select { background: var(--ei-surface-2); color: var(--ei-text); border-color: var(--ei-line-strong); }
+.o_field_widget .o_input_dropdown .o_input, .o_field_many2one input { color: var(--ei-text); }
+.o_form_view .o_form_statusbar .o_statusbar_status .btn { background: var(--ei-surface-2); color: var(--ei-text); }
+.o_notebook .nav-link { color: var(--ei-muted); } .o_notebook .nav-link.active { background: var(--ei-card); color: var(--ei-ink); border-color: var(--ei-line); }
+// kanban and cards
+.o_kanban_view .o_kanban_record { background: var(--ei-card) !important; color: var(--ei-text); border-color: var(--ei-line) !important; }
+.o_kanban_view .o_kanban_renderer { background: transparent; }
+// badges, banners, help text
+.badge.text-bg-secondary, .badge.text-bg-light { background: var(--ei-surface-2) !important; color: var(--ei-muted) !important; }
+.o_nocontent_help, .o_view_nocontent { color: var(--ei-text); }
+.o_nocontent_help p, .o_view_nocontent_smiling_face { color: var(--ei-text); }
+.o-mail-Chatter, .o-mail-Message, .o-mail-Thread { color: var(--ei-text); }
+.o-mail-Message-body, .o-mail-Chatter-top, .o_FormRenderer_chatterContainer { color: var(--ei-text); }
+.text-muted, .text-body-secondary { color: var(--ei-muted) !important; }
+hr { border-color: var(--ei-line); }
+::-webkit-scrollbar-thumb { background: var(--ei-line-strong); }
+
+// found by scanning the dark form for light surfaces: breadcrumb, status bar, chatter, record links
+ol.breadcrumb, .breadcrumb { background: transparent !important; }
+.o_statusbar_status { background: var(--ei-surface-2) !important; }
+.o_statusbar_status .o_arrow_button { background: var(--ei-surface-2) !important; color: var(--ei-muted) !important; }
+.o_statusbar_status .o_arrow_button.o_arrow_button_current { background: var(--ei-primary) !important; color: var(--ei-on-primary) !important; }
+.o-mail-ChatterContainer, .o-mail-Form-chatter, .o-mail-Chatter, .o-mail-Chatter-top, .o-mail-Thread, .o-mail-Message, .o-mail-Composer { background: var(--ei-card) !important; color: var(--ei-text); border-color: var(--ei-line) !important; }
+.o-mail-Message-author, .o-mail-Message-header, .o-mail-Message-date, .o-mail-DateSection, .o-mail-Message-body, .o-mail-Message-body * { color: var(--ei-text) !important; }
+.o-mail-Message-date, .o-mail-DateSection { color: var(--ei-muted) !important; }
+.o_form_uri, .o_field_widget a:not(.btn), .o_form_view a:not(.btn):not(.dropdown-item):not(.nav-link) { color: var(--ei-primary) !important; }
+.o_form_view .o_form_label, .o_form_view .o_td_label label { color: var(--ei-muted) !important; opacity: 1; }

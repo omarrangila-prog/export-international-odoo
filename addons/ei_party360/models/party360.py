@@ -27,11 +27,6 @@ PAYMENT_LABEL = {
 }
 
 
-def _like(term):
-    """Escape LIKE wildcards so a typed '_' or '%' is searched literally."""
-    return term.replace('\\', '\\\\').replace('%', '\\%').replace('_', '\\_')
-
-
 class EiParty360(models.AbstractModel):
     _name = 'ei.party360'
     _description = 'Party 360 page data'
@@ -60,36 +55,12 @@ class EiParty360(models.AbstractModel):
     # ------------------------------------------------------------------ search
     @api.model
     def search_parties(self, term):
-        """Find a party by name, contact reference, EXACT legacy code text, nickname or approved alias.
-        Runs as the current user: record rules decide what can be found. Codes are matched as text (4.20 != 4.2)."""
+        """Find a party by name, contact reference, EXACT legacy code text, nickname or approved alias (the same search
+        the Home box uses: see ei.search.parties). Runs as the current user, so record rules decide what is found."""
         term = (term or '').strip()
         if len(term) < 2:
             return []
-        env, parties, loose, seen = self.env, [], [], set()
-
-        def add(partner, why):
-            if partner and partner.id not in seen:
-                seen.add(partner.id)
-                parties.append({'partner_id': partner.id, 'code_id': False, 'title': partner.name,
-                                'subtitle': ' · '.join(x for x in (partner.ref, why) if x), 'reason': why})
-        if self._can('ei.legacy.code'):
-            codes = env['ei.legacy.code'].search(
-                ['|', '|', ('legacy_code', '=like', _like(term) + '%'),
-                 ('original_name', 'ilike', _like(term)), ('nickname', 'ilike', _like(term))], limit=SEARCH_LIMIT * 2)
-            for c in codes:
-                partner = env['res.partner'].browse(c.linked_res_id).exists() if c.linked_model == 'res.partner' else None
-                if partner:
-                    add(partner, _("Old code %s", c.legacy_code))
-                else:
-                    loose.append({'partner_id': False, 'code_id': c.id, 'title': c.display_name, 'reason': _("Old code"),
-                                  'subtitle': _("Old code - not linked to a party yet (an accountant must approve its mapping)")})
-        for p in env['res.partner'].search(['|', ('name', 'ilike', _like(term)), ('ref', 'ilike', _like(term))], limit=SEARCH_LIMIT):
-            add(p, _("Name"))
-        if self._can('ei.partner.alias'):
-            for a in env['ei.partner.alias'].search([('alias', 'ilike', _like(term)), ('state', '=', 'approved')], limit=SEARCH_LIMIT):
-                add(a.partner_id, _("Also known as %s", a.alias))
-        # real parties first; old codes that are not linked to a party yet come last and cannot flood the list
-        return (parties + loose[:LOOSE_CODE_LIMIT])[:SEARCH_LIMIT]
+        return self.env['ei.search'].parties(term, limit=SEARCH_LIMIT, loose_limit=LOOSE_CODE_LIMIT)
 
     # ------------------------------------------------------------------ the figures (one definition = value + drill-down)
     def _defs(self, p):

@@ -93,11 +93,11 @@
                                 <div class="ei-p360-kpi-value" t-out="m.text"/>
                                 <div class="ei-p360-kpi-basis" t-out="m.basis"/>
                                 <div class="ei-p360-kpi-actions">
-                                    <button t-if="m.count" class="ei-p360-link" t-on-click="() => this.openFigure(m)">Show the records</button>
+                                    <button t-if="m.count" class="ei-p360-link" t-on-click="() => this.openFigure(m)" t-att-aria-label="'Show the records: ' + m.label"><span class="ei-long">Show the records</span><span class="ei-short">Records</span></button>
                                     <button class="ei-p360-link" t-att-aria-expanded="this.state.explain[m.key] ? 'true' : 'false'"
                                             t-att-aria-controls="'ei-p360-ex-' + m.key" t-on-click="() => this.toggleExplain(m.key)">
                                         <svg class="ei-p360-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.icon('info')"/></svg>
-                                        How is this worked out?
+                                        <span class="ei-long">How is this worked out?</span><span class="ei-short">How?</span>
                                     </button>
                                 </div>
                                 <p t-if="this.state.explain[m.key]" t-att-id="'ei-p360-ex-' + m.key" class="ei-p360-explain" t-out="m.explain"/>
@@ -105,12 +105,22 @@
                         </div>
                     </section>
 
+                    <details t-if="this.quiet.length" class="ei-p360-quiet">
+                        <summary>Nothing to report <span class="ei-p360-quiet-n" t-out="this.quiet.length"/> <span class="ei-p360-muted">figures are zero</span></summary>
+                        <ul>
+                            <li t-foreach="this.quiet" t-as="m" t-key="m.key">
+                                <span class="ei-p360-quiet-label" t-out="m.label"/><b class="ei-p360-quiet-value" t-out="m.text"/>
+                                <small class="ei-p360-quiet-why" t-out="m.explain"/>
+                            </li>
+                        </ul>
+                    </details>
+
                     <!-- Chains -->
                     <section class="ei-p360-section" t-if="d.chains !== null">
                         <h2 class="ei-p360-h2">From contract to payment</h2>
                         <div t-if="!d.chains.length" class="ei-p360-card ei-p360-muted-card">No delivery advices for this party yet.</div>
                         <div t-else="" class="ei-p360-card ei-p360-chains">
-                            <div t-foreach="d.chains" t-as="c" t-key="c.da_id" class="ei-p360-chain">
+                            <div t-foreach="this.chains" t-as="c" t-key="c.da_id" class="ei-p360-chain">
                                 <div class="ei-p360-chain-head"><b t-out="c.da"/> <span class="ei-p360-muted" t-out="c.total"/></div>
                                 <ol class="ei-p360-stages">
                                     <li t-foreach="c.stages" t-as="s" t-key="s.key" t-att-class="'ei-p360-stage is-' + s.tone">
@@ -126,6 +136,9 @@
                                     </li>
                                 </ol>
                             </div>
+                            <div t-if="this.moreChains > 0" class="ei-p360-morerow">
+                                <button class="ei-p360-btn ei-p360-btn-ghost" t-on-click="() => this.state.allChains = !this.state.allChains" t-att-aria-expanded="this.state.allChains ? 'true' : 'false'"><t t-if="this.state.allChains">Show fewer</t><t t-else="">Show all <t t-out="d.chains.length"/> delivery advices</t></button>
+                            </div>
                         </div>
                     </section>
 
@@ -133,7 +146,7 @@
                     <section class="ei-p360-section" t-if="d.timeline.length">
                         <h2 class="ei-p360-h2">What happened, newest first</h2>
                         <ul class="ei-p360-card ei-p360-timeline">
-                            <li t-foreach="d.timeline" t-as="e" t-key="e_index">
+                            <li t-foreach="this.events" t-as="e" t-key="e_index">
                                 <button class="ei-p360-event" t-on-click="() => this.openRecord(e.model, e.res_id)">
                                     <span class="ei-p360-event-date" t-out="e.date"/>
                                     <span class="ei-p360-event-kind" t-out="this.kindLabel(e.kind)"/>
@@ -142,6 +155,9 @@
                                 </button>
                             </li>
                         </ul>
+                        <div t-if="this.moreEvents > 0" class="ei-p360-morerow">
+                            <button class="ei-p360-btn ei-p360-btn-ghost" t-on-click="() => this.state.allEvents = !this.state.allEvents" t-att-aria-expanded="this.state.allEvents ? 'true' : 'false'"><t t-if="this.state.allEvents">Show fewer</t><t t-else="">Show all <t t-out="d.timeline.length"/> events</t></button>
+                        </div>
                     </section>
                 </t>
             </div>

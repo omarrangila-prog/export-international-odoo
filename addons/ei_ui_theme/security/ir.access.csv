@@ -1,0 +1,3 @@
+id,name,model_id,group_id/id,operation,domain
+access_ei_work_snooze_user,ei.work.snooze user,ei.work.snooze,ei_legacy_master.group_ei_user,crud,
+rule_ei_work_snooze_own,Snooze: own rows only,ei.work.snooze,,crud,"[('user_id', '=', user.id)]"

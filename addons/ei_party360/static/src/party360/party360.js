@@ -5,6 +5,8 @@ import { Component, onWillStart, onWillUnmount, proxy, useProps } from "@odoo/ow
 
 const RECENT_KEY = "ei_party360_recent";
 const SEARCH_DELAY = 220;
+const CHAINS_SHOWN = 5;
+const EVENTS_SHOWN = 8;
 
 // Stroke icons (24x24); Odoo 20 does not style Font Awesome.
 const ICONS = {
@@ -33,7 +35,7 @@ export class EiParty360 extends Component {
         this.action = useService("action");
         this.state = proxy({
             query: "", results: [], active: -1, searching: false, open: false, searched: false,
-            loading: false, error: false, data: null, explain: {}, recent: this.readRecent(),
+            loading: false, error: false, data: null, explain: {}, recent: this.readRecent(), allChains: false, allEvents: false,
         });
         this.timer = null;
         onWillUnmount(() => clearTimeout(this.timer));
@@ -67,8 +69,14 @@ export class EiParty360 extends Component {
     stageIcon(tone) { return ICONS[STAGE_ICON[tone] || "circle"]; }
     stageWord(tone) { return STAGE_WORD[tone] || ""; }
     kindLabel(kind) { return KIND_LABEL[kind] || kind; }
-    metricsOf(group) { return this.state.data.metrics.filter((m) => m.group === group.key); }
+    // figures with something to show get a card; figures that are genuinely zero wait in one quiet list
+    metricsOf(group) { return this.state.data.metrics.filter((m) => m.group === group.key && m.count > 0); }
     hasMetrics(group) { return this.metricsOf(group).length > 0; }
+    get chains() { const c = this.state.data.chains; return this.state.allChains ? c : c.slice(0, CHAINS_SHOWN); }
+    get events() { const e = this.state.data.timeline; return this.state.allEvents ? e : e.slice(0, EVENTS_SHOWN); }
+    get moreChains() { return Math.max(0, this.state.data.chains.length - CHAINS_SHOWN); }
+    get moreEvents() { return Math.max(0, this.state.data.timeline.length - EVENTS_SHOWN); }
+    get quiet() { return this.state.data.metrics.filter((m) => m.count === 0); }
 
     // ---- search
     onInput(ev) {
@@ -137,6 +145,8 @@ export class EiParty360 extends Component {
         this.state.loading = true;
         this.state.error = false;
         this.state.explain = {};
+        this.state.allChains = false;
+        this.state.allEvents = false;
         try {
             this.state.data = await this.orm.call("ei.party360", "get_data", [partnerId]);
             this.remember(this.state.data.partner);

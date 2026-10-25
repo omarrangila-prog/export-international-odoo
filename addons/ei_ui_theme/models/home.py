@@ -1,17 +1,26 @@
-"""Data behind the guided Home page. Everything here is read-only counting/aggregation on records the
-current user is allowed to see; a section a user cannot access simply does not appear."""
-from datetime import datetime
+"""Data behind the Home page, in three layers: (1) summary figures, (2) the action centre - alerts, My Work, grouped
+quick actions, (3) insight - pipeline, charts, recent activity.
+
+Everything here is read-only counting / aggregation on records the current user may see. A section the role cannot
+see is ABSENT, never shown as a false zero. Every figure has an `open_*` method that opens the records behind it.
+The role profile only decides which figures lead and in which order; it never grants access (the ORM does)."""
+import re
+from datetime import datetime, timedelta
 
 from odoo import api, fields, models, _
-from odoo.exceptions import AccessError
+from odoo.exceptions import AccessError, UserError
+from odoo.tools import html2plaintext
 from odoo.tools.misc import format_amount
 
 from .labels import LABELS
+from .work import WORK, OVERDUE_DEFAULT, OVERDUE_PARAM
 
 KANBAN_MODELS = {'ei.bank.import', 'ei.cash.voucher', 'ei.contract', 'ei.da', 'ei.daily.order', 'ei.lifting',
                  'ei.supplier.intake', 'ei.parent.statement'}
+CHART_DAYS = 14
+ACTIVITY_ITEMS = 8
 
-# key, icon, label, hint, model, domain, tone when > 0, area
+# key, icon, label, hint, model, domain, tone when > 0, area   (used by alerts, pipeline and the task click-through)
 TASKS = [
     ('bank_lines', 'fa-university', "Bank payments to check", "Match each payment to the right party",
      'ei.bank.import.line', [('state', 'in', ('new', 'proposed'))], 'warning', 'money'),
@@ -38,20 +47,77 @@ TASKS = [
     ('codes', 'fa-tags', "Old codes waiting to be classified", "An accountant decides what each one becomes",
      'ei.legacy.code', [('verification_status', 'in', ('proposed', 'needs_review'))], 'info', 'setup'),
 ]
-AREAS = [('money', "Money"), ('orders', "Orders and trucks"), ('bills', "Bills and invoices"),
-         ('month', "Month-end"), ('setup', "Setup")]
+TASK_BY_KEY = {t[0]: t for t in TASKS}
 
-# key, icon, label, kind, target
+# key, icon, label, hint, group, kind, target, model   (kind: wizard/list open a window action by xml id, form opens a new record)
 QUICK = [
-    ('q_bank', 'fa-upload', "Import a bank statement", 'wizard', 'ei_bank_operations.ei_bank_import_wizard_action', 'ei.bank.import.wizard'),
-    ('q_voucher', 'fa-money', "New cash voucher", 'form', 'ei.cash.voucher', 'ei.cash.voucher'),
-    ('q_contract', 'fa-file-text-o', "New contract", 'form', 'ei.contract', 'ei.contract'),
-    ('q_da', 'fa-truck', "New delivery advice", 'form', 'ei.da', 'ei.da'),
-    ('q_lift', 'fa-balance-scale', "Record a truck loading", 'form', 'ei.lifting', 'ei.lifting'),
-    ('q_intake', 'fa-inbox', "Enter a supplier invoice", 'form', 'ei.supplier.intake', 'ei.supplier.intake'),
-    ('q_invoice', 'fa-file-o', "Invoice delivered material", 'list', 'ei_invoice_extensions.ei_billable_action', 'ei.invoice.wizard'),
-    ('q_parent', 'fa-upload', "Import parent statement", 'wizard', 'ei_parent_reconciliation.ei_parent_import_wizard_action', 'ei.parent.import.wizard'),
+    ('q_bank', 'fa-upload', "Import a bank statement", "Upload the bank's statement file", 'money', 'wizard',
+     'ei_bank_operations.ei_bank_import_wizard_action', 'ei.bank.import.wizard'),
+    ('q_voucher', 'fa-money', "New cash voucher", "Cash paid out or received", 'money', 'form', 'ei.cash.voucher', 'ei.cash.voucher'),
+    ('q_contract', 'fa-file-text-o', "New contract", "Enter a parent-company contract", 'contracts', 'form', 'ei.contract', 'ei.contract'),
+    ('q_da', 'fa-truck', "New delivery advice", "Copy a DA from the parent company", 'contracts', 'form', 'ei.da', 'ei.da'),
+    ('q_lift', 'fa-balance-scale', "Record a truck loading", "Gate pass and weighbridge slip", 'orders', 'form', 'ei.lifting', 'ei.lifting'),
+    ('q_orders', 'fa-list-alt', "Daily orders", "Today's order requests", 'orders', 'list', 'ei_daily_orders.ei_daily_order_action', 'ei.daily.order'),
+    ('q_intake', 'fa-inbox', "Enter a supplier invoice", "Checked against the delivery advice", 'bills', 'form', 'ei.supplier.intake', 'ei.supplier.intake'),
+    ('q_invoice', 'fa-file-o', "Invoice delivered material", "One click creates the customer invoices", 'bills', 'list',
+     'ei_invoice_extensions.ei_billable_action', 'ei.invoice.wizard'),
+    ('q_banklines', 'fa-university', "Bank payments to check", "Match each payment to the right party", 'review', 'list',
+     'ei_bank_operations.ei_bank_line_action', 'ei.bank.import.line'),
+    ('q_parent', 'fa-upload', "Import parent statement", "Compare the parent company's ledger with ours", 'review', 'wizard',
+     'ei_parent_reconciliation.ei_parent_import_wizard_action', 'ei.parent.import.wizard'),
+    ('q_balance', 'fa-university', "Confirm bank balances", "Type what the bank says, morning check", 'daily', 'list',
+     'ei_bank_operations.ei_balance_check_action', 'ei.bank.balance.check'),
+    ('q_cash', 'fa-money', "Count the cash", "Cash in the box against the books", 'daily', 'list',
+     'ei_cashbook.ei_cash_count_action', 'ei.cash.count'),
+    ('q_codes_import', 'fa-upload', "Import old codes", "Load the code list file (safe to repeat)", 'setup', 'wizard',
+     'ei_legacy_master.ei_import_wizard_action', 'ei.import.wizard'),
+    ('q_codes', 'fa-tags', "Classify old codes", "Decide what each old code becomes", 'setup', 'list',
+     'ei_legacy_master.ei_legacy_code_queue_action', 'ei.legacy.code'),
 ]
+QUICK_GROUPS = [('money', "Money"), ('contracts', "Contracts & delivery advice"), ('orders', "Orders & lifting"),
+                ('bills', "Bills & invoices"), ('review', "Exceptions & review"), ('daily', "Daily work"),
+                ('setup', "Setup")]
+
+# role profile: first match wins. It decides which figures lead and in which order, never what a user may open.
+PROFILES = [
+    ('executive', "Executive view", ('ei_management_dashboard.group_ei_management',)),
+    ('finance', "Finance manager", ('account.group_account_manager', 'ei_bank_operations.group_ei_bank_approver',
+                                    'ei_cashbook.group_ei_cash_approver')),
+    ('accountant', "Accountant", ('account.group_account_user', 'ei_bank_operations.group_ei_bank_poster',
+                                  'ei_parent_reconciliation.group_ei_recon_user', 'ei_invoice_extensions.group_ei_invoicing')),
+    ('logistics', "Logistics", ('ei_material_lifting.group_ei_dispatch_officer', 'ei_material_lifting.group_ei_lifting_reviewer')),
+    ('contract', "Contract desk", ('ei_contract_da.group_ei_contract_staff', 'ei_contract_da.group_ei_contract_approver',
+                                   'ei_daily_orders.group_ei_order_approver')),
+    ('data_entry', "Data entry", ('ei_bank_operations.group_ei_bank_officer', 'ei_cashbook.group_ei_cash_clerk',
+                                  'ei_legacy_master.group_ei_importer')),
+    ('admin', "System administrator", ('base.group_system',)),
+    ('general', "Staff", ('ei_legacy_master.group_ei_user',)),
+]
+PROFILE_KPIS = {
+    'executive': ['bank', 'ar', 'ap', 'collected', 'waiting', 'cash', 'spread', 'recon'],
+    'finance': ['bank', 'ar', 'ap', 'collected', 'waiting', 'cash', 'recon'],
+    'accountant': ['bank', 'ar', 'ap', 'collected', 'waiting', 'recon'],
+    'logistics': ['k_verify', 'k_left', 'k_orders', 'k_toinvoice'],
+    'contract': ['k_contracts', 'k_das', 'k_left', 'k_orders'],
+    'data_entry': ['k_banklines', 'k_vouchers', 'k_intake', 'k_toinvoice'],
+    'admin': [],
+    'general': ['k_contracts', 'k_left'],
+}
+PROFILE_LAYOUT = {
+    'executive': ['kpis', 'alerts', 'charts', 'work', 'pipeline', 'activity', 'quick'],
+    'finance': ['kpis', 'alerts', 'work', 'charts', 'pipeline', 'quick', 'activity'],
+    'accountant': ['work', 'kpis', 'alerts', 'quick', 'pipeline', 'charts', 'activity'],
+    'logistics': ['work', 'kpis', 'quick', 'pipeline', 'alerts', 'activity', 'charts'],
+    'contract': ['work', 'kpis', 'quick', 'pipeline', 'alerts', 'activity', 'charts'],
+    'data_entry': ['work', 'quick', 'kpis', 'alerts', 'pipeline', 'activity', 'charts'],
+    'admin': ['system', 'alerts', 'quick', 'pipeline', 'activity', 'work', 'charts', 'kpis'],
+    'general': ['work', 'kpis', 'quick', 'pipeline', 'alerts', 'activity', 'charts'],
+}
+
+
+def _n(n, one, many):
+    """'1 loading' / '2 loadings' with the number filled in."""
+    return (one if n == 1 else many) % n
 
 
 class EiHome(models.AbstractModel):
@@ -88,57 +154,354 @@ class EiHome(models.AbstractModel):
     def _fmt(self, amount):
         return format_amount(self.env, amount or 0.0, self.env.company.currency_id)
 
+    def _can(self, model, op='read'):
+        return model in self.env and self.env[model].has_access(op)
+
     @api.model
     def _views_for(self, model):
         return [[False, 'kanban'], [False, 'list'], [False, 'form']] if model in KANBAN_MODELS else [[False, 'list'], [False, 'form']]
+
+    def _profile(self):
+        user = self.env.user
+        for key, label, groups in PROFILES:
+            if any(user.has_group(g) for g in groups):
+                return key, label
+        return 'general', "Staff"
+
+    def _dash(self):
+        """A transient dashboard record: the single place the money figures are worked out (same numbers as the
+        Detailed report). None when the user may not use it."""
+        D = self.env['ei.dashboard']
+        return D.create({}) if D.has_access('create') else None
+
+    def _allowed(self, section):
+        return self.env['ei.dashboard']._allowed(section)
+
+    def _finance_ok(self):
+        return self._allowed('finance') or self.env.user.has_group('ei_legacy_master.group_ei_auditor')
 
     # ------------------------------------------------------------------ the page
     @api.model
     def get_data(self):
         env, user = self.env, self.env.user
         now = fields.Datetime.context_timestamp(self, datetime.now())
-        hour = now.hour
+        profile, role_label = self._profile()
+        dash = self._dash()
+        work = env['ei.work'].tasks()
+        kpis = self._kpis(profile, dash)
+        alerts = self._alerts()
+        quick = self._quick()
         data = {
-            'name': (user.name or '').split(' ')[0],
-            'greeting': _("Good morning") if hour < 12 else _("Good afternoon") if hour < 17 else _("Good evening"),
-            'date': now.strftime('%A, %d %B %Y'),
-            'company': env.company.name,
-            'updated': now.strftime('%H:%M'),
+            'profile': profile, 'layout': PROFILE_LAYOUT[profile],
+            'header': self._header(now, role_label, work, alerts, dash),
+            'kpis': kpis, 'alerts': alerts, 'work': work, 'quick': quick,
+            'pipeline': self._pipeline(dash), 'charts': self._charts(dash), 'activity': self._activity(),
+            'system': self._system() if user.has_group('base.group_system') else None,
+            'banks': self._banks(), 'steps': self._day_steps(),
         }
-        # --- things that need attention
-        tasks = []
-        for key, icon, label, hint, model, domain, tone, area in TASKS:
-            n = self._count(model, domain)
-            if n is None:
-                continue
-            if key == 'codes' and not env['ei.legacy.code'].has_access('write'):
-                continue   # only people who can classify codes need this card
-            tasks.append({'key': key, 'icon': icon, 'label': label, 'hint': hint, 'count': n, 'area': area,
-                          'tone': tone if n else 'ok'})
-        data['areas'] = [{'key': k, 'label': l, 'tasks': [t for t in tasks if t['area'] == k]}
-                         for k, l in AREAS if any(t['area'] == k for t in tasks)]
-        data['attention'] = sum(t['count'] for t in tasks if t['tone'] in ('warning', 'danger'))
-        # --- quick start
-        quick = []
-        for key, icon, label, kind, target, model in QUICK:
-            if model not in env:
-                continue
-            try:
-                ok = env[model].has_access('create')
-            except AccessError:
-                ok = False
-            if ok:
-                quick.append({'key': key, 'icon': icon, 'label': label})
-        data['quick'] = quick
-        # --- the day, step by step
-        data['steps'] = self._day_steps()
-        # --- money, banks, material
-        data['money'] = self._money()
-        data['banks'] = self._banks()
-        data['material'] = self._material()
-        data['empty'] = not (tasks or quick)
+        data['empty'] = not (kpis or work['items'] or quick or alerts)
         return data
 
+    # ------------------------------------------------------------------ header
+    def _header(self, now, role_label, work, alerts, dash):
+        env, user = self.env, self.env.user
+        bank_at = ''
+        if self._allowed('bank') and 'ei.bank.balance.check' in env:
+            chk = env['ei.bank.balance.check'].sudo().search([('company_id', 'in', env.companies.ids)] if 'company_id' in env['ei.bank.balance.check']._fields else [],
+                                                           order='entered_at desc', limit=1)
+            if chk:
+                bank_at = fields.Datetime.context_timestamp(self, chk.entered_at).strftime('%d %b %H:%M')
+        approvals = sum(1 for t in work['items'] if t['can_act'] and t['type'] in (
+            'contract_approve', 'da_approve', 'order_approve', 'lifting_verify', 'voucher_approve', 'bank_approve', 'bank_post',
+            'recon_signoff', 'formula_approve'))
+        reminders = env['mail.activity'].search_count([('user_id', '=', user.id)])
+        return {
+            'company': env.company.name, 'user': user.name, 'first_name': (user.name or '').split(' ')[0], 'role': role_label,
+            'date': now.strftime('%A, %d %B %Y'), 'time': now.strftime('%H:%M'),
+            'bank_confirmed': bank_at, 'approvals': approvals, 'reminders': reminders,
+            'attention': sum(a['count'] for a in alerts if a['severity'] in ('danger', 'warning')),
+            'greeting': _("Good morning") if now.hour < 12 else _("Good afternoon") if now.hour < 17 else _("Good evening"),
+        }
+
+    # ------------------------------------------------------------------ layer 1: figures
+    def _kpis(self, profile, dash):
+        env, today = self.env, fields.Date.context_today(self)
+        fin = dash is not None and self._finance_ok()
+        bank_ok = dash is not None and self._allowed('bank')
+        out = {}
+        if fin:
+            ledger_ar = dash.ar_open
+            overdue = ledger_ar - dash.aging_current
+            out['ar'] = dict(label=_("Customers owe us"), value=self._fmt(ledger_ar), icon='in', tone='warning' if overdue > 0 else 'neutral',
+                             sub=(_("%s of it is overdue", self._fmt(overdue)) if overdue > 0 else _("Nothing is overdue")),
+                             basis=_("Posted in the books"))
+            out['ap'] = dict(label=_("We owe suppliers"), value=self._fmt(dash.ap_open), icon='out', tone='neutral',
+                             sub=_("Unpaid supplier bills"), basis=_("Posted in the books"))
+            out['cash'] = dict(label=_("Cash in hand"), value=self._fmt(dash.cash_position), icon='cash', tone='neutral',
+                               sub=_("Cash boxes, according to the books"), basis=_("Posted in the books"))
+        if fin or bank_ok:
+            journals = dash._bank_journals() if dash else env['account.journal']
+            if journals:
+                total = sum(j._ei_ledger_balance(today) for j in journals)
+                checked = env['ei.bank.balance.check'].sudo().search([('date', '=', today), ('journal_id', 'in', journals.ids),
+                                                                      ('state', 'in', ('matched', 'explained'))]).journal_id
+                tone = 'ok' if len(checked) == len(journals) else 'warning'
+                out['bank'] = dict(label=_("Bank balances"), value=self._fmt(total), icon='bank', tone=tone,
+                                   sub=_("%(a)s of %(b)s banks confirmed with the bank today", a=len(checked), b=len(journals)),
+                                   basis=_("Books, checked against the bank"))
+        if self._can('ei.bank.import.line') and (bank_ok or fin):
+            L = env['ei.bank.import.line']
+            got = L.search([('state', '=', 'posted'), ('amount', '>', 0), ('date', '=', today)])
+            out['collected'] = dict(label=_("Collected today"), value=self._fmt(sum(got.mapped('amount'))), icon='in',
+                                    tone='ok' if got else 'neutral',
+                                    sub=(_n(len(got), _("%s receipt posted"), _("%s receipts posted")) if got else _("No receipts posted yet today")),
+                                    basis=_("Bank-confirmed and posted"))
+            pend = L.search([('state', 'in', ('new', 'proposed', 'verified', 'unidentified')), ('amount', '>', 0)])
+            out['waiting'] = dict(label=_("Bank money to match"), value=self._fmt(sum(pend.mapped('amount'))), icon='alert',
+                                  tone='warning' if pend else 'ok', sub=(_n(len(pend), _("%s payment needs a person to confirm the payer"), _("%s payments need a person to confirm the payer")) if pend else _("Nothing waiting")),
+                                  basis=_("Waiting for a person"))
+        if fin:
+            out['spread'] = dict(label=_("Expected gross spread"), value=self._fmt(dash.gross_spread), icon='chart', tone='neutral',
+                                 sub=_("On active contracts, before costs and taxes. Not profit."), basis=_("Provisional"))
+        if self._can('ei.parent.statement.line'):
+            diffs = env['ei.parent.statement.line'].search(TASK_BY_KEY['recon'][5])
+            total = sum(abs(d.difference) for d in diffs)
+            out['recon'] = dict(label=_("Differences with parent companies"), value=str(len(diffs)), icon='scale',
+                                tone='warning' if diffs else 'ok',
+                                sub=(_("Worth %s in total") % self._fmt(total) if diffs else _("Everything agrees")),
+                                basis=_("Waiting for a person"))
+        # operations figures
+        ops = {
+            'k_contracts': ('ei.contract', [('state', 'in', ('approved', 'active'))], _("Active contracts"), 'doc',
+                            lambda n: _("%s waiting for approval", env['ei.contract'].search_count([('state', '=', 'reviewed')]))),
+            'k_das': ('ei.da', [('state', '=', 'under_review')], _("Delivery advices to approve"), 'truck',
+                      lambda n: _("%s approved and open", env['ei.da'].search_count([('state', '=', 'approved')]))),
+            'k_verify': ('ei.lifting', [('state', '=', 'draft')], _("Truck loadings to verify"), 'scale',
+                         lambda n: _("Check each gate pass and weighbridge slip")),
+            'k_toinvoice': ('ei.lifting', [('invoice_status', '=', 'to_invoice')], _("Delivered, not yet invoiced"), 'doc',
+                            lambda n: _("Verified loadings ready to invoice")),
+            'k_banklines': ('ei.bank.import.line', [('state', 'in', ('new', 'proposed', 'unidentified'))], _("Bank payments to check"), 'bank',
+                            lambda n: _("Match each payment to the right party")),
+            'k_vouchers': ('ei.cash.voucher', [('state', '=', 'submitted')], _("Cash vouchers waiting for approval"), 'cash',
+                           lambda n: _("A second person must approve them")),
+            'k_intake': ('ei.supplier.intake', [('state', '=', 'mismatch')], _("Supplier invoices with a problem"), 'alert',
+                         lambda n: _("Quantity, rate or total does not match")),
+        }
+        for key, (model, dom, label, icon, sub) in ops.items():
+            if self._can(model):
+                n = env[model].search_count(dom)
+                bad = key in ('k_intake',)
+                out[key] = dict(label=label, value=str(n), icon=icon, tone=('danger' if bad else 'warning') if n else 'ok', sub=sub(n),
+                                basis=_("Waiting for a person"))
+        mat = self._material()
+        if mat and mat.get('ordered') and (self._allowed('ops') or fin):
+            out['k_left'] = dict(label=_("Still to lift"), value='{:,.3f} MTL'.format(max(mat['allocated'] - mat['lifted'], 0.0)), icon='truck',
+                                 tone='info', sub=_("%(a)s MTL promised, %(l)s MTL truly lifted", a=mat['allocated'], l=mat['lifted']),
+                                 basis=_("Approved minus verified"))
+        if self._can('ei.daily.order.line') and any(k in PROFILE_KPIS.get(profile, ()) for k in ('k_orders',)):
+            lines = env['ei.daily.order.line'].search([('state', '=', 'approved')], limit=500).filtered(lambda l: l.remaining_mtl > 0.0005)
+            out['k_orders'] = dict(label=_("Open daily orders"), value=str(len(lines.mapped('order_id'))), icon='list',
+                                   tone='info', sub=_("%.3f MTL still to lift", sum(lines.mapped('remaining_mtl'))), basis=_("Approved documents"))
+        ordered = [dict(key=k, **out[k]) for k in PROFILE_KPIS.get(profile, []) if k in out]
+        return ordered
+
+    # ------------------------------------------------------------------ layer 2: alerts (never invented)
+    def _alerts(self):
+        env, today = self.env, fields.Date.context_today(self)
+        alerts = []
+
+        def add(key, severity, label, count, detail, model=None, domain=None):
+            if count:
+                alerts.append({'key': key, 'severity': severity, 'label': label, 'count': count, 'detail': detail})
+        if self._can('ei.bank.import.line'):
+            L = env['ei.bank.import.line']
+            add('dup_payment', 'danger', _("Possible duplicate bank payments"), L.search_count([('state', '=', 'duplicate')]),
+                _("The same bank line appeared twice. Do not post both."))
+            add('unidentified', 'warning', _("Bank receipts nobody has identified"), L.search_count([('state', '=', 'unidentified')]),
+                _("Money arrived but nobody knows who paid. It stays out of the books until someone confirms."))
+        if self._can('ei.supplier.intake'):
+            add('intake_mismatch', 'danger', _("Supplier invoices that do not match"), env['ei.supplier.intake'].search_count([('state', '=', 'mismatch')]),
+                _("Quantity, rate or total differs from the delivery advice. They are blocked until someone reviews them."))
+        if self._can('ei.da.line'):
+            lines = env['ei.da.line'].search([('state', '=', 'approved')], limit=500)
+            diff = lines.filtered(lambda l: l.contract_line_id and (abs(l.purchase_rate - l.contract_line_id.purchase_rate) > 0.005
+                                                                     or abs(l.sale_rate - l.contract_line_id.sale_rate) > 0.005))
+            add('rate_diff', 'warning', _("Delivery advice rates that differ from the contract"), len(diff),
+                _("A delivery advice line carries a purchase or sale rate that is not the contract rate. Check the reason."))
+        missing = 0
+        for model, dom in (('ei.supplier.intake', [('state', 'in', ('draft', 'mismatch'))]), ('ei.lifting', [('state', '=', 'draft')])):
+            if self._can(model):
+                recs = env[model].search(dom, limit=200)
+                if recs:
+                    have = {r['res_id'] for r in env['ir.attachment'].sudo().search_read([('res_model', '=', model), ('res_id', 'in', recs.ids)], ['res_id'])}
+                    missing += len([r for r in recs if r.id not in have])
+        add('missing_docs', 'warning', _("Records waiting without any attached paper"), missing,
+            _("Supplier invoices and truck loadings need their paper (invoice, gate pass, weighbridge slip) before they can be checked."))
+        overdue_days = env['ei.work']._overdue_days()
+        limit_dt = fields.Datetime.now() - timedelta(days=overdue_days)
+        stuck = 0
+        for spec in WORK:
+            if spec['key'] in ('bank_check', 'to_invoice', 'recon_diff', 'code_classify', 'intake_problem'):
+                continue
+            if self._can(spec['model']):
+                stuck += env[spec['model']].search_count(spec['domain'] + [('write_date', '<', limit_dt)])
+        add('overdue_approvals', 'warning', _("Approvals waiting too long"), stuck,
+            _("Waiting %s days or more for a decision. The number of days is a setting.", int(overdue_days)))
+        if self._can('ei.parent.statement.line'):
+            n = env['ei.parent.statement.line'].search_count(TASK_BY_KEY['recon'][5])
+            add('recon', 'warning', _("Open differences with parent companies"), n,
+                _("The parent company's ledger and ours disagree. They stay visible until someone resolves them."))
+        if self._allowed('bank') and 'ei.bank.balance.check' in env:
+            for_banks = env['ei.dashboard']._bank_journals() if self._allowed('bank') else env['account.journal']
+            diff_checks = env['ei.bank.balance.check'].sudo().search([('date', '=', today), ('journal_id', 'in', for_banks.ids), ('state', '=', 'difference')])
+            add('bank_diff', 'danger', _("Bank balances that do not agree with the books today"), len(diff_checks),
+                _("The balance the bank gave is different from our ledger. Find the missing or extra entries."))
+        order = {'danger': 0, 'warning': 1, 'info': 2}
+        alerts.sort(key=lambda a: (order[a['severity']], -a['count']))
+        return alerts
+
+    # ------------------------------------------------------------------ quick actions, grouped
+    def _quick(self):
+        env, groups = self.env, []
+        for gkey, glabel in QUICK_GROUPS:
+            items = []
+            for key, icon, label, hint, group, kind, target, model in QUICK:
+                if group != gkey or model not in env:
+                    continue
+                try:
+                    ok = env[model].has_access('create' if kind in ('form', 'wizard') else 'read')
+                except AccessError:
+                    ok = False
+                if ok:
+                    items.append({'key': key, 'icon': icon, 'label': label, 'hint': hint})
+            if items:
+                groups.append({'key': gkey, 'label': glabel, 'items': items})
+        return groups
+
+    # ------------------------------------------------------------------ layer 3: pipeline, charts, activity
+    def _pipeline(self, dash):
+        env = self.env
+        stages = []
+
+        def stage(key, label, model, main_dom, main_text, sub_dom, sub_text, icon, tone_if_sub='warning'):
+            if not self._can(model):
+                return
+            n = env[model].search_count(main_dom)
+            s = env[model].search_count(sub_dom) if sub_dom is not None else 0
+            stages.append({'key': key, 'label': label, 'icon': icon, 'count': n, 'main': main_text(n),
+                           'sub': sub_text(s) if s else _("Nothing waiting"), 'tone': tone_if_sub if s else 'ok', 'waiting': s})
+        stage('contract', _("Contracts"), 'ei.contract', [('state', 'in', ('approved', 'active'))], lambda n: _("%s active", n),
+              [('state', '=', 'reviewed')], lambda s: _("%s to approve", s), 'doc')
+        stage('da', _("Delivery advices"), 'ei.da', [('state', '=', 'approved')], lambda n: _("%s approved", n),
+              [('state', '=', 'under_review')], lambda s: _("%s to approve", s), 'truck')
+        stage('order', _("Daily orders"), 'ei.daily.order', [('state', '=', 'approved')], lambda n: _("%s approved", n),
+              [('state', '=', 'draft')], lambda s: _("%s to approve", s), 'list')
+        stage('lifting', _("Material lifting"), 'ei.lifting', [('state', '=', 'verified')], lambda n: _n(n, _("%s loading verified"), _("%s loadings verified")),
+              [('state', '=', 'draft')], lambda s: _("%s to verify", s), 'scale')
+        stage('supplier', _("Supplier invoices"), 'ei.supplier.intake', [('state', '=', 'billed')], lambda n: _("%s billed", n),
+              [('state', 'in', ('draft', 'mismatch'))], lambda s: _("%s to resolve", s), 'inbox')
+        stage('invoice', _("Customer invoices"), 'ei.lifting', [('invoice_status', '=', 'invoiced')], lambda n: _n(n, _("%s loading invoiced"), _("%s loadings invoiced")),
+              [('invoice_status', '=', 'to_invoice')], lambda s: _("%s to invoice", s), 'doc')
+        if self._finance_ok() and self._can('account.move'):
+            n = env['account.move'].search_count([('move_type', '=', 'out_invoice'), ('state', '=', 'posted'), ('payment_state', 'in', ('not_paid', 'partial'))])
+            m = self._count('ei.bank.import.line', [('state', 'in', ('new', 'proposed', 'verified', 'unidentified')), ('amount', '>', 0)]) or 0
+            stages.append({'key': 'payment', 'label': _("Payment"), 'icon': 'cash', 'count': n, 'main': _n(n, _("%s unpaid invoice"), _("%s unpaid invoices")),
+                           'sub': _n(m, _("%s bank payment to match"), _("%s bank payments to match")) if m else _("Nothing waiting"), 'tone': 'warning' if m else 'ok', 'waiting': m})
+        elif self._can('ei.bank.import.line'):
+            m = env['ei.bank.import.line'].search_count([('state', 'in', ('new', 'proposed', 'verified', 'unidentified')), ('amount', '>', 0)])
+            stages.append({'key': 'payment', 'label': _("Payment"), 'icon': 'cash', 'count': m, 'main': _n(m, _("%s bank payment"), _("%s bank payments")),
+                           'sub': _("to match") if m else _("Nothing waiting"), 'tone': 'warning' if m else 'ok', 'waiting': m})
+        stage('recon', _("Reconciliation"), 'ei.parent.statement.line', TASK_BY_KEY['recon'][5], lambda n: _n(n, _("%s open difference"), _("%s open differences")),
+              [('statement_id.state', '=', 'resolved')], lambda s: _("%s to sign off", s), 'scale')
+        return stages
+
+    def _charts(self, dash):
+        env, today = self.env, fields.Date.context_today(self)
+        charts = {}
+        if self._finance_ok() and dash is not None:
+            start = today - timedelta(days=CHART_DAYS - 1)
+            days = [start + timedelta(days=i) for i in range(CHART_DAYS)]
+            inv, rec = {d: 0.0 for d in days}, {d: 0.0 for d in days}
+            if self._can('account.move'):
+                for d, total in env['account.move']._read_group(
+                        [('move_type', '=', 'out_invoice'), ('state', '=', 'posted'), ('invoice_date', '>=', start), ('invoice_date', '<=', today),
+                         ('company_id', 'in', env.companies.ids)], ['invoice_date:day'], ['amount_total_signed:sum']):
+                    if d in inv:
+                        inv[d] = total or 0.0
+            if self._can('ei.bank.import.line'):
+                for line in env['ei.bank.import.line'].search_fetch([('state', '=', 'posted'), ('amount', '>', 0), ('date', '>=', start), ('date', '<=', today)],
+                                                                    ['date', 'amount']):
+                    if line.date in rec:
+                        rec[line.date] += line.amount
+            total_in, total_rec = sum(inv.values()), sum(rec.values())
+            charts['cashflow'] = {
+                'title': _("Invoiced and received, last %s days", CHART_DAYS),
+                'days': [{'date': d.strftime('%d %b'), 'iso': fields.Date.to_string(d), 'invoiced': round(inv[d], 2), 'received': round(rec[d], 2)} for d in days],
+                'empty': not (total_in or total_rec),
+                'summary': _("Invoiced %(i)s, received %(r)s in the last %(n)s days.", i=self._fmt(total_in), r=self._fmt(total_rec), n=CHART_DAYS),
+            }
+            buckets = (('aging_current', _("Not due yet")), ('aging_30', _("1-30 days late")), ('aging_60', _("31-60 days late")),
+                       ('aging_90', _("61-90 days late")), ('aging_90plus', _("Over 90 days late")))
+            rows = [{'label': label, 'value': round(dash[f], 2), 'text': self._fmt(dash[f])} for f, label in buckets]
+            charts['aging'] = {'title': _("Who owes us, by how late"), 'rows': rows, 'empty': not any(r['value'] for r in rows),
+                               'summary': _("Total owed %s.", self._fmt(dash.ar_open))}
+        mat = self._material()
+        if mat and mat.get('ordered'):
+            charts['material'] = {'title': _("Material on active contracts"), **mat}
+        return charts
+
+    def _activity(self):
+        env = self.env
+        # bulk-created records (the 639 old codes) would drown the feed with one line each
+        bulk = {w['model'] for w in WORK if w.get('bulk')}
+        models = sorted(({w['model'] for w in WORK} | {'account.move'}) - bulk)
+        models = [m for m in models if self._can(m)]
+        if not models:
+            return []
+        msgs = env['mail.message'].search([('model', 'in', models), ('message_type', 'in', ('comment', 'notification', 'tracking')),
+                                           ('res_id', '!=', 0)], order='id desc', limit=ACTIVITY_ITEMS * 4)
+        out = []
+        for m in msgs:
+            rec = env[m.model].browse(m.res_id).exists()
+            if not rec or not rec.has_access('read'):
+                continue
+            # Odoo 20 writes a status change as a readable message: "Draft -> Reviewed (Status)"
+            text = re.sub(r'\*(.+?)\*', r'\1', html2plaintext(m.body or '')).strip().replace('\n', ' ')[:140]
+            if not text:
+                continue
+            ts = fields.Datetime.context_timestamp(self, m.date)
+            out.append({'when': ts.strftime('%d %b %H:%M'), 'who': m.author_id.name or _("System"), 'what': rec.display_name, 'text': text,
+                        'model': m.model, 'res_id': m.res_id})
+            if len(out) >= ACTIVITY_ITEMS:
+                break
+        return out
+
+    def _system(self):
+        """Plain checks for the administrator. Each one is a real check, not a status light."""
+        env = self.env
+        from odoo.tools import find_in_path
+        pdf = bool(find_in_path('wkhtmltopdf'))
+        mail = env['ir.mail_server'].sudo().search_count([('active', '=', True)])
+        cron = env.ref('ei_management_dashboard.cron_ei_daily_summary', raise_if_not_found=False)
+        cron = cron.sudo() if cron else None
+        staff = env['res.users'].sudo().search([('share', '=', False), ('active', '=', True)])
+        users = len(staff)
+        # has_group follows implied groups (a role reaches group_ei_user through the role's own group), a plain search on group_ids does not
+        noroles = len(staff.filtered(lambda u: not u.has_group('ei_legacy_master.group_ei_user')))
+        adapters = self._count('ei.compliance.adapter', [('state', '!=', 'live')]) if 'ei.compliance.adapter' in env else None
+        checks = [
+            dict(label=_("PDF engine (printing and emailing orders and invoices)"), ok=pdf,
+                 text=_("Found") if pdf else _("Not installed - Daily Order and invoice PDFs cannot be made")),
+            dict(label=_("Outgoing email server"), ok=bool(mail), text=_("Configured") if mail else _("None configured - emails stay in the queue")),
+            dict(label=_("Daily summary email job"), ok=bool(cron and cron.active), text=_("Switched on") if cron and cron.active else _("Switched off")),
+            dict(label=_("Staff accounts"), ok=True, text=_("%(u)s active, %(n)s without an Export International role", u=users, n=noroles)),
+        ]
+        if adapters is not None:
+            checks.append(dict(label=_("Connections to other systems"), ok=not adapters,
+                               text=_("%s not configured (nothing is connected yet)", adapters) if adapters else _("All configured")))
+        return {'checks': checks}
+
+    # ------------------------------------------------------------------ pieces kept from the previous Home
     def _day_steps(self):
         env, today = self.env, fields.Date.context_today(self)
         steps = []
@@ -181,26 +544,8 @@ class EiHome(models.AbstractModel):
         n = self._count('ei.lifting', [('invoice_status', '=', 'to_invoice')])
         if n is not None:
             add('s_invoice', _("8. Invoice the material that was delivered"), _("One click creates the customer invoices"),
-                n == 0, _("%s loadings ready to invoice", n) if n else _("Nothing to invoice"))
+                n == 0, _("%s ready to invoice", n) if n else _("Nothing to invoice"))
         return steps
-
-    def _money(self):
-        env = self.env
-        if 'ei.dashboard' not in env or not env['ei.dashboard'].has_access('create'):
-            return []
-        d = env['ei.dashboard'].create({})
-        items = []
-        for key, icon, label, hint, value, tone in (
-                ('ar', 'fa-arrow-circle-down', _("Customers owe us"), _("Unpaid customer invoices"), d.ar_open, 'in'),
-                ('ap', 'fa-arrow-circle-up', _("We owe suppliers"), _("Unpaid supplier bills"), d.ap_open, 'out'),
-                ('cash', 'fa-money', _("Cash in hand"), _("According to the books"), d.cash_position, 'neutral'),
-                ('profit', 'fa-line-chart', _("Profit this month"), _("From posted entries only"), d.profit, 'neutral')):
-            if self._allowed_finance():
-                items.append({'key': key, 'icon': icon, 'label': label, 'hint': hint, 'value': self._fmt(value), 'tone': tone})
-        return items
-
-    def _allowed_finance(self):
-        return self.env['ei.dashboard']._allowed('finance')
 
     def _banks(self):
         env = self.env
@@ -237,7 +582,7 @@ class EiHome(models.AbstractModel):
         return {'ordered': round(ordered, 3), 'allocated': round(alloc, 3), 'lifted': round(lifted, 3),
                 'left': round(ordered - alloc, 3), 'pct_alloc': round(100 * alloc / ordered), 'pct_lift': round(100 * lifted / ordered)}
 
-    # ------------------------------------------------------------------ clicks
+    # ------------------------------------------------------------------ clicks (every figure opens the records behind it)
     @api.model
     def open_task(self, key):
         for k, _icon, label, _hint, model, domain, _tone, _area in TASKS:
@@ -248,13 +593,12 @@ class EiHome(models.AbstractModel):
 
     @api.model
     def open_quick(self, key):
-        for k, _icon, label, kind, target, model in QUICK:
+        for k, _icon, label, _hint, _group, kind, target, model in QUICK:
             if k != key:
                 continue
             if kind in ('wizard', 'list'):
                 return self.env['ir.actions.act_window']._for_xml_id(target)
-            return {'type': 'ir.actions.act_window', 'name': label, 'res_model': target, 'views': [[False, 'form']],
-                    'target': 'current'}
+            return {'type': 'ir.actions.act_window', 'name': label, 'res_model': target, 'views': [[False, 'form']], 'target': 'current'}
         return False
 
     @api.model
@@ -267,9 +611,100 @@ class EiHome(models.AbstractModel):
         return d.with_context(kpi=kpi).action_open_kpi() if kpi else False
 
     @api.model
+    def open_kpi(self, key):
+        """Open exactly the records a figure on Home is made from."""
+        env, today = self.env, fields.Date.context_today(self)
+        window = lambda name, model, dom: {'type': 'ir.actions.act_window', 'name': name, 'res_model': model, 'domain': dom,
+                                           'views': self._views_for(model), 'target': 'current'}
+        if key in ('ar', 'ap'):
+            return self.open_money(key)
+        if key == 'cash':
+            return self.open_money('cash')
+        if key == 'bank':
+            # bank officers/approvers open the morning confirmations; an accountant (who may see the figure but not that
+            # screen) opens the posted items on the bank accounts, which add up to the figure
+            if self._can('ei.bank.balance.check'):
+                return env['ir.actions.act_window']._for_xml_id('ei_bank_operations.ei_balance_check_action')
+            accounts = env['account.journal'].search([('type', '=', 'bank'), ('company_id', 'in', env.companies.ids)]).default_account_id
+            return window(_("Posted items on the bank accounts"), 'account.move.line',
+                          [('account_id', 'in', accounts.ids), ('parent_state', '=', 'posted'), ('company_id', 'in', env.companies.ids)])
+        if key == 'collected':
+            return window(_("Collected today"), 'ei.bank.import.line', [('state', '=', 'posted'), ('amount', '>', 0), ('date', '=', today)])
+        if key == 'waiting':
+            return window(_("Bank money to match"), 'ei.bank.import.line', [('state', 'in', ('new', 'proposed', 'verified', 'unidentified')), ('amount', '>', 0)])
+        if key == 'spread':
+            return env['ei.dashboard'].create({}).with_context(kpi='contracts').action_open_kpi()
+        if key == 'recon':
+            return self.open_task('recon')
+        m = {'k_contracts': ('ei.contract', [('state', 'in', ('approved', 'active'))]), 'k_das': ('ei.da', [('state', '=', 'under_review')]),
+             'k_verify': ('ei.lifting', [('state', '=', 'draft')]), 'k_toinvoice': ('ei.lifting', [('invoice_status', '=', 'to_invoice')]),
+             'k_banklines': ('ei.bank.import.line', [('state', 'in', ('new', 'proposed', 'unidentified'))]),
+             'k_vouchers': ('ei.cash.voucher', [('state', '=', 'submitted')]), 'k_intake': ('ei.supplier.intake', [('state', '=', 'mismatch')]),
+             'k_orders': ('ei.daily.order', [('state', '=', 'approved')]), 'k_left': ('ei.contract.line', [('state', 'in', ('active', 'fulfilled'))])}
+        if key in m:
+            model, dom = m[key]
+            labels = {'k_contracts': _("Active contracts"), 'k_das': _("Delivery advices to approve"), 'k_verify': _("Truck loadings to verify"),
+                      'k_toinvoice': _("Delivered, not yet invoiced"), 'k_banklines': _("Bank payments to check"),
+                      'k_vouchers': _("Cash vouchers waiting for approval"), 'k_intake': _("Supplier invoices with a problem"),
+                      'k_orders': _("Open daily orders"), 'k_left': _("Contract lines")}
+            return window(labels[key], model, dom)
+        raise UserError(_("Unknown figure."))
+
+    @api.model
+    def open_alert(self, key):
+        m = {'dup_payment': ('ei.bank.import.line', [('state', '=', 'duplicate')], _("Possible duplicate bank payments")),
+             'unidentified': ('ei.bank.import.line', [('state', '=', 'unidentified')], _("Bank receipts nobody has identified")),
+             'intake_mismatch': ('ei.supplier.intake', [('state', '=', 'mismatch')], _("Supplier invoices that do not match")),
+             'recon': ('ei.parent.statement.line', TASK_BY_KEY['recon'][5], _("Open differences with parent companies"))}
+        if key in m:
+            model, dom, name = m[key]
+            return {'type': 'ir.actions.act_window', 'name': name, 'res_model': model, 'domain': dom, 'views': self._views_for(model), 'target': 'current'}
+        if key == 'rate_diff':
+            lines = self.env['ei.da.line'].search([('state', '=', 'approved')], limit=500).filtered(
+                lambda l: l.contract_line_id and (abs(l.purchase_rate - l.contract_line_id.purchase_rate) > 0.005 or abs(l.sale_rate - l.contract_line_id.sale_rate) > 0.005))
+            return {'type': 'ir.actions.act_window', 'name': _("Delivery advice rates that differ from the contract"), 'res_model': 'ei.da.line',
+                    'domain': [('id', 'in', lines.ids)], 'views': [[False, 'list'], [False, 'form']], 'target': 'current'}
+        if key == 'missing_docs':
+            ids = []
+            for model, dom in (('ei.supplier.intake', [('state', 'in', ('draft', 'mismatch'))]), ('ei.lifting', [('state', '=', 'draft')])):
+                recs = self.env[model].search(dom, limit=200)
+                have = {r['res_id'] for r in self.env['ir.attachment'].sudo().search_read([('res_model', '=', model), ('res_id', 'in', recs.ids)], ['res_id'])}
+                ids.append((model, [r.id for r in recs if r.id not in have]))
+            model, rid = next(((m_, i) for m_, i in ids if i), ('ei.supplier.intake', []))
+            return {'type': 'ir.actions.act_window', 'name': _("Records waiting without any attached paper"), 'res_model': model,
+                    'domain': [('id', 'in', rid)], 'views': self._views_for(model), 'target': 'current'}
+        if key == 'overdue_approvals':
+            return self.env['ir.actions.act_window']._for_xml_id('ei_management_dashboard.ei_approval_contracts')
+        if key == 'bank_diff':
+            return self.env['ir.actions.act_window']._for_xml_id('ei_bank_operations.ei_balance_check_action')
+        raise UserError(_("Unknown alert."))
+
+    @api.model
+    def open_stage(self, key):
+        m = {'contract': ('ei.contract', [('state', 'in', ('approved', 'active'))]), 'da': ('ei.da', [('state', '=', 'approved')]),
+             'order': ('ei.daily.order', [('state', '=', 'approved')]), 'lifting': ('ei.lifting', [('state', '=', 'verified')]),
+             'supplier': ('ei.supplier.intake', [('state', 'in', ('billed', 'draft', 'mismatch'))]),
+             'invoice': ('ei.lifting', [('invoice_status', 'in', ('invoiced', 'to_invoice'))]),
+             'recon': ('ei.parent.statement.line', TASK_BY_KEY['recon'][5])}
+        if key in m:
+            model, dom = m[key]
+            labels = {'contract': _("Active contracts"), 'da': _("Approved delivery advices"), 'order': _("Approved daily orders"),
+                      'lifting': _("Verified truck loadings"), 'supplier': _("Supplier invoices"), 'invoice': _("Invoiced truck loadings"),
+                      'recon': _("Open differences with parent companies")}
+            return {'type': 'ir.actions.act_window', 'name': labels[key], 'res_model': model, 'domain': dom, 'views': self._views_for(model), 'target': 'current'}
+        if key == 'payment':
+            if self._finance_ok():
+                return {'type': 'ir.actions.act_window', 'name': _("Unpaid customer invoices"), 'res_model': 'account.move',
+                        'domain': [('move_type', '=', 'out_invoice'), ('state', '=', 'posted'), ('payment_state', 'in', ('not_paid', 'partial'))],
+                        'views': [[False, 'list'], [False, 'form']], 'target': 'current'}
+            return self.open_kpi('waiting')
+        raise UserError(_("Unknown step."))
+
+    @api.model
     def open_step(self, key):
         m = {'s_balance': 'ei_bank_operations.ei_balance_check_action', 's_bank': 'ei_bank_operations.ei_bank_line_action',
              's_da': 'ei_contract_da.ei_da_action', 's_cash': 'ei_cashbook.ei_cash_count_action',
              's_order': 'ei_daily_orders.ei_daily_order_action', 's_lift': 'ei_material_lifting.ei_lifting_action',
              's_intake': 'ei_invoice_extensions.ei_intake_action', 's_invoice': 'ei_invoice_extensions.ei_billable_action'}
         return self.env['ir.actions.act_window']._for_xml_id(m[key]) if key in m else False
+

@@ -7,6 +7,7 @@
     'license': 'LGPL-3',
     'depends': ['ei_management_dashboard', 'web_tour'],
     'data': [
+        'security/ir.access.csv',
         'views/home_views.xml',
         'views/menus.xml',
         'views/cards.xml',
@@ -20,8 +21,15 @@
         'web.assets_backend': [
             'ei_ui_theme/static/src/scss/theme.scss',
             'ei_ui_theme/static/src/home/home.scss',
+            'ei_ui_theme/static/src/common/icons.js',
+            'ei_ui_theme/static/src/search/search_box.js',
+            'ei_ui_theme/static/src/search/search_box.xml',
+            'ei_ui_theme/static/src/search/command_provider.js',
             'ei_ui_theme/static/src/home/home.js',
             'ei_ui_theme/static/src/home/home.xml',
+        ],
+        'web.assets_web_dark': [
+            'ei_ui_theme/static/src/scss/theme.dark.scss',
         ],
     },
     'post_init_hook': 'post_init_hook',
