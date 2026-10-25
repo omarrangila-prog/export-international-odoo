@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_dashboard" model="ir.actions.report">
+        <field name="name">Management Summary</field>
+        <field name="model">ei.dashboard</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">ei_management_dashboard.report_dashboard</field>
+        <field name="binding_model_id" ref="model_ei_dashboard"/>
+        <field name="binding_type">report</field>
+    </record>
+    <template id="report_dashboard">
+        <t t-call="web.html_container"><t t-foreach="docs" t-as="o"><t t-call="web.external_layout"><div class="page">
+            <h2>Management summary</h2>
+            <p>Period <span t-field="o.date_from"/> to <span t-field="o.date_to"/>. Generated <span t-field="o.generated_at"/>.
+                Posted accounting figures are verified; bank figures show their own freshness; spread is an expectation.</p>
+            <table class="table table-sm">
+                <tr><td>Customer outstanding</td><td class="text-end"><span t-field="o.ar_open"/></td></tr>
+                <tr><td>Supplier payable</td><td class="text-end"><span t-field="o.ap_open"/></td></tr>
+                <tr><td>Posted revenue</td><td class="text-end"><span t-field="o.revenue"/></td></tr>
+                <tr><td>Posted costs</td><td class="text-end"><span t-field="o.costs"/></td></tr>
+                <tr><td>Posted profit / loss</td><td class="text-end"><span t-field="o.profit"/></td></tr>
+                <tr><td>Cash in hand (ledger)</td><td class="text-end"><span t-field="o.cash_position"/></td></tr>
+                <tr><td>Verified lifted MTL</td><td class="text-end"><span t-field="o.mtl_lifted"/></td></tr>
+                <tr><td>Expected gross spread (provisional)</td><td class="text-end"><span t-field="o.gross_spread"/></td></tr>
+            </table>
+            <div t-out="o.bank_html"/>
+        </div></t></t></t>
+    </template>
+</odoo>

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="group_ei_order_approver" model="res.groups">
+        <field name="name">Daily order approver</field>
+        <field name="privilege_id" ref="ei_contract_da.res_groups_privilege_ei_contract"/>
+        <field name="implied_ids" eval="[(6, 0, [ref('ei_contract_da.group_ei_contract_staff')])]"/>
+    </record>
+</odoo>

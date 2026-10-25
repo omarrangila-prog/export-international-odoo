@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ei_reason_wizard_form" model="ir.ui.view">
+        <field name="name">ei.reason.wizard.form</field>
+        <field name="model">ei.reason.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <group><field name="reason"/><field name="res_model" invisible="1"/><field name="method" invisible="1"/></group>
+                <footer>
+                    <button string="Confirm" name="action_apply" type="object" class="btn-primary"/>
+                    <button string="Cancel" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+    <record id="ei_contract_cancel_action" model="ir.actions.act_window">
+        <field name="name">Cancel contract</field>
+        <field name="res_model">ei.reason.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{'default_res_model': 'ei.contract', 'default_method': 'action_cancel'}</field>
+    </record>
+    <record id="ei_da_cancel_action" model="ir.actions.act_window">
+        <field name="name">Cancel DA</field>
+        <field name="res_model">ei.reason.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{'default_res_model': 'ei.da', 'default_method': 'action_cancel'}</field>
+    </record>
+    <record id="ei_da_override_action" model="ir.actions.act_window">
+        <field name="name">Authorise over-quantity</field>
+        <field name="res_model">ei.reason.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{'default_res_model': 'ei.da.line', 'default_method': 'action_authorise_over_quantity'}</field>
+    </record>
+
+    <record id="ei_contract_list" model="ir.ui.view">
+        <field name="name">ei.contract.list</field>
+        <field name="model">ei.contract</field>
+        <field name="arch" type="xml">
+            <list decoration-success="state == 'active'" decoration-muted="state in ('cancelled', 'amended', 'closed')">
+                <field name="name"/><field name="parent_partner_id"/><field name="contract_ref"/><field name="revision"/>
+                <field name="contract_type"/><field name="date"/><field name="valid_to"/><field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+    <record id="ei_contract_form" model="ir.ui.view">
+        <field name="name">ei.contract.form</field>
+        <field name="model">ei.contract</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_review" string="Send for review" type="object" class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_approve" string="Approve" type="object" class="btn-primary" invisible="state != 'reviewed'"
+                            groups="ei_contract_da.group_ei_contract_approver"/>
+                    <button name="action_activate" string="Activate" type="object" invisible="state != 'approved'"/>
+                    <button name="action_revise" string="Revise" type="object" invisible="state not in ('approved', 'active')"/>
+                    <button name="action_close" string="Close" type="object" invisible="state not in ('active', 'fulfilled')"/>
+                    <button name="%(ei_contract_cancel_action)d" string="Cancel" type="action"
+                            invisible="state not in ('draft', 'reviewed', 'approved', 'active')"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,reviewed,approved,active,fulfilled,closed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title"><h1><field name="name"/></h1></div>
+                    <group>
+                        <group>
+                            <field name="parent_partner_id" readonly="state != 'draft'"/>
+                            <field name="contract_ref" readonly="state != 'draft'"/>
+                            <field name="contract_type" readonly="state != 'draft'"/>
+                            <field name="company_id" readonly="state != 'draft'" groups="base.group_multi_company"/>
+                            <field name="currency_id" readonly="state != 'draft'"/>
+                        </group>
+                        <group>
+                            <field name="date" readonly="state != 'draft'"/>
+                            <field name="valid_from" readonly="state != 'draft'"/>
+                            <field name="valid_to" readonly="state != 'draft'"/>
+                            <field name="revision"/><field name="previous_id"/>
+                            <field name="maker_id"/><field name="reviewed_by"/><field name="approved_by"/>
+                            <field name="attachment_count"/>
+                        </group>
+                    </group>
+                    <field name="line_ids" readonly="state != 'draft'">
+                        <list>
+                            <field name="product_id"/><field name="grade" optional="show"/><field name="lot" optional="hide"/>
+                            <field name="ordered_mtl" sum="Total"/><field name="allocated_mtl"/><field name="remaining_mtl"/>
+                            <field name="lifted_mtl"/>
+                            <field name="purchase_rate"/><field name="sale_rate"/><field name="spread_per_mtl"/>
+                            <field name="expected_gross_spread" sum="Gross spread"/>
+                            <field name="formula_id" optional="show"/><field name="currency_id" column_invisible="1"/>
+                        </list>
+                        <form>
+                            <group>
+                                <group>
+                                    <field name="product_id"/><field name="grade"/><field name="lot"/><field name="uom_id"/>
+                                    <field name="ordered_mtl"/><field name="cost_class"/><field name="target_customer_id"/>
+                                </group>
+                                <group>
+                                    <field name="currency_id" invisible="1"/>
+                                    <field name="purchase_rate"/><field name="sale_rate"/>
+                                    <field name="spread_per_mtl"/><field name="expected_gross_spread"/>
+                                    <field name="shipping_charge"/>
+                                </group>
+                            </group>
+                            <group string="Formula (only approved formulas)">
+                                <field name="formula_id"/><field name="basic_rate"/>
+                            </group>
+                            <field name="param_ids"><list editable="bottom"><field name="key"/><field name="value"/></list></field>
+                            <separator string="Calculation (inputs, version, steps)"/>
+                            <field name="calc_html" readonly="1"/>
+                            <div class="text-muted">Expected gross spread = MTL x (sale - purchase), before commission, costs and taxes. It is not profit.</div>
+                        </form>
+                    </field>
+                    <field name="notes" placeholder="Notes"/>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    <record id="ei_contract_search" model="ir.ui.view">
+        <field name="name">ei.contract.search</field>
+        <field name="model">ei.contract</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/><field name="contract_ref"/><field name="parent_partner_id"/>
+                <filter name="active" string="Active" domain="[('state', '=', 'active')]"/>
+                <filter name="todo" string="Awaiting approval" domain="[('state', '=', 'reviewed')]"/>
+                <group><filter name="g_parent" string="Parent company" context="{'group_by': 'parent_partner_id'}"/>
+                    <filter name="g_state" string="Status" context="{'group_by': 'state'}"/></group>
+            </search>
+        </field>
+    </record>
+    <record id="ei_contract_action" model="ir.actions.act_window">
+        <field name="name">Contracts</field>
+        <field name="res_model">ei.contract</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

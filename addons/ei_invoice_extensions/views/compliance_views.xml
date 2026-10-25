@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ei_adapter_list" model="ir.ui.view">
+        <field name="name">ei.compliance.adapter.list</field>
+        <field name="model">ei.compliance.adapter</field>
+        <field name="arch" type="xml">
+            <list decoration-warning="state == 'not_configured'" decoration-success="state == 'live'">
+                <field name="name"/><field name="kind"/><field name="state" widget="badge"/><field name="implemented"/>
+                <field name="last_success_at"/><field name="last_error"/>
+            </list>
+        </field>
+    </record>
+    <record id="ei_adapter_action" model="ir.actions.act_window">
+        <field name="name">Integrations Status</field>
+        <field name="res_model">ei.compliance.adapter</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <record id="ei_submission_list" model="ir.ui.view">
+        <field name="name">ei.compliance.submission.list</field>
+        <field name="model">ei.compliance.submission</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="state == 'failed'" decoration-success="state == 'submitted'">
+                <field name="move_id"/><field name="adapter_id"/><field name="state" widget="badge"/><field name="attempts"/>
+                <field name="last_error"/><field name="external_ref"/>
+                <button name="action_retry" type="object" string="Retry" invisible="state == 'submitted'"/>
+            </list>
+        </field>
+    </record>
+    <record id="ei_submission_action" model="ir.actions.act_window">
+        <field name="name">Compliance Submissions</field>
+        <field name="res_model">ei.compliance.submission</field>
+        <field name="view_mode">list</field>
+    </record>
+    <data noupdate="1">
+        <record id="adapter_fbr" model="ei.compliance.adapter">
+            <field name="code">fbr</field><field name="name">FBR / PRAL e-invoicing</field><field name="kind">fbr</field>
+            <field name="notes">Applicability, onboarding and sandbox credentials are unconfirmed. No connector is implemented.</field>
+        </record>
+        <record id="adapter_bank" model="ei.compliance.adapter">
+            <field name="code">bank_feed</field><field name="name">Bank statement feed (API)</field><field name="kind">bank</field>
+            <field name="notes">Only manual statement CSV import exists. No bank API connector is implemented.</field>
+        </record>
+        <record id="adapter_ocr" model="ei.compliance.adapter">
+            <field name="code">ocr</field><field name="name">Invoice OCR</field><field name="kind">ocr</field>
+            <field name="notes">No OCR provider configured; invoices are entered manually.</field>
+        </record>
+        <record id="adapter_messaging" model="ei.compliance.adapter">
+            <field name="code">messaging</field><field name="name">WhatsApp / SMS</field><field name="kind">messaging</field>
+            <field name="notes">Not configured.</field>
+        </record>
+    </data>
+</odoo>

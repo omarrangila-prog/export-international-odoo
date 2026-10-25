@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_ei_root" name="Export International" sequence="40"
+              groups="ei_legacy_master.group_ei_user" web_icon="base,static/description/icon.png"/>
+    <menuitem id="menu_ei_master" name="Master Codes" parent="menu_ei_root" sequence="90"/>
+    <menuitem id="menu_ei_codes" name="Legacy Codes" parent="menu_ei_master" action="ei_legacy_code_action" sequence="10"/>
+    <menuitem id="menu_ei_queue" name="Mapping Queue" parent="menu_ei_master" action="ei_legacy_code_queue_action" sequence="20"/>
+    <menuitem id="menu_ei_batches" name="Import Batches" parent="menu_ei_master" action="ei_import_batch_action" sequence="30"/>
+    <menuitem id="menu_ei_import" name="Import Codes" parent="menu_ei_master" action="ei_import_wizard_action" sequence="40"
+              groups="ei_legacy_master.group_ei_importer"/>
+</odoo>

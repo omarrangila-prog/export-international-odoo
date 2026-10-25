@@ -1,0 +1,26 @@
+id,name,model_id,group_id/id,operation,domain
+access_ei_contract_auditor,ei.contract auditor,ei.contract,ei_legacy_master.group_ei_auditor,r,
+access_ei_contract_staff,ei.contract staff,ei.contract,group_ei_contract_staff,crud,
+access_ei_contract_line_auditor,ei.contract.line auditor,ei.contract.line,ei_legacy_master.group_ei_auditor,r,
+access_ei_contract_line_staff,ei.contract.line staff,ei.contract.line,group_ei_contract_staff,crud,
+access_ei_contract_line_param_auditor,ei.contract.line.param auditor,ei.contract.line.param,ei_legacy_master.group_ei_auditor,r,
+access_ei_contract_line_param_staff,ei.contract.line.param staff,ei.contract.line.param,group_ei_contract_staff,crud,
+access_ei_da_auditor,ei.da auditor,ei.da,ei_legacy_master.group_ei_auditor,r,
+access_ei_da_staff,ei.da staff,ei.da,group_ei_contract_staff,crud,
+access_ei_da_line_auditor,ei.da.line auditor,ei.da.line,ei_legacy_master.group_ei_auditor,r,
+access_ei_da_line_staff,ei.da.line staff,ei.da.line,group_ei_contract_staff,crud,
+access_ei_formula_definition_auditor,ei.formula.definition auditor,ei.formula.definition,ei_legacy_master.group_ei_auditor,r,
+access_ei_formula_definition_staff,ei.formula.definition staff,ei.formula.definition,group_ei_contract_staff,crud,
+access_ei_formula_definition_approver,ei.formula.definition formula approver,ei.formula.definition,group_ei_formula_approver,crud,
+access_ei_formula_step_auditor,ei.formula.step auditor,ei.formula.step,ei_legacy_master.group_ei_auditor,r,
+access_ei_formula_step_staff,ei.formula.step staff,ei.formula.step,group_ei_contract_staff,crud,
+access_ei_formula_step_approver,ei.formula.step formula approver,ei.formula.step,group_ei_formula_approver,crud,
+access_ei_formula_test_auditor,ei.formula.test auditor,ei.formula.test,ei_legacy_master.group_ei_auditor,r,
+access_ei_formula_test_staff,ei.formula.test staff,ei.formula.test,group_ei_contract_staff,crud,
+access_ei_formula_test_approver,ei.formula.test formula approver,ei.formula.test,group_ei_formula_approver,crud,
+access_ei_reason_wizard,ei.reason.wizard,ei.reason.wizard,group_ei_contract_staff,crud,
+rule_ei_contract_company,Contract: own companies,ei.contract,,crud,"[('company_id', 'in', company_ids)]"
+rule_ei_contract_line_company,Contract line: own companies,ei.contract.line,,crud,"[('company_id', 'in', company_ids)]"
+rule_ei_da_company,DA: own companies,ei.da,,crud,"[('company_id', 'in', company_ids)]"
+rule_ei_da_line_company,DA line: own companies,ei.da.line,,crud,"[('company_id', 'in', company_ids)]"
+rule_ei_formula_company,Formula: own companies or shared,ei.formula.definition,,crud,"['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]"

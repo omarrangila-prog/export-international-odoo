@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ei_order_cancel_action" model="ir.actions.act_window">
+        <field name="name">Cancel order request</field>
+        <field name="res_model">ei.reason.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{'default_res_model': 'ei.daily.order', 'default_method': 'action_cancel'}</field>
+    </record>
+    <record id="ei_daily_order_list" model="ir.ui.view">
+        <field name="name">ei.daily.order.list</field>
+        <field name="model">ei.daily.order</field>
+        <field name="arch" type="xml">
+            <list decoration-muted="state == 'cancelled'" decoration-success="state == 'approved'">
+                <field name="name"/><field name="date"/><field name="parent_partner_id"/>
+                <field name="total_requested" sum="MTL"/><field name="total_remaining" sum="MTL"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+    <record id="ei_daily_order_form" model="ir.ui.view">
+        <field name="name">ei.daily.order.form</field>
+        <field name="model">ei.daily.order</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_approve" string="Approve" type="object" class="btn-primary" invisible="state != 'draft'"
+                            groups="ei_daily_orders.group_ei_order_approver"/>
+                    <button name="action_print" string="Print" type="object" invisible="state != 'approved'"/>
+                    <button name="action_send_email" string="Send by email" type="object" invisible="state != 'approved'"/>
+                    <button name="%(ei_order_cancel_action)d" string="Cancel" type="action" invisible="state == 'cancelled'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_title"><h1><field name="name"/></h1></div>
+                    <group>
+                        <group><field name="parent_partner_id" readonly="state != 'draft'"/><field name="date" readonly="state != 'draft'"/></group>
+                        <group><field name="total_requested"/><field name="total_remaining"/>
+                            <field name="maker_id"/><field name="approved_by"/><field name="print_count"/></group>
+                    </group>
+                    <field name="line_ids" readonly="state == 'cancelled'">
+                        <list editable="bottom">
+                            <field name="da_line_id" readonly="parent.state != 'draft'"/><field name="product_id"/><field name="customer_id"/>
+                            <field name="requested_mtl" readonly="parent.state != 'draft'"/><field name="sale_rate"/>
+                            <field name="lifted_mtl"/><field name="remaining_mtl"/>
+                            <field name="invoice_ref" readonly="parent.state != 'approved'"/><field name="currency_id" column_invisible="1"/>
+                        </list>
+                    </field>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    <record id="ei_daily_order_search" model="ir.ui.view">
+        <field name="name">ei.daily.order.search</field>
+        <field name="model">ei.daily.order</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/><field name="parent_partner_id"/>
+                <filter name="today" string="Today" domain="[('date', '=', context_today().strftime('%Y-%m-%d'))]"/>
+                <filter name="todo" string="Draft" domain="[('state', '=', 'draft')]"/>
+                <group><filter name="g_parent" string="Supplier" context="{'group_by': 'parent_partner_id'}"/>
+                    <filter name="g_day" string="Day" context="{'group_by': 'date:day'}"/></group>
+            </search>
+        </field>
+    </record>
+    <record id="ei_daily_order_action" model="ir.actions.act_window">
+        <field name="name">Daily Orders</field>
+        <field name="res_model">ei.daily.order</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="ei_da_form_generate" model="ir.ui.view">
+        <field name="name">ei.da.form.generate</field>
+        <field name="model">ei.da</field>
+        <field name="inherit_id" ref="ei_contract_da.ei_da_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_amend']" position="before">
+                <button name="action_generate_order" string="Generate Daily Order" type="object" invisible="state != 'approved'"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

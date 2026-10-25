@@ -1,0 +1,20 @@
+{
+    'name': 'Export International - Contracts & Delivery Advices',
+    'version': '20.0.1.0.0',
+    'category': 'Sales/Purchase',
+    'summary': 'Parent-company contracts, DA allocation control and an accountant-approved formula register',
+    'author': 'Odoovations',
+    'license': 'LGPL-3',
+    'depends': ['ei_legacy_master', 'account', 'product', 'uom'],
+    'data': [
+        'security/security.xml',
+        'security/ir.access.csv',
+        'data/sequence.xml',
+        'data/formula_examples.xml',
+        'views/formula_views.xml',
+        'views/contract_views.xml',
+        'views/da_views.xml',
+        'views/menus.xml',
+    ],
+    'installable': True,
+}

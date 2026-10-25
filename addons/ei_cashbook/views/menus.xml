@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_ei_cash" name="Cash Book" parent="ei_legacy_master.menu_ei_root" sequence="20"/>
+    <menuitem id="menu_ei_cash_vouchers" name="Vouchers" parent="menu_ei_cash" action="ei_cash_voucher_action" sequence="10"/>
+    <menuitem id="menu_ei_cash_counts" name="Daily Cash Count" parent="menu_ei_cash" action="ei_cash_count_action" sequence="20"/>
+    <menuitem id="menu_ei_cash_cats" name="Categories" parent="menu_ei_cash" action="ei_cash_category_action" sequence="30"/>
+</odoo>

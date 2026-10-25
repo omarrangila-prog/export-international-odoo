@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_ei_daily_orders" name="Daily Orders" parent="ei_legacy_master.menu_ei_root" action="ei_daily_order_action" sequence="40"/>
+</odoo>

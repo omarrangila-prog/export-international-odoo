@@ -1,0 +1,6 @@
+id,name,model_id,group_id/id,operation,domain
+access_ei_trade_lc_auditor,lc auditor,ei.trade.lc,ei_legacy_master.group_ei_auditor,r,
+access_ei_trade_lc_manager,lc manager,ei.trade.lc,group_ei_trade_manager,crud,
+access_ei_trade_lc_cost_auditor,lc cost auditor,ei.trade.lc.cost,ei_legacy_master.group_ei_auditor,r,
+access_ei_trade_lc_cost_manager,lc cost manager,ei.trade.lc.cost,group_ei_trade_manager,crud,
+rule_ei_trade_lc_company,LC: own companies,ei.trade.lc,,crud,"[('company_id', 'in', company_ids)]"

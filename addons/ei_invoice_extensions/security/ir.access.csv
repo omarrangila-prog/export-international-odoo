@@ -1,0 +1,14 @@
+id,name,model_id,group_id/id,operation,domain
+access_ei_intake_auditor,intake auditor,ei.supplier.intake,ei_legacy_master.group_ei_auditor,r,
+access_ei_intake_inv,intake invoicing,ei.supplier.intake,group_ei_invoicing,crud,
+access_ei_intake_line_auditor,intake line auditor,ei.supplier.intake.line,ei_legacy_master.group_ei_auditor,r,
+access_ei_intake_line_inv,intake line invoicing,ei.supplier.intake.line,group_ei_invoicing,crud,
+access_ei_adapter_auditor,adapter auditor,ei.compliance.adapter,ei_legacy_master.group_ei_auditor,r,
+access_ei_adapter_approver,adapter approver,ei.compliance.adapter,group_ei_invoice_approver,ru,
+access_ei_submission_auditor,submission auditor,ei.compliance.submission,ei_legacy_master.group_ei_auditor,r,
+access_ei_submission_inv,submission invoicing,ei.compliance.submission,group_ei_invoicing,cru,
+access_ei_invoice_wizard,invoice wizard,ei.invoice.wizard,group_ei_invoicing,crud,
+access_ei_invoice_wizard_line,invoice wizard line,ei.invoice.wizard.line,group_ei_invoicing,crud,
+rule_ei_intake_company,Supplier intake: own companies,ei.supplier.intake,,crud,"[('company_id', 'in', company_ids)]"
+rule_ei_intake_line_company,Supplier intake line: own companies,ei.supplier.intake.line,,crud,"[('intake_id.company_id', 'in', company_ids)]"
+rule_ei_submission_company,Compliance submission: own companies,ei.compliance.submission,,crud,"[('company_id', 'in', company_ids)]"

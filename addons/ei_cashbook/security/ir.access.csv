@@ -1,0 +1,15 @@
+id,name,model_id,group_id/id,operation,domain
+access_ei_cash_voucher_auditor,voucher auditor,ei.cash.voucher,ei_legacy_master.group_ei_auditor,r,
+access_ei_cash_voucher_clerk,voucher clerk,ei.cash.voucher,group_ei_cash_clerk,crud,
+access_ei_cash_voucher_approver,voucher approver,ei.cash.voucher,group_ei_cash_approver,cru,
+access_ei_cash_category_auditor,category auditor,ei.cash.category,ei_legacy_master.group_ei_auditor,r,
+access_ei_cash_category_approver,category approver,ei.cash.category,group_ei_cash_approver,cru,
+access_ei_cash_count_auditor,count auditor,ei.cash.count,ei_legacy_master.group_ei_auditor,r,
+access_ei_cash_count_clerk,count clerk,ei.cash.count,group_ei_cash_clerk,cru,
+access_ei_cash_count_approver,count approver,ei.cash.count,group_ei_cash_approver,cru,
+access_ei_cash_count_line_auditor,count line auditor,ei.cash.count.line,ei_legacy_master.group_ei_auditor,r,
+access_ei_cash_count_line_clerk,count line clerk,ei.cash.count.line,group_ei_cash_clerk,crud,
+access_ei_cash_decision_wizard,decision wizard,ei.cash.decision.wizard,group_ei_cash_approver,crud,
+rule_ei_cash_voucher_company,Cash voucher: own companies,ei.cash.voucher,,crud,"[('company_id', 'in', company_ids)]"
+rule_ei_cash_count_company,Cash count: own companies,ei.cash.count,,crud,"[('company_id', 'in', company_ids)]"
+rule_ei_cash_category_company,Cash category: own companies,ei.cash.category,,crud,"[('company_id', 'in', company_ids)]"

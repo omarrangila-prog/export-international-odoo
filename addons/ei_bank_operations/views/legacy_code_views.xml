@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ei_legacy_link_wizard_action" model="ir.actions.act_window">
+        <field name="name">Link existing partner</field>
+        <field name="res_model">ei.legacy.link.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+    <record id="ei_legacy_code_form_materialise" model="ir.ui.view">
+        <field name="name">ei.legacy.code.form.materialise</field>
+        <field name="model">ei.legacy.code</field>
+        <field name="inherit_id" ref="ei_legacy_master.ei_legacy_code_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_reopen']" position="after">
+                <button name="action_materialise" string="Create Odoo record" type="object"
+                        groups="ei_legacy_master.group_ei_mapping_approver"
+                        invisible="verification_status != 'approved' or linked_res_id"/>
+                <button name="%(ei_legacy_link_wizard_action)d" string="Link existing partner" type="action"
+                        context="{'default_code_id': id}" groups="ei_legacy_master.group_ei_mapping_approver"
+                        invisible="verification_status != 'approved' or linked_res_id or approved_target_type != 'res_partner'"/>
+            </xpath>
+        </field>
+    </record>
+    <record id="ei_legacy_materialise_server_action" model="ir.actions.server">
+        <field name="name">Create Odoo records (approved only)</field>
+        <field name="model_id" ref="ei_legacy_master.model_ei_legacy_code"/>
+        <field name="binding_model_id" ref="ei_legacy_master.model_ei_legacy_code"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">records.action_materialise()</field>
+    </record>
+</odoo>

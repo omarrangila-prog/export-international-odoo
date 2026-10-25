@@ -1,0 +1,4 @@
+__pycache__/
+*.pyc
+migration/source/
+migration/validation_reports/

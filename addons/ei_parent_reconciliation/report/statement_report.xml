@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_statement_matching" model="ir.actions.report">
+        <field name="name">Statement Matching Report</field>
+        <field name="model">ei.parent.statement</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">ei_parent_reconciliation.report_matching</field>
+        <field name="binding_model_id" ref="model_ei_parent_statement"/>
+        <field name="binding_type">report</field>
+    </record>
+    <record id="action_report_closing_certificate" model="ir.actions.report">
+        <field name="name">Reconciliation Closing Certificate</field>
+        <field name="model">ei.parent.statement</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">ei_parent_reconciliation.report_certificate</field>
+        <field name="binding_model_id" ref="model_ei_parent_statement"/>
+        <field name="binding_type">report</field>
+    </record>
+    <template id="report_matching">
+        <t t-call="web.html_container"><t t-foreach="docs" t-as="o"><t t-call="web.external_layout"><div class="page">
+            <h2>Statement matching - <span t-field="o.partner_id.name"/> - <span t-field="o.name"/></h2>
+            <p><span t-field="o.date_from"/> to <span t-field="o.date_to"/> | status <span t-field="o.state"/> |
+                matched <span t-field="o.n_matched"/>, exceptions <span t-field="o.n_exceptions"/>, open <span t-field="o.n_open"/></p>
+            <table class="table table-sm">
+                <thead><tr><th>Invoice</th><th>Status</th><th class="text-end">Parent</th><th class="text-end">Ours</th><th class="text-end">Difference</th><th>Owner</th><th>Resolution</th></tr></thead>
+                <tbody><tr t-foreach="o.line_ids" t-as="l">
+                    <td><span t-field="l.invoice_no"/></td><td><span t-field="l.status"/></td>
+                    <td class="text-end"><span t-field="l.statement_amount"/></td><td class="text-end"><span t-field="l.internal_amount"/></td>
+                    <td class="text-end"><span t-field="l.difference"/></td><td><span t-field="l.owner_id.name"/></td><td><span t-field="l.resolution"/></td>
+                </tr></tbody>
+            </table>
+        </div></t></t></t>
+    </template>
+    <template id="report_certificate">
+        <t t-call="web.html_container"><t t-foreach="docs" t-as="o"><t t-call="web.external_layout"><div class="page">
+            <h2>Ledger Reconciliation Certificate</h2>
+            <p t-if="o.state != 'signed'" class="text-danger"><b>DRAFT - not signed off. Not a certificate.</b></p>
+            <p>Parent company: <b t-field="o.partner_id.name"/>. Period: <span t-field="o.date_from"/> to <span t-field="o.date_to"/>.</p>
+            <p>Statement total <span t-field="o.statement_total"/>; our books <span t-field="o.internal_total"/>.
+                Lines matched: <span t-field="o.n_matched"/>; exceptions: <span t-field="o.n_exceptions"/>, all with documented resolution.</p>
+            <p t-if="o.state == 'signed'">Signed off by <span t-field="o.signed_by.name"/> on <span t-field="o.signed_at"/>.
+                Prepared by <span t-field="o.imported_by.name"/>.</p>
+        </div></t></t></t>
+    </template>
+</odoo>

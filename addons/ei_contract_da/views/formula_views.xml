@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ei_formula_list" model="ir.ui.view">
+        <field name="name">ei.formula.definition.list</field>
+        <field name="model">ei.formula.definition</field>
+        <field name="arch" type="xml">
+            <list decoration-success="state == 'approved'" decoration-muted="state == 'retired'">
+                <field name="code"/><field name="name"/><field name="version"/><field name="owner_id"/>
+                <field name="param_keys"/><field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+    <record id="ei_formula_form" model="ir.ui.view">
+        <field name="name">ei.formula.definition.form</field>
+        <field name="model">ei.formula.definition</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_approve" string="Approve (accountant)" type="object" class="btn-primary"
+                            invisible="state != 'draft'" groups="ei_contract_da.group_ei_formula_approver"/>
+                    <button name="action_new_version" string="New version" type="object" invisible="state == 'draft'"/>
+                    <button name="action_retire" string="Retire" type="object" invisible="state != 'approved'"
+                            groups="ei_contract_da.group_ei_formula_approver"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="alert alert-info" role="alert" invisible="state != 'draft'">
+                        Draft formulas cannot be used on contracts. Approval needs at least one step and a passing signed test.
+                    </div>
+                    <group>
+                        <group><field name="name" readonly="state != 'draft'"/><field name="code" readonly="state != 'draft'"/>
+                            <field name="version"/><field name="owner_id"/>
+                            <field name="rounding_mode" readonly="state != 'draft'"/></group>
+                        <group><field name="effective_from" readonly="state != 'draft'"/><field name="effective_to" readonly="state != 'draft'"/>
+                            <field name="param_keys"/><field name="approved_by"/><field name="approved_at"/><field name="supersedes_id"/></group>
+                    </group>
+                    <field name="rationale" readonly="state != 'draft'"/>
+                    <notebook>
+                        <page string="Steps">
+                            <field name="step_ids" readonly="state != 'draft'">
+                                <list editable="bottom"><field name="sequence" widget="handle"/><field name="key"/>
+                                    <field name="kind"/><field name="base_ref"/><field name="param"/></list>
+                            </field>
+                        </page>
+                        <page string="Signed tests">
+                            <field name="test_ids" readonly="state != 'draft'">
+                                <list editable="bottom" decoration-danger="not passes" decoration-success="passes">
+                                    <field name="name"/><field name="basic_rate"/><field name="quantity"/><field name="params_json"/>
+                                    <field name="expected_key"/><field name="expected_value"/><field name="actual_value"/><field name="passes"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    <record id="ei_formula_action" model="ir.actions.act_window">
+        <field name="name">Formula Register</field>
+        <field name="res_model">ei.formula.definition</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

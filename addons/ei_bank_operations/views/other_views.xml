@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ei_balance_check_list" model="ir.ui.view">
+        <field name="name">ei.bank.balance.check.list</field>
+        <field name="model">ei.bank.balance.check</field>
+        <field name="arch" type="xml">
+            <list editable="top" decoration-danger="state == 'difference'" decoration-success="state == 'matched'">
+                <field name="date"/><field name="journal_id"/><field name="currency_id" column_invisible="1"/>
+                <field name="confirmed_via"/><field name="bank_balance"/>
+                <field name="ledger_balance"/><field name="difference"/><field name="state" widget="badge"/>
+                <field name="note"/><field name="entered_by"/><field name="entered_at"/>
+                <button name="action_explain" type="object" string="Mark explained" invisible="state != 'difference'"/>
+            </list>
+        </field>
+    </record>
+    <record id="ei_balance_check_action" model="ir.actions.act_window">
+        <field name="name">Morning Balance Check</field>
+        <field name="res_model">ei.bank.balance.check</field>
+        <field name="view_mode">list</field>
+    </record>
+
+    <record id="ei_daily_close_list" model="ir.ui.view">
+        <field name="name">ei.bank.daily.close.list</field>
+        <field name="model">ei.bank.daily.close</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="date"/><field name="journal_id"/><field name="n_imported"/><field name="n_processed"/>
+                <field name="n_unmatched"/><field name="n_duplicate"/><field name="n_rejected"/><field name="n_reviewed"/>
+                <field name="state" widget="badge"/>
+                <button name="action_close" type="object" string="Close day" invisible="state == 'closed'"
+                        groups="ei_bank_operations.group_ei_bank_approver"/>
+            </list>
+        </field>
+    </record>
+    <record id="ei_daily_close_form" model="ir.ui.view">
+        <field name="name">ei.bank.daily.close.form</field>
+        <field name="model">ei.bank.daily.close</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_close" type="object" string="Close day" class="btn-primary"
+                            invisible="state == 'closed'" groups="ei_bank_operations.group_ei_bank_approver"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group><field name="journal_id"/><field name="date"/></group>
+                        <group><field name="n_imported"/><field name="n_processed"/><field name="n_unmatched"/>
+                            <field name="n_duplicate"/><field name="n_rejected"/><field name="n_reviewed"/></group>
+                    </group>
+                    <group><field name="snapshot"/><field name="closed_by"/><field name="closed_at"/></group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="ei_daily_close_action" model="ir.actions.act_window">
+        <field name="name">Daily Posting Review</field>
+        <field name="res_model">ei.bank.daily.close</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="ei_alias_list" model="ir.ui.view">
+        <field name="name">ei.partner.alias.list</field>
+        <field name="model">ei.partner.alias</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="partner_id"/><field name="alias"/><field name="legacy_code_id"/><field name="state" widget="badge"/>
+                <button name="action_approve" type="object" string="Approve" invisible="state == 'approved'"
+                        groups="ei_bank_operations.group_ei_bank_approver"/>
+            </list>
+        </field>
+    </record>
+    <record id="ei_alias_action" model="ir.actions.act_window">
+        <field name="name">Party Aliases</field>
+        <field name="res_model">ei.partner.alias</field>
+        <field name="view_mode">list</field>
+    </record>
+</odoo>

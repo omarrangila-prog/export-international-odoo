@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_ei_trade" name="LC / Imports" parent="ei_legacy_master.menu_ei_root" sequence="85"/>
+    <menuitem id="menu_ei_trade_lc" name="LC Register" parent="menu_ei_trade" action="ei_trade_lc_action" sequence="10"/>
+    <menuitem id="menu_ei_trade_seed" name="Seed from legacy codes" parent="menu_ei_trade" action="ei_trade_lc_seed_server" sequence="20"
+              groups="ei_trade_lc.group_ei_trade_manager"/>
+</odoo>

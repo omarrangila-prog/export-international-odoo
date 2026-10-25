@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ei_da_list" model="ir.ui.view">
+        <field name="name">ei.da.list</field>
+        <field name="model">ei.da</field>
+        <field name="arch" type="xml">
+            <list decoration-success="state == 'approved'" decoration-muted="state in ('cancelled', 'amended', 'closed')">
+                <field name="name"/><field name="amendment_no"/><field name="date"/><field name="parent_partner_id"/>
+                <field name="contract_id"/><field name="total_mtl" sum="MTL"/><field name="lifted_mtl"/>
+                <field name="remaining_to_lift"/><field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+    <record id="ei_da_form" model="ir.ui.view">
+        <field name="name">ei.da.form</field>
+        <field name="model">ei.da</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_review" string="Send for review" type="object" class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_approve" string="Approve" type="object" class="btn-primary" invisible="state != 'under_review'"
+                            groups="ei_contract_da.group_ei_contract_approver"/>
+                    <button name="action_amend" string="Amend" type="object" invisible="state not in ('approved', 'fulfilled')"/>
+                    <button name="action_close" string="Close" type="object" invisible="state not in ('approved', 'fulfilled')"/>
+                    <button name="%(ei_da_cancel_action)d" string="Cancel" type="action" invisible="state not in ('draft', 'under_review', 'approved')"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,under_review,approved,fulfilled,closed"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name" readonly="state != 'draft'"/><field name="amendment_no"/>
+                            <field name="parent_partner_id" readonly="state != 'draft'"/>
+                            <field name="contract_id" readonly="state != 'draft'"/>
+                            <field name="date" readonly="state != 'draft'"/>
+                        </group>
+                        <group>
+                            <field name="total_mtl"/><field name="lifted_mtl"/><field name="remaining_to_lift"/>
+                            <field name="maker_id"/><field name="approved_by"/><field name="previous_id"/><field name="attachment_count"/>
+                        </group>
+                    </group>
+                    <field name="line_ids" readonly="state != 'draft'">
+                        <list editable="bottom">
+                            <field name="contract_line_id" domain="[('contract_id', '=', parent.contract_id)]"/>
+                            <field name="mtl" sum="MTL"/><field name="customer_id"/>
+                            <field name="purchase_rate"/><field name="sale_rate"/><field name="rate_note"/>
+                            <field name="override_reason" readonly="1"/><field name="lifted_mtl"/><field name="currency_id" column_invisible="1"/>
+                            <button name="%(ei_da_override_action)d" type="action" string="Authorise over-quantity"
+                                    groups="ei_contract_da.group_ei_da_override" icon="fa-unlock"/>
+                        </list>
+                    </field>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    <record id="ei_da_search" model="ir.ui.view">
+        <field name="name">ei.da.search</field>
+        <field name="model">ei.da</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/><field name="parent_partner_id"/><field name="contract_id"/>
+                <filter name="todo" string="Awaiting approval" domain="[('state', '=', 'under_review')]"/>
+                <filter name="open" string="Open (approved)" domain="[('state', '=', 'approved')]"/>
+                <group><filter name="g_parent" string="Parent company" context="{'group_by': 'parent_partner_id'}"/>
+                    <filter name="g_state" string="Status" context="{'group_by': 'state'}"/></group>
+            </search>
+        </field>
+    </record>
+    <record id="ei_da_action" model="ir.actions.act_window">
+        <field name="name">Delivery Advices</field>
+        <field name="res_model">ei.da</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_ei_contracts" name="Contracts &amp; DA" parent="ei_legacy_master.menu_ei_root" sequence="30"/>
+    <menuitem id="menu_ei_contract" name="Contracts" parent="menu_ei_contracts" action="ei_contract_action" sequence="10"/>
+    <menuitem id="menu_ei_da" name="Delivery Advices" parent="menu_ei_contracts" action="ei_da_action" sequence="20"/>
+    <menuitem id="menu_ei_formula" name="Formula Register" parent="menu_ei_contracts" action="ei_formula_action" sequence="30"/>
+</odoo>

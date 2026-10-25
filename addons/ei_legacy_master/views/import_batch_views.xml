@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ei_import_batch_list" model="ir.ui.view">
+        <field name="name">ei.import.batch.list</field>
+        <field name="model">ei.import.batch</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="state == 'failed'" decoration-success="state == 'signed'">
+                <field name="name"/><field name="filename"/><field name="imported_by"/><field name="imported_at"/>
+                <field name="total_rows"/><field name="total_created"/><field name="total_unchanged"/>
+                <field name="total_changed"/><field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="ei_import_batch_form" model="ir.ui.view">
+        <field name="name">ei.import.batch.form</field>
+        <field name="model">ei.import.batch</field>
+        <field name="arch" type="xml">
+            <form string="Import audit" create="0" delete="0">
+                <header>
+                    <button name="action_sign" string="Sign migration batch" type="object" class="btn-primary"
+                            groups="ei_legacy_master.group_ei_mapping_approver" invisible="state != 'imported'"/>
+                    <button name="action_download_reconciliation" string="Download reconciliation report"
+                            type="object"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_title"><h1><field name="name"/></h1></div>
+                    <div class="alert alert-danger" role="alert" invisible="state != 'failed'">
+                        Nothing was imported. Fix the errors below and import again.
+                    </div>
+                    <group>
+                        <group>
+                            <field name="filename"/><field name="file_sha256"/>
+                            <field name="imported_by"/><field name="imported_at"/>
+                            <field name="signed_by"/><field name="signed_at"/>
+                        </group>
+                        <group>
+                            <field name="total_expected"/><field name="total_rows"/>
+                            <field name="total_created"/><field name="total_unchanged"/>
+                            <field name="total_changed"/><field name="total_skipped"/>
+                            <field name="formula_cells"/>
+                        </group>
+                    </group>
+                    <field name="error_log" invisible="not error_log"/>
+                    <notebook>
+                        <page string="Per-sheet audit">
+                            <field name="sheet_ids">
+                                <list decoration-danger="not counts_ok">
+                                    <field name="sheet_key"/><field name="expected"/><field name="actual"/>
+                                    <field name="counts_ok"/><field name="created"/><field name="unchanged"/>
+                                    <field name="changed"/><field name="duplicates"/><field name="missing_nick"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Diffs vs master" invisible="not diff_ids">
+                            <field name="diff_ids">
+                                <list><field name="code_id"/><field name="field_label"/>
+                                    <field name="old_value"/><field name="new_value"/></list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="ei_import_batch_action" model="ir.actions.act_window">
+        <field name="name">Import Batches</field>
+        <field name="res_model">ei.import.batch</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

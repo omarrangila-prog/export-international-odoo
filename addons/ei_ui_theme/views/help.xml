@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ei_legacy_master.ei_legacy_code_action" model="ir.actions.act_window">
+        <field name="name">Old codes</field>
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">Your old codes will appear here</p><p>Import the old CODE LIST from Setup to see all 639 codes.</p></field>
+    </record>
+    <record id="ei_legacy_master.ei_legacy_code_queue_action" model="ir.actions.act_window">
+        <field name="name">Codes to classify</field>
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">Nothing to classify</p><p>Every old code has been decided. Well done.</p></field>
+    </record>
+    <record id="ei_legacy_master.ei_import_batch_action" model="ir.actions.act_window">
+        <field name="name">Import history</field>
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">No imports yet</p><p>Each time you import the old code list, a record of it is kept here.</p></field>
+    </record>
+    <record id="ei_bank_operations.ei_bank_import_action" model="ir.actions.act_window">
+        <field name="name">Imported bank statements</field>
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">No bank statements yet</p><p>Press <b>Import a bank statement</b> and choose the file from your bank. Nothing reaches the books until two other people check and post it.</p></field>
+    </record>
+    <record id="ei_bank_operations.ei_bank_line_action" model="ir.actions.act_window">
+        <field name="name">Bank payments to check</field>
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">No payments waiting</p><p>All imported payments have been checked.</p></field>
+    </record>
+    <record id="ei_bank_operations.ei_balance_check_action" model="ir.actions.act_window">
+        <field name="name">Morning bank balance</field>
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">No bank balances entered today</p><p>Call the bank or open its portal, then press <b>New</b> and type the balance. The system compares it with your books.</p></field>
+    </record>
+    <record id="ei_bank_operations.ei_daily_close_action" model="ir.actions.act_window">
+        <field name="name">End-of-day bank review</field>
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">No end-of-day review yet</p><p>Press <b>New</b> at 4-5 p.m. to see imported, posted, unmatched and duplicate payments for the day.</p></field>
+    </record>
+    <record id="ei_bank_operations.ei_alias_action" model="ir.actions.act_window">
+        <field name="name">Party name aliases</field>
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">No aliases yet</p><p>An alias is a name a customer uses when paying, so the system can suggest who paid.</p></field>
+    </record>
+    <record id="ei_cashbook.ei_cash_voucher_action" model="ir.actions.act_window">
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">No cash vouchers yet</p><p>Press <b>New</b> for every cash payment or receipt. Attach the receipt, then submit it for approval.</p></field>
+    </record>
+    <record id="ei_cashbook.ei_cash_count_action" model="ir.actions.act_window">
+        <field name="name">Count the cash</field>
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">No cash count yet</p><p>At the end of the day, count the cash and enter it here. The system shows any difference.</p></field>
+    </record>
+    <record id="ei_cashbook.ei_cash_category_action" model="ir.actions.act_window">
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">No categories yet</p><p>Categories decide which account a cash payment is booked to.</p></field>
+    </record>
+    <record id="ei_contract_da.ei_contract_action" model="ir.actions.act_window">
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">No contracts yet</p><p>Press <b>New</b> to enter a contract from a parent company. Attach the paper, add the lines and send it for review.</p></field>
+    </record>
+    <record id="ei_contract_da.ei_da_action" model="ir.actions.act_window">
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">No delivery advices yet</p><p>A DA says how much material the parent company will deliver. Press <b>New</b> and pick the contract.</p></field>
+    </record>
+    <record id="ei_contract_da.ei_formula_action" model="ir.actions.act_window">
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">No formulas yet</p><p>Formulas are only used after an accountant approves them.</p></field>
+    </record>
+    <record id="ei_daily_orders.ei_daily_order_action" model="ir.actions.act_window">
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">No daily orders yet</p><p>Open an approved delivery advice and press <b>Generate Daily Order</b>.</p></field>
+    </record>
+    <record id="ei_material_lifting.ei_lifting_action" model="ir.actions.act_window">
+        <field name="name">Material lifting (trucks)</field>
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">No truck loadings yet</p><p>Press <b>New</b> when a truck loads. Attach the gate pass or weighbridge slip. Material only counts as lifted after it is verified.</p></field>
+    </record>
+    <record id="ei_invoice_extensions.ei_intake_action" model="ir.actions.act_window">
+        <field name="name">Supplier invoices</field>
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">No supplier invoices yet</p><p>Press <b>New</b> when a supplier invoice arrives. The system checks it against the delivery advice before any bill is made.</p></field>
+    </record>
+    <record id="ei_invoice_extensions.ei_billable_action" model="ir.actions.act_window">
+        <field name="name">Delivered material to invoice</field>
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">Nothing ready to invoice</p><p>Material appears here after a truck loading is verified.</p></field>
+    </record>
+    <record id="ei_invoice_extensions.ei_adapter_action" model="ir.actions.act_window">
+        <field name="name">Connections to other systems</field>
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">No connections</p><p>Connections to banks and tax authorities are listed here.</p></field>
+    </record>
+    <record id="ei_parent_reconciliation.ei_parent_statement_action" model="ir.actions.act_window">
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">No parent statements yet</p><p>At month-end, press <b>Import parent statement</b> and choose the file. The system matches it by invoice number.</p></field>
+    </record>
+    <record id="ei_parent_reconciliation.ei_parent_line_exceptions_action" model="ir.actions.act_window">
+        <field name="name">Open differences</field>
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">No open differences</p><p>Every line agrees with the parent company.</p></field>
+    </record>
+    <record id="ei_trade_lc.ei_trade_lc_action" model="ir.actions.act_window">
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">No LC records yet</p><p>Use <b>Load LC register from old codes</b> in Setup to bring in the 58 old LC references.</p></field>
+    </record>
+    <record id="ei_management_dashboard.ei_approval_contracts" model="ir.actions.act_window">
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">No contracts waiting</p><p>Nothing needs your approval here.</p></field>
+    </record>
+    <record id="ei_management_dashboard.ei_approval_das" model="ir.actions.act_window">
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">No delivery advices waiting</p><p>Nothing needs your approval here.</p></field>
+    </record>
+    <record id="ei_management_dashboard.ei_approval_orders" model="ir.actions.act_window">
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">No daily orders waiting</p><p>Nothing needs your approval here.</p></field>
+    </record>
+    <record id="ei_management_dashboard.ei_approval_liftings" model="ir.actions.act_window">
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">No truck loadings waiting</p><p>Nothing needs verifying.</p></field>
+    </record>
+    <record id="ei_management_dashboard.ei_approval_vouchers" model="ir.actions.act_window">
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">No cash vouchers waiting</p><p>Nothing needs your approval here.</p></field>
+    </record>
+    <record id="ei_management_dashboard.ei_approval_bank" model="ir.actions.act_window">
+        <field name="name">Bank statements to approve or post</field>
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">No bank statements waiting</p><p>Nothing needs approving or posting.</p></field>
+    </record>
+    <record id="ei_management_dashboard.ei_approval_intake" model="ir.actions.act_window">
+        <field name="name">Supplier invoices with a problem</field>
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">No problem invoices</p><p>Every supplier invoice matches.</p></field>
+    </record>
+    <record id="ei_management_dashboard.ei_approval_statements" model="ir.actions.act_window">
+        <field name="name">Parent statements to sign off</field>
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">No statements waiting</p><p>Nothing needs signing.</p></field>
+    </record>
+</odoo>

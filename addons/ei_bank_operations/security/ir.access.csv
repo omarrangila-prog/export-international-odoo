@@ -1,0 +1,37 @@
+id,name,model_id,group_id/id,operation,domain
+access_ei_bank_import_auditor,ei.bank.import auditor,ei.bank.import,ei_legacy_master.group_ei_auditor,r,
+access_ei_bank_import_officer,ei.bank.import officer,ei.bank.import,group_ei_bank_officer,cru,
+access_ei_bank_import_approver,ei.bank.import approver,ei.bank.import,group_ei_bank_approver,ru,
+access_ei_bank_import_poster,ei.bank.import poster,ei.bank.import,group_ei_bank_poster,ru,
+access_ei_bank_import_line_auditor,ei.bank.import.line auditor,ei.bank.import.line,ei_legacy_master.group_ei_auditor,r,
+access_ei_bank_import_line_officer,ei.bank.import.line officer,ei.bank.import.line,group_ei_bank_officer,cru,
+access_ei_bank_import_line_approver,ei.bank.import.line approver,ei.bank.import.line,group_ei_bank_approver,ru,
+access_ei_bank_import_line_poster,ei.bank.import.line poster,ei.bank.import.line,group_ei_bank_poster,ru,
+access_ei_bank_allocation_auditor,ei.bank.allocation auditor,ei.bank.allocation,ei_legacy_master.group_ei_auditor,r,
+access_ei_bank_allocation_officer,ei.bank.allocation officer,ei.bank.allocation,group_ei_bank_officer,cru,
+access_ei_bank_allocation_approver,ei.bank.allocation approver,ei.bank.allocation,group_ei_bank_approver,ru,
+access_ei_bank_allocation_poster,ei.bank.allocation poster,ei.bank.allocation,group_ei_bank_poster,ru,
+access_ei_bank_balance_check_auditor,ei.bank.balance.check auditor,ei.bank.balance.check,ei_legacy_master.group_ei_auditor,r,
+access_ei_bank_balance_check_officer,ei.bank.balance.check officer,ei.bank.balance.check,group_ei_bank_officer,cru,
+access_ei_bank_balance_check_approver,ei.bank.balance.check approver,ei.bank.balance.check,group_ei_bank_approver,cru,
+access_ei_bank_balance_check_poster,ei.bank.balance.check poster,ei.bank.balance.check,group_ei_bank_poster,ru,
+access_ei_bank_daily_close_auditor,ei.bank.daily.close auditor,ei.bank.daily.close,ei_legacy_master.group_ei_auditor,r,
+access_ei_bank_daily_close_officer,ei.bank.daily.close officer,ei.bank.daily.close,group_ei_bank_officer,cru,
+access_ei_bank_daily_close_approver,ei.bank.daily.close approver,ei.bank.daily.close,group_ei_bank_approver,cru,
+access_ei_bank_daily_close_poster,ei.bank.daily.close poster,ei.bank.daily.close,group_ei_bank_poster,ru,
+access_ei_partner_alias_auditor,ei.partner.alias auditor,ei.partner.alias,ei_legacy_master.group_ei_auditor,r,
+access_ei_partner_alias_officer,ei.partner.alias officer,ei.partner.alias,group_ei_bank_officer,cru,
+access_ei_partner_alias_approver,ei.partner.alias approver,ei.partner.alias,group_ei_bank_approver,ru,
+access_ei_partner_alias_poster,ei.partner.alias poster,ei.partner.alias,group_ei_bank_poster,ru,
+access_ei_bank_import_wizard_officer,ei.bank.import.wizard officer,ei.bank.import.wizard,group_ei_bank_officer,crud,
+access_ei_bank_import_wizard_approver,ei.bank.import.wizard approver,ei.bank.import.wizard,group_ei_bank_approver,crud,
+access_ei_bank_line_wizard_officer,ei.bank.line.wizard officer,ei.bank.line.wizard,group_ei_bank_officer,crud,
+access_ei_bank_line_wizard_approver,ei.bank.line.wizard approver,ei.bank.line.wizard,group_ei_bank_approver,crud,
+access_ei_legacy_link_wizard_mapper,ei.legacy.link.wizard mapper,ei.legacy.link.wizard,ei_legacy_master.group_ei_mapping_approver,crud,
+access_ei_partner_alias_mapper,ei.partner.alias mapper,ei.partner.alias,ei_legacy_master.group_ei_mapping_approver,cru,
+rule_ei_bank_import_company,Bank import: own companies,ei.bank.import,,crud,"[('company_id', 'in', company_ids)]"
+rule_ei_bank_line_company,Bank line: own companies,ei.bank.import.line,,crud,"[('company_id', 'in', company_ids)]"
+rule_ei_bank_alloc_company,Bank allocation: own companies,ei.bank.allocation,,crud,"[('line_id.company_id', 'in', company_ids)]"
+rule_ei_balance_check_company,Balance check: own companies,ei.bank.balance.check,,crud,"[('company_id', 'in', company_ids)]"
+rule_ei_daily_close_company,Daily close: own companies,ei.bank.daily.close,,crud,"[('company_id', 'in', company_ids)]"
+rule_ei_alias_company,Partner alias: own companies,ei.partner.alias,,crud,"[('company_id', 'in', company_ids)]"

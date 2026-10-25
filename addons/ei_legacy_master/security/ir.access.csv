@@ -1,0 +1,18 @@
+id,name,model_id,group_id/id,operation,domain
+access_ei_legacy_code_user,ei.legacy.code staff,ei.legacy.code,group_ei_user,r,
+access_ei_legacy_code_auditor,ei.legacy.code auditor,ei.legacy.code,group_ei_auditor,r,
+access_ei_legacy_code_importer,ei.legacy.code importer,ei.legacy.code,group_ei_importer,cru,
+access_ei_legacy_code_approver,ei.legacy.code approver,ei.legacy.code,group_ei_mapping_approver,ru,
+access_ei_import_batch_auditor,ei.import.batch auditor,ei.import.batch,group_ei_auditor,r,
+access_ei_import_batch_importer,ei.import.batch importer,ei.import.batch,group_ei_importer,cru,
+access_ei_import_batch_approver,ei.import.batch approver,ei.import.batch,group_ei_mapping_approver,ru,
+access_ei_import_sheet_auditor,ei.import.batch.sheet auditor,ei.import.batch.sheet,group_ei_auditor,r,
+access_ei_import_sheet_importer,ei.import.batch.sheet importer,ei.import.batch.sheet,group_ei_importer,cru,
+access_ei_import_diff_auditor,ei.import.diff auditor,ei.import.diff,group_ei_auditor,r,
+access_ei_import_diff_importer,ei.import.diff importer,ei.import.diff,group_ei_importer,cru,
+access_ei_import_wizard_importer,ei.import.wizard importer,ei.import.wizard,group_ei_importer,crud,
+access_ei_approve_wizard_approver,ei.legacy.code.approve.wizard approver,ei.legacy.code.approve.wizard,group_ei_mapping_approver,crud,
+rule_ei_legacy_code_company,Legacy code: own companies,ei.legacy.code,,crud,"[('company_id', 'in', company_ids)]"
+rule_ei_import_batch_company,Import batch: own companies,ei.import.batch,,crud,"[('company_id', 'in', company_ids)]"
+rule_ei_import_sheet_company,Import sheet: own companies,ei.import.batch.sheet,,crud,"[('batch_id.company_id', 'in', company_ids)]"
+rule_ei_import_diff_company,Import diff: own companies,ei.import.diff,,crud,"[('batch_id.company_id', 'in', company_ids)]"

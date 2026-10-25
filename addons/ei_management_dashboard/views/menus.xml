@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_ei_dashboard" name="Dashboard" parent="ei_legacy_master.menu_ei_root" action="ei_dashboard_open_server" sequence="1"/>
+    <menuitem id="menu_ei_approvals" name="Approvals" parent="ei_legacy_master.menu_ei_root" sequence="95"/>
+    <menuitem id="menu_ei_ap_contracts" name="Contracts" parent="menu_ei_approvals" action="ei_approval_contracts" sequence="10"/>
+    <menuitem id="menu_ei_ap_das" name="Delivery Advices" parent="menu_ei_approvals" action="ei_approval_das" sequence="20"/>
+    <menuitem id="menu_ei_ap_orders" name="Daily Orders" parent="menu_ei_approvals" action="ei_approval_orders" sequence="30"/>
+    <menuitem id="menu_ei_ap_liftings" name="Liftings" parent="menu_ei_approvals" action="ei_approval_liftings" sequence="40"/>
+    <menuitem id="menu_ei_ap_vouchers" name="Cash Vouchers" parent="menu_ei_approvals" action="ei_approval_vouchers" sequence="50"/>
+    <menuitem id="menu_ei_ap_bank" name="Bank Imports" parent="menu_ei_approvals" action="ei_approval_bank" sequence="60"/>
+    <menuitem id="menu_ei_ap_intake" name="Supplier Invoices" parent="menu_ei_approvals" action="ei_approval_intake" sequence="70"/>
+    <menuitem id="menu_ei_ap_statements" name="Parent Statements" parent="menu_ei_approvals" action="ei_approval_statements" sequence="80"/>
+</odoo>

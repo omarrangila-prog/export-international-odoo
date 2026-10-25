@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ei_trade_lc_list" model="ir.ui.view">
+        <field name="name">ei.trade.lc.list</field>
+        <field name="model">ei.trade.lc</field>
+        <field name="arch" type="xml">
+            <list decoration-warning="state == 'unverified'" decoration-success="state == 'verified'">
+                <field name="name"/><field name="lc_reference"/><field name="bank_journal_id"/><field name="expiry_date"/>
+                <field name="lc_amount"/><field name="outstanding_liability"/><field name="state" widget="badge"/>
+                <field name="currency_id" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+    <record id="ei_trade_lc_form" model="ir.ui.view">
+        <field name="name">ei.trade.lc.form</field>
+        <field name="model">ei.trade.lc</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_verify" string="Verify" type="object" class="btn-primary" invisible="state != 'unverified'"/>
+                    <button name="action_settle" string="Settle LC" type="object" invisible="state != 'verified'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="alert alert-warning" role="alert">
+                        This is a register only. The legacy code list does not define LC accounting; nothing here posts to the ledger.
+                    </div>
+                    <group>
+                        <group><field name="name"/><field name="lc_reference"/><field name="bank_journal_id"/><field name="supplier_id"/>
+                            <field name="shipment_ref"/><field name="expiry_date"/></group>
+                        <group><field name="currency_id"/><field name="lc_amount"/><field name="quantity_mtl"/>
+                            <field name="outstanding_liability"/><field name="total_costs"/><field name="verified_by"/></group>
+                    </group>
+                    <group><field name="legacy_code_ids" widget="many2many_tags"/><field name="purchase_code_id"/>
+                        <field name="sale_code_ids" widget="many2many_tags"/></group>
+                    <field name="cost_ids"><list editable="bottom"><field name="name"/><field name="amount"/><field name="currency_id" column_invisible="1"/></list></field>
+                    <field name="notes"/>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    <record id="ei_trade_lc_action" model="ir.actions.act_window">
+        <field name="name">LC Register</field>
+        <field name="res_model">ei.trade.lc</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <record id="ei_trade_lc_group_server" model="ir.actions.server">
+        <field name="name">Group selected into one LC</field>
+        <field name="model_id" ref="model_ei_trade_lc"/>
+        <field name="binding_model_id" ref="model_ei_trade_lc"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">records.action_group()</field>
+    </record>
+    <record id="ei_trade_lc_seed_server" model="ir.actions.server">
+        <field name="name">Seed register from legacy 16.xx codes</field>
+        <field name="model_id" ref="model_ei_trade_lc"/>
+        <field name="state">code</field>
+        <field name="code">model.seed_from_legacy()</field>
+    </record>
+</odoo>

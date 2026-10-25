@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ei_kanban_bank_import" model="ir.ui.view">
+        <field name="name">ei.bank.import.kanban.easy</field>
+        <field name="model">ei.bank.import</field>
+        <field name="arch" type="xml">
+            <kanban class="ei-kanban" default_order="id desc" create="1" sample="0">
+                <field name="currency_id"/><field name="state"/>
+                <templates><t t-name="card"><div t-attf-class="ei-card-body ei-s-#{record.state.raw_value}">
+                    <div class="ei-card-title"><field name="journal_id"/></div>
+                    <div class="ei-card-sub"><field name="filename"/> &#183; <field name="imported_at" widget="date"/></div>
+                    <div class="ei-card-row"><span>Payments in file</span><span class="ei-card-num"><field name="n_lines"/></span></div>
+                    <div class="ei-card-row"><span>Still to check</span><b><field name="n_open"/></b></div>
+                    <div class="ei-card-row" invisible="not n_duplicate"><span>Duplicates skipped</span><b><field name="n_duplicate"/></b></div>
+                    <div class="ei-card-foot"><field name="state" widget="badge" decoration-success="state == 'posted'" decoration-warning="state in ('received', 'validated', 'proposed')" decoration-info="state == 'approved'" decoration-danger="state == 'rejected'"/>
+                        <field name="imported_by" widget="many2one_avatar_user"/></div>
+                </div></t></templates>
+            </kanban>
+        </field>
+    </record>
+    <record id="ei_bank_operations.ei_bank_import_action" model="ir.actions.act_window">
+        <field name="view_mode">kanban,list,form</field>
+    </record>
+    <record id="ei_kanban_cash_voucher" model="ir.ui.view">
+        <field name="name">ei.cash.voucher.kanban.easy</field>
+        <field name="model">ei.cash.voucher</field>
+        <field name="arch" type="xml">
+            <kanban class="ei-kanban" default_order="date desc, id desc" create="1" sample="0">
+                <field name="currency_id"/><field name="state"/>
+                <templates><t t-name="card"><div t-attf-class="ei-card-body ei-s-#{record.state.raw_value}">
+                    <div class="ei-card-title"><field name="description"/></div>
+                    <div class="ei-card-sub"><field name="name"/> &#183; <field name="date" widget="date"/> &#183; <field name="kind"/></div>
+                    <div class="ei-card-row"><span><field name="category_id"/></span><span class="ei-card-num"><field name="amount" widget="monetary"/></span></div>
+                    <div class="ei-card-foot"><field name="state" widget="badge" decoration-success="state == 'posted'" decoration-warning="state == 'submitted'" decoration-danger="state in ('rejected', 'reversed')"/>
+                        <field name="maker_id" widget="many2one_avatar_user"/></div>
+                </div></t></templates>
+            </kanban>
+        </field>
+    </record>
+    <record id="ei_cashbook.ei_cash_voucher_action" model="ir.actions.act_window">
+        <field name="view_mode">kanban,list,form</field>
+    </record>
+    <record id="ei_kanban_contract" model="ir.ui.view">
+        <field name="name">ei.contract.kanban.easy</field>
+        <field name="model">ei.contract</field>
+        <field name="arch" type="xml">
+            <kanban class="ei-kanban" default_order="date desc, id desc" create="1" sample="0">
+                <field name="state"/>
+                <templates><t t-name="card"><div t-attf-class="ei-card-body ei-s-#{record.state.raw_value}">
+                    <div class="ei-card-title"><field name="parent_partner_id"/></div>
+                    <div class="ei-card-sub"><field name="name"/> &#183; ref <field name="contract_ref"/> &#183; <field name="contract_type"/></div>
+                    <div class="ei-card-row"><span>Valid until</span><b><field name="valid_to" widget="date"/></b></div>
+                    <div class="ei-card-foot"><field name="state" widget="badge" decoration-success="state in ('approved', 'active')" decoration-warning="state in ('draft', 'reviewed')" decoration-danger="state == 'cancelled'"/>
+                        <field name="maker_id" widget="many2one_avatar_user"/></div>
+                </div></t></templates>
+            </kanban>
+        </field>
+    </record>
+    <record id="ei_contract_da.ei_contract_action" model="ir.actions.act_window">
+        <field name="view_mode">kanban,list,form</field>
+    </record>
+    <record id="ei_kanban_da" model="ir.ui.view">
+        <field name="name">ei.da.kanban.easy</field>
+        <field name="model">ei.da</field>
+        <field name="arch" type="xml">
+            <kanban class="ei-kanban" default_order="date desc, id desc" create="1" sample="0">
+                <field name="state"/>
+                <templates><t t-name="card"><div t-attf-class="ei-card-body ei-s-#{record.state.raw_value}">
+                    <div class="ei-card-title">DA <field name="name"/></div>
+                    <div class="ei-card-sub"><field name="parent_partner_id"/> &#183; <field name="date" widget="date"/></div>
+                    <div class="ei-card-row"><span>Promised</span><span class="ei-card-num"><field name="total_mtl"/> MTL</span></div>
+                    <div class="ei-card-row"><span>Lifted so far</span><b><field name="lifted_mtl"/> MTL</b></div>
+                    <div class="ei-card-row"><span>Still to lift</span><b><field name="remaining_to_lift"/> MTL</b></div>
+                    <div class="ei-card-foot"><field name="state" widget="badge" decoration-success="state in ('approved', 'fulfilled')" decoration-warning="state in ('draft', 'under_review')" decoration-danger="state == 'cancelled'"/>
+                        <field name="maker_id" widget="many2one_avatar_user"/></div>
+                </div></t></templates>
+            </kanban>
+        </field>
+    </record>
+    <record id="ei_contract_da.ei_da_action" model="ir.actions.act_window">
+        <field name="view_mode">kanban,list,form</field>
+    </record>
+    <record id="ei_kanban_daily_order" model="ir.ui.view">
+        <field name="name">ei.daily.order.kanban.easy</field>
+        <field name="model">ei.daily.order</field>
+        <field name="arch" type="xml">
+            <kanban class="ei-kanban" default_order="date desc, id desc" create="1" sample="0">
+                <field name="state"/>
+                <templates><t t-name="card"><div t-attf-class="ei-card-body ei-s-#{record.state.raw_value}">
+                    <div class="ei-card-title"><field name="parent_partner_id"/></div>
+                    <div class="ei-card-sub"><field name="name"/> &#183; <field name="date" widget="date"/></div>
+                    <div class="ei-card-row"><span>Requested</span><span class="ei-card-num"><field name="total_requested"/> MTL</span></div>
+                    <div class="ei-card-row"><span>Still to lift</span><b><field name="total_remaining"/> MTL</b></div>
+                    <div class="ei-card-foot"><field name="state" widget="badge" decoration-success="state == 'approved'" decoration-warning="state == 'draft'" decoration-danger="state == 'cancelled'"/>
+                        <field name="maker_id" widget="many2one_avatar_user"/></div>
+                </div></t></templates>
+            </kanban>
+        </field>
+    </record>
+    <record id="ei_daily_orders.ei_daily_order_action" model="ir.actions.act_window">
+        <field name="view_mode">kanban,list,form</field>
+    </record>
+    <record id="ei_kanban_lifting" model="ir.ui.view">
+        <field name="name">ei.lifting.kanban.easy</field>
+        <field name="model">ei.lifting</field>
+        <field name="arch" type="xml">
+            <kanban class="ei-kanban" default_order="date desc, id desc" create="1" sample="0">
+                <field name="state"/>
+                <templates><t t-name="card"><div t-attf-class="ei-card-body ei-s-#{record.state.raw_value}">
+                    <div class="ei-card-title"><field name="customer_id"/></div>
+                    <div class="ei-card-sub">Truck <field name="vehicle_no"/> &#183; gate pass <field name="gate_pass_no"/> &#183; <field name="date" widget="date"/></div>
+                    <div class="ei-card-row"><span>On the gate pass</span><span class="ei-card-num"><field name="claimed_mtl"/> MTL</span></div>
+                    <div class="ei-card-row" invisible="state != 'verified'"><span>Verified as lifted</span><b><field name="verified_mtl"/> MTL</b></div>
+                    <div class="ei-card-sub" invisible="state != 'draft'">Waiting to be verified by another person</div>
+                    <div class="ei-card-foot"><field name="state" widget="badge" decoration-success="state == 'verified'" decoration-warning="state == 'draft'" decoration-danger="state in ('reversed', 'cancelled')"/>
+                        <field name="maker_id" widget="many2one_avatar_user"/></div>
+                </div></t></templates>
+            </kanban>
+        </field>
+    </record>
+    <record id="ei_material_lifting.ei_lifting_action" model="ir.actions.act_window">
+        <field name="view_mode">kanban,list,form</field>
+    </record>
+    <record id="ei_kanban_intake" model="ir.ui.view">
+        <field name="name">ei.supplier.intake.kanban.easy</field>
+        <field name="model">ei.supplier.intake</field>
+        <field name="arch" type="xml">
+            <kanban class="ei-kanban" default_order="id desc" create="1" sample="0">
+                <field name="currency_id"/><field name="state"/>
+                <templates><t t-name="card"><div t-attf-class="ei-card-body ei-s-#{record.state.raw_value}">
+                    <div class="ei-card-title"><field name="partner_id"/></div>
+                    <div class="ei-card-sub">Invoice <field name="invoice_number"/> &#183; <field name="invoice_date" widget="date"/></div>
+                    <div class="ei-card-row"><span>Total</span><span class="ei-card-num"><field name="stated_total" widget="monetary"/></span></div>
+                    <div class="ei-card-sub text-danger" invisible="state != 'mismatch'">&#9888; Something does not match - open to see what</div>
+                    <div class="ei-card-foot"><field name="state" widget="badge" decoration-success="state in ('matched', 'reviewed', 'billed')" decoration-warning="state == 'draft'" decoration-danger="state == 'mismatch'"/>
+                        <field name="maker_id" widget="many2one_avatar_user"/></div>
+                </div></t></templates>
+            </kanban>
+        </field>
+    </record>
+    <record id="ei_invoice_extensions.ei_intake_action" model="ir.actions.act_window">
+        <field name="view_mode">kanban,list,form</field>
+    </record>
+    <record id="ei_kanban_parent_statement" model="ir.ui.view">
+        <field name="name">ei.parent.statement.kanban.easy</field>
+        <field name="model">ei.parent.statement</field>
+        <field name="arch" type="xml">
+            <kanban class="ei-kanban" default_order="date_to desc, id desc" create="1" sample="0">
+                <field name="state"/>
+                <templates><t t-name="card"><div t-attf-class="ei-card-body ei-s-#{record.state.raw_value}">
+                    <div class="ei-card-title"><field name="partner_id"/></div>
+                    <div class="ei-card-sub"><span class="text-nowrap"><field name="date_from" widget="date"/> &#8594; <field name="date_to" widget="date"/></span> &#183; <field name="name"/></div>
+                    <div class="ei-card-row"><span>Agree</span><b><field name="n_matched"/></b></div>
+                    <div class="ei-card-row"><span>Differences</span><b><field name="n_exceptions"/></b></div>
+                    <div class="ei-card-row"><span>Still open</span><span class="ei-card-num"><field name="n_open"/></span></div>
+                    <div class="ei-card-foot"><field name="state" widget="badge" decoration-success="state == 'signed'" decoration-warning="state in ('imported', 'classified', 'assigned', 'resolved')" decoration-danger="state == 'rejected'"/>
+                        <field name="imported_by" widget="many2one_avatar_user"/></div>
+                </div></t></templates>
+            </kanban>
+        </field>
+    </record>
+    <record id="ei_parent_reconciliation.ei_parent_statement_action" model="ir.actions.act_window">
+        <field name="view_mode">kanban,list,form</field>
+    </record>
+</odoo>

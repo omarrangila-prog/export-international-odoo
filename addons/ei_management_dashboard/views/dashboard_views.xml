@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ei_dashboard_form" model="ir.ui.view">
+        <field name="name">ei.dashboard.form</field>
+        <field name="model">ei.dashboard</field>
+        <field name="arch" type="xml">
+            <form create="0" edit="1" string="Dashboard">
+                <sheet>
+                    <group>
+                        <group><field name="date_from"/><field name="date_to"/><field name="currency_id" invisible="1"/></group>
+                        <group><field name="partner_id"/><field name="product_id"/><field name="contract_id"/>
+                            <field name="generated_at"/></group>
+                    </group>
+                    <separator string="Accounting - posted, verified"/>
+                    <group>
+                        <group>
+                            <label for="ar_open"/><div class="o_row"><field name="ar_open"/>
+                                <button name="action_open_kpi" type="object" context="{'kpi': 'ar'}" icon="fa-search" title="Open the records behind this number" class="btn-link"/></div>
+                            <label for="ap_open"/><div class="o_row"><field name="ap_open"/>
+                                <button name="action_open_kpi" type="object" context="{'kpi': 'ap'}" icon="fa-search" title="Open the records behind this number" class="btn-link"/></div>
+                            <field name="cash_position"/>
+                        </group>
+                        <group>
+                            <label for="revenue"/><div class="o_row"><field name="revenue"/>
+                                <button name="action_open_kpi" type="object" context="{'kpi': 'revenue'}" icon="fa-search" title="Open the records behind this number" class="btn-link"/></div>
+                            <label for="costs"/><div class="o_row"><field name="costs"/>
+                                <button name="action_open_kpi" type="object" context="{'kpi': 'costs'}" icon="fa-search" title="Open the records behind this number" class="btn-link"/></div>
+                            <field name="profit"/>
+                        </group>
+                    </group>
+                    <group string="Receivable ageing (as of end date)">
+                        <field name="aging_current"/><field name="aging_30"/><field name="aging_60"/>
+                        <field name="aging_90"/><field name="aging_90plus"/>
+                    </group>
+                    <separator string="Banks - ledger vs bank-confirmed (labels show freshness)"/>
+                    <field name="bank_html" readonly="1"/>
+                    <group>
+                        <group>
+                            <label for="bank_pending_lines"/><div class="o_row"><field name="bank_pending_lines"/><field name="bank_pending_amount"/>
+                                <button name="action_open_kpi" type="object" context="{'kpi': 'bank_pending'}" icon="fa-search" title="Open the records behind this number" class="btn-link"/></div>
+                        </group>
+                        <group>
+                            <label for="suspense_lines"/><div class="o_row"><field name="suspense_lines"/><field name="suspense_amount"/>
+                                <button name="action_open_kpi" type="object" context="{'kpi': 'suspense'}" icon="fa-search" title="Open the records behind this number" class="btn-link"/></div>
+                        </group>
+                    </group>
+                    <separator string="Material and contracts (lifting counts only verified records)"/>
+                    <group>
+                        <group>
+                            <label for="mtl_ordered"/><div class="o_row"><field name="mtl_ordered"/>
+                                <button name="action_open_kpi" type="object" context="{'kpi': 'contracts'}" icon="fa-search" title="Open the records behind this number" class="btn-link"/></div>
+                            <field name="mtl_allocated"/><field name="mtl_available"/><field name="mtl_lifted"/>
+                            <label for="mtl_pending"/><div class="o_row"><field name="mtl_pending"/>
+                                <button name="action_open_kpi" type="object" context="{'kpi': 'pending_orders'}" icon="fa-search" title="Open the records behind this number" class="btn-link"/></div>
+                        </group>
+                        <group>
+                            <field name="gross_spread"/>
+                            <div class="text-muted">Expectation: MTL x (sale - purchase) before commission, costs and taxes. Not profit.</div>
+                            <label for="pending_supplier_docs"/><div class="o_row"><field name="pending_supplier_docs"/>
+                                <button name="action_open_kpi" type="object" context="{'kpi': 'intake'}" icon="fa-search" title="Open the records behind this number" class="btn-link"/></div>
+                            <label for="open_recon_exceptions"/><div class="o_row"><field name="open_recon_exceptions"/>
+                                <button name="action_open_kpi" type="object" context="{'kpi': 'recon'}" icon="fa-search" title="Open the records behind this number" class="btn-link"/></div>
+                        </group>
+                    </group>
+                    <separator string="Approvals waiting"/>
+                    <field name="approvals_html" readonly="1"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="ei_dashboard_open_server" model="ir.actions.server">
+        <field name="name">Dashboard</field>
+        <field name="model_id" ref="model_ei_dashboard"/>
+        <field name="state">code</field>
+        <field name="code">action = model.open_dashboard()</field>
+    </record>
+
+    <record id="ei_approval_contracts" model="ir.actions.act_window">
+        <field name="name">Contracts to approve</field><field name="res_model">ei.contract</field>
+        <field name="view_mode">list,form</field><field name="domain">[('state', '=', 'reviewed')]</field>
+    </record>
+    <record id="ei_approval_das" model="ir.actions.act_window">
+        <field name="name">DAs to approve</field><field name="res_model">ei.da</field>
+        <field name="view_mode">list,form</field><field name="domain">[('state', '=', 'under_review')]</field>
+    </record>
+    <record id="ei_approval_orders" model="ir.actions.act_window">
+        <field name="name">Daily orders to approve</field><field name="res_model">ei.daily.order</field>
+        <field name="view_mode">list,form</field><field name="domain">[('state', '=', 'draft')]</field>
+    </record>
+    <record id="ei_approval_liftings" model="ir.actions.act_window">
+        <field name="name">Liftings to verify</field><field name="res_model">ei.lifting</field>
+        <field name="view_mode">list,form</field><field name="domain">[('state', '=', 'draft')]</field>
+    </record>
+    <record id="ei_approval_vouchers" model="ir.actions.act_window">
+        <field name="name">Cash vouchers to approve</field><field name="res_model">ei.cash.voucher</field>
+        <field name="view_mode">list,form</field><field name="domain">[('state', '=', 'submitted')]</field>
+    </record>
+    <record id="ei_approval_bank" model="ir.actions.act_window">
+        <field name="name">Bank imports to approve / post</field><field name="res_model">ei.bank.import</field>
+        <field name="view_mode">list,form</field><field name="domain">[('state', 'in', ('received', 'validated', 'proposed', 'approved'))]</field>
+    </record>
+    <record id="ei_approval_intake" model="ir.actions.act_window">
+        <field name="name">Supplier invoices in mismatch</field><field name="res_model">ei.supplier.intake</field>
+        <field name="view_mode">list,form</field><field name="domain">[('state', '=', 'mismatch')]</field>
+    </record>
+    <record id="ei_approval_statements" model="ir.actions.act_window">
+        <field name="name">Parent statements to sign</field><field name="res_model">ei.parent.statement</field>
+        <field name="view_mode">list,form</field><field name="domain">[('state', '=', 'resolved')]</field>
+    </record>
+</odoo>

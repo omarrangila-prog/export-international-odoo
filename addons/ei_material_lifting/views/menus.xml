@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_ei_lifting" name="Material Lifting" parent="ei_legacy_master.menu_ei_root" action="ei_lifting_action" sequence="50"/>
+</odoo>

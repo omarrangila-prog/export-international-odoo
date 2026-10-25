@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_ei_parent_recon" name="Parent Reconciliation" parent="ei_legacy_master.menu_ei_root" sequence="80"/>
+    <menuitem id="menu_ei_parent_import" name="Import Statement" parent="menu_ei_parent_recon" action="ei_parent_import_wizard_action" sequence="5"/>
+    <menuitem id="menu_ei_parent_statements" name="Statements" parent="menu_ei_parent_recon" action="ei_parent_statement_action" sequence="10"/>
+    <menuitem id="menu_ei_parent_exceptions" name="Open Exceptions" parent="menu_ei_parent_recon" action="ei_parent_line_exceptions_action" sequence="20"/>
+</odoo>

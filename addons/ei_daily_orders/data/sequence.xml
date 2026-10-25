@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="seq_ei_daily_order" model="ir.sequence">
+            <field name="name">Daily order request</field>
+            <field name="code">ei.daily.order</field>
+            <field name="prefix">DOR/%(year)s/</field>
+            <field name="padding">5</field>
+            <field name="company_id" eval="False"/>
+        </record>
+    </data>
+</odoo>

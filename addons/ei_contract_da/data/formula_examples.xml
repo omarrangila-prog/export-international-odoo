@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Example from the client's "Daily Working Tasks" document. DRAFT: not usable until an accountant approves it.
+         No tax or commission formula is seeded: their bases are not established in the source documents. -->
+    <data noupdate="1">
+        <record id="formula_example_mill_rate" model="ei.formula.definition">
+            <field name="name">Mill rate = basic rate less deduction % (PDF example)</field>
+            <field name="code">MILL_RATE_DEDUCTION</field>
+            <field name="rationale">PDF section 2: 210,000 less 1.32% gives the Mill Rate. Applies only where a contract states a deduction; not a universal rule.</field>
+            <field name="rounding_mode">final_only</field>
+        </record>
+        <record id="formula_example_mill_rate_step" model="ei.formula.step">
+            <field name="definition_id" ref="formula_example_mill_rate"/>
+            <field name="sequence">10</field>
+            <field name="key">mill_rate</field>
+            <field name="kind">deduction_pct</field>
+            <field name="base_ref">basic_rate</field>
+            <field name="param">deduction_pct</field>
+        </record>
+        <record id="formula_example_mill_rate_test" model="ei.formula.test">
+            <field name="definition_id" ref="formula_example_mill_rate"/>
+            <field name="name">PDF example: 210,000 less 1.32%</field>
+            <field name="basic_rate">210000</field>
+            <field name="quantity">1</field>
+            <field name="params_json">{"deduction_pct": "1.32"}</field>
+            <field name="expected_key">mill_rate</field>
+            <field name="expected_value">207228.00</field>
+        </record>
+    </data>
+</odoo>

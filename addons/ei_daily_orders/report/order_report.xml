@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_daily_order" model="ir.actions.report">
+        <field name="name">Daily Order Request</field>
+        <field name="model">ei.daily.order</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">ei_daily_orders.report_daily_order</field>
+        <field name="print_report_name">'Daily Order Request %s' % object.name</field>
+    </record>
+    <template id="report_daily_order">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <h2>Daily Order Request <span t-field="o.name"/></h2>
+                        <p>Supplier: <b t-field="o.parent_partner_id.name"/> | Date: <span t-field="o.date"/>
+                            | Status: <span t-field="o.state"/></p>
+                        <table class="table table-sm">
+                            <thead><tr><th>DA</th><th>Material</th><th>Customer</th><th class="text-end">Requested MTL</th>
+                                <th class="text-end">Rate / MTL</th><th class="text-end">Lifted</th><th class="text-end">Remaining</th><th>Supplier invoice no.</th></tr></thead>
+                            <tbody>
+                                <tr t-foreach="o.line_ids" t-as="l">
+                                    <td><span t-field="l.da_id.name"/></td><td><span t-field="l.product_id.display_name"/></td>
+                                    <td><span t-field="l.customer_id.name"/></td>
+                                    <td class="text-end"><span t-field="l.requested_mtl"/></td>
+                                    <td class="text-end"><span t-field="l.sale_rate"/></td>
+                                    <td class="text-end"><span t-field="l.lifted_mtl"/></td>
+                                    <td class="text-end"><span t-field="l.remaining_mtl"/></td>
+                                    <td><span t-field="l.invoice_ref"/></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p>Total requested: <b t-field="o.total_requested"/> MTL. Prepared by <span t-field="o.maker_id.name"/>,
+                            approved by <span t-field="o.approved_by.name"/>.</p>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+    <record id="mail_template_daily_order" model="mail.template">
+        <field name="name">Daily Order Request</field>
+        <field name="model_id" ref="model_ei_daily_order"/>
+        <field name="subject">Daily Order Request {{ object.name }}</field>
+        <field name="partner_to">{{ object.parent_partner_id.id }}</field>
+        <field name="body_html" type="html"><p>Dear team,</p><p>Please find our Daily Order Request attached.</p></field>
+        <field name="report_template_ids" eval="[(4, ref('action_report_daily_order'))]"/>
+    </record>
+</odoo>

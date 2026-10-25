@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- One short top bar: Home / Money / Orders & Trucks / Bills & Invoices / Month-end / Approvals / Setup -->
+    <record id="ei_legacy_master.menu_ei_root" model="ir.ui.menu">
+        <field name="web_icon">ei_ui_theme,static/description/icon.svg</field>
+    </record>
+    <menuitem id="menu_ei_home" name="Home" parent="ei_legacy_master.menu_ei_root" action="action_ei_home" sequence="1"/>
+
+    <!-- Money -->
+    <record id="ei_bank_operations.menu_ei_banking" model="ir.ui.menu"><field name="name">Money</field><field name="sequence">10</field></record>
+    <record id="ei_bank_operations.menu_ei_bank_import_new" model="ir.ui.menu"><field name="name">Import a bank statement</field><field name="sequence">10</field></record>
+    <record id="ei_bank_operations.menu_ei_bank_lines" model="ir.ui.menu"><field name="name">Bank payments to check</field><field name="sequence">20</field></record>
+    <record id="ei_bank_operations.menu_ei_bank_imports" model="ir.ui.menu"><field name="name">Imported statements</field><field name="sequence">30</field></record>
+    <record id="ei_bank_operations.menu_ei_balance" model="ir.ui.menu"><field name="name">Morning bank balance</field><field name="sequence">40</field></record>
+    <record id="ei_bank_operations.menu_ei_daily_close" model="ir.ui.menu"><field name="name">End-of-day bank review</field><field name="sequence">50</field></record>
+    <record id="ei_cashbook.menu_ei_cash_vouchers" model="ir.ui.menu">
+        <field name="name">Cash vouchers</field><field name="parent_id" ref="ei_bank_operations.menu_ei_banking"/><field name="sequence">60</field></record>
+    <record id="ei_cashbook.menu_ei_cash_counts" model="ir.ui.menu">
+        <field name="name">Count the cash</field><field name="parent_id" ref="ei_bank_operations.menu_ei_banking"/><field name="sequence">70</field></record>
+
+    <!-- Orders & Trucks -->
+    <record id="ei_contract_da.menu_ei_contracts" model="ir.ui.menu"><field name="name">Orders &amp; Trucks</field><field name="sequence">20</field></record>
+    <record id="ei_contract_da.menu_ei_contract" model="ir.ui.menu"><field name="name">Contracts</field><field name="sequence">10</field></record>
+    <record id="ei_contract_da.menu_ei_da" model="ir.ui.menu"><field name="name">Delivery advices</field><field name="sequence">20</field></record>
+    <record id="ei_daily_orders.menu_ei_daily_orders" model="ir.ui.menu">
+        <field name="name">Daily orders</field><field name="parent_id" ref="ei_contract_da.menu_ei_contracts"/><field name="sequence">30</field></record>
+    <record id="ei_material_lifting.menu_ei_lifting" model="ir.ui.menu">
+        <field name="name">Material lifting (trucks)</field><field name="parent_id" ref="ei_contract_da.menu_ei_contracts"/><field name="sequence">40</field></record>
+
+    <!-- Bills & Invoices -->
+    <record id="ei_invoice_extensions.menu_ei_customer_invoices" model="ir.ui.menu"><field name="name">Bills &amp; Invoices</field><field name="sequence">30</field></record>
+    <record id="ei_invoice_extensions.menu_ei_supplier_bills" model="ir.ui.menu">
+        <field name="name">Supplier invoices</field><field name="parent_id" ref="ei_invoice_extensions.menu_ei_customer_invoices"/><field name="sequence">10</field></record>
+    <record id="ei_invoice_extensions.menu_ei_billable" model="ir.ui.menu"><field name="name">Invoice delivered material</field><field name="sequence">20</field></record>
+    <record id="ei_invoice_extensions.menu_ei_submissions" model="ir.ui.menu"><field name="name">Tax authority submissions</field><field name="sequence">30</field></record>
+
+    <!-- Month-end -->
+    <record id="ei_parent_reconciliation.menu_ei_parent_recon" model="ir.ui.menu"><field name="name">Month-end</field><field name="sequence">40</field></record>
+    <record id="ei_parent_reconciliation.menu_ei_parent_import" model="ir.ui.menu"><field name="name">Import parent statement</field><field name="sequence">10</field></record>
+    <record id="ei_parent_reconciliation.menu_ei_parent_statements" model="ir.ui.menu"><field name="name">Parent statements</field><field name="sequence">20</field></record>
+    <record id="ei_parent_reconciliation.menu_ei_parent_exceptions" model="ir.ui.menu"><field name="name">Open differences</field><field name="sequence">30</field></record>
+
+    <!-- Approvals -->
+    <record id="ei_management_dashboard.menu_ei_approvals" model="ir.ui.menu"><field name="name">Approvals</field><field name="sequence">50</field></record>
+
+    <!-- Setup -->
+    <record id="ei_legacy_master.menu_ei_master" model="ir.ui.menu"><field name="name">Setup</field><field name="sequence">90</field></record>
+    <record id="ei_legacy_master.menu_ei_codes" model="ir.ui.menu"><field name="name">Old codes (all 639)</field><field name="sequence">10</field></record>
+    <record id="ei_legacy_master.menu_ei_queue" model="ir.ui.menu"><field name="name">Codes to classify</field><field name="sequence">20</field></record>
+    <record id="ei_legacy_master.menu_ei_import" model="ir.ui.menu"><field name="name">Import old codes</field><field name="sequence">30</field></record>
+    <record id="ei_legacy_master.menu_ei_batches" model="ir.ui.menu"><field name="name">Import history</field><field name="sequence">40</field></record>
+    <record id="ei_trade_lc.menu_ei_trade_lc" model="ir.ui.menu">
+        <field name="name">LC register</field><field name="parent_id" ref="ei_legacy_master.menu_ei_master"/><field name="sequence">50</field></record>
+    <record id="ei_trade_lc.menu_ei_trade_seed" model="ir.ui.menu">
+        <field name="name">Load LC register from old codes</field><field name="parent_id" ref="ei_legacy_master.menu_ei_master"/><field name="sequence">60</field></record>
+    <record id="ei_contract_da.menu_ei_formula" model="ir.ui.menu">
+        <field name="name">Formula register</field><field name="parent_id" ref="ei_legacy_master.menu_ei_master"/><field name="sequence">70</field></record>
+    <record id="ei_bank_operations.menu_ei_alias" model="ir.ui.menu">
+        <field name="name">Party name aliases</field><field name="parent_id" ref="ei_legacy_master.menu_ei_master"/><field name="sequence">80</field></record>
+    <record id="ei_cashbook.menu_ei_cash_cats" model="ir.ui.menu">
+        <field name="name">Cash categories</field><field name="parent_id" ref="ei_legacy_master.menu_ei_master"/><field name="sequence">90</field></record>
+    <record id="ei_invoice_extensions.menu_ei_integrations" model="ir.ui.menu"><field name="name">Connections to other systems</field><field name="sequence">100</field></record>
+    <record id="ei_management_dashboard.menu_ei_dashboard" model="ir.ui.menu">
+        <field name="name">Detailed report</field><field name="parent_id" ref="ei_legacy_master.menu_ei_master"/><field name="sequence">110</field></record>
+
+    <!-- emptied old groupings -->
+    <record id="ei_cashbook.menu_ei_cash" model="ir.ui.menu"><field name="active" eval="False"/></record>
+    <record id="ei_trade_lc.menu_ei_trade" model="ir.ui.menu"><field name="active" eval="False"/></record>
+</odoo>

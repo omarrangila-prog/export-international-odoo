@@ -1,0 +1,174 @@
+// Export International - clean, calm, easy to read.
+:root {
+    --ei-ink: #14213D;
+    --ei-text: #1F2A3D;
+    --ei-muted: #64748B;
+    --ei-line: #E2E8F0;
+    --ei-bg: #F3F5F9;
+    --ei-card: #FFFFFF;
+    --ei-primary: #1D4ED8;
+    --ei-primary-soft: #E8EEFC;
+    --ei-ok: #15803D;     --ei-ok-soft: #E7F6EC;
+    --ei-warn: #B45309;   --ei-warn-soft: #FEF3E2;
+    --ei-bad: #B91C1C;    --ei-bad-soft: #FDECEC;
+    --ei-info: #0369A1;   --ei-info-soft: #E6F3FA;
+    --ei-radius: 14px;
+    --ei-shadow: 0 1px 2px rgba(20,33,61,.06), 0 4px 14px rgba(20,33,61,.06);
+}
+
+body, .o_web_client { background: var(--ei-bg); color: var(--ei-text); font-size: 15px; }
+
+// ---------------------------------------------------------------- top bar
+.o_main_navbar {
+    background: var(--ei-ink) !important;
+    height: 58px;
+    border: 0;
+    box-shadow: 0 2px 10px rgba(20,33,61,.25);
+    .o_nav_entry, .o-dropdown.dropdown-toggle, .o_menu_brand {
+        background: transparent !important;
+        color: #E8EDF7 !important;
+        font-size: 15px;
+        font-weight: 600;
+        border-radius: 10px;
+        margin: 0 2px;
+        padding: 9px 14px !important;
+        transition: background .15s;
+        i, .oi { color: inherit; }
+    }
+    .o_menu_brand { font-weight: 800; letter-spacing: .2px; color: #fff !important; font-size: 16px; }
+    .o_nav_entry:hover, .o-dropdown.dropdown-toggle:hover { background: rgba(255,255,255,.14) !important; color: #fff !important; }
+    .o_nav_entry.focus, .o_nav_entry.active, .o_nav_entry:focus, .o-dropdown.dropdown-toggle.show {
+        background: rgba(255,255,255,.18) !important; color: #fff !important;
+    }
+    .o_menu_systray .o-dropdown.dropdown-toggle { padding: 8px 10px !important; }
+}
+.o_tour_pointer, .o_tour_pointer_tip { display: none !important; }
+
+// ---------------------------------------------------------------- buttons
+.btn { border-radius: 10px; font-weight: 600; padding: 8px 16px; }
+.btn-primary { background: var(--ei-primary); border-color: var(--ei-primary); box-shadow: 0 2px 6px rgba(29,78,216,.25); }
+.btn-primary:hover { background: #1941B5; border-color: #1941B5; }
+.btn-secondary, .btn-light { background: #fff; border: 1px solid var(--ei-line); color: var(--ei-text); }
+.btn-secondary:hover, .btn-light:hover { background: var(--ei-primary-soft); border-color: #C7D6F8; color: var(--ei-primary); }
+.o_form_statusbar .o_statusbar_buttons .btn { min-height: 40px; }
+
+// ---------------------------------------------------------------- control panel
+.o_control_panel {
+    background: var(--ei-card) !important;
+    border-bottom: 1px solid var(--ei-line);
+    padding-top: 12px; padding-bottom: 8px;
+    .o_breadcrumb .active, .breadcrumb-item.active { font-size: 20px; font-weight: 700; color: var(--ei-ink); }
+    .o_searchview { border-radius: 12px; border: 1px solid var(--ei-line); background: #F8FAFD; }
+}
+.o_cp_buttons .btn-primary { font-size: 15px; padding: 9px 20px; }
+
+// ---------------------------------------------------------------- lists
+.o_list_view .o_list_renderer { background: var(--ei-card); }
+.o_list_table {
+    thead th {
+        background: #F8FAFD !important; color: var(--ei-muted); font-size: 12px; font-weight: 700;
+        text-transform: uppercase; letter-spacing: .5px; border-bottom: 1px solid var(--ei-line) !important; padding: 12px 10px;
+    }
+    tbody tr.o_data_row td { padding: 14px 10px; border-color: #EEF2F7; vertical-align: middle; }
+    tbody tr.o_data_row:hover td { background: var(--ei-primary-soft) !important; cursor: pointer; }
+    tfoot td, .o_list_footer td { font-weight: 700; background: #F8FAFD; }
+}
+
+// ---------------------------------------------------------------- forms
+.o_form_view .o_form_sheet_bg { background: var(--ei-bg); border: 0; }
+.o_form_view .o_form_sheet {
+    background: var(--ei-card); border-radius: var(--ei-radius); border: 1px solid var(--ei-line);
+    box-shadow: var(--ei-shadow); padding: 28px 32px; margin-top: 18px;
+}
+.o_form_view .o_form_label, .o_form_view .o_horizontal_separator {
+    color: var(--ei-muted); font-weight: 600;
+}
+.o_form_view .o_horizontal_separator {
+    text-transform: uppercase; font-size: 12px; letter-spacing: .6px; border-bottom: 1px solid var(--ei-line);
+    padding-bottom: 6px; margin: 26px 0 12px;
+}
+.o_form_view .o_input, .o_form_view .o_field_widget input, .o_form_view .o_field_widget textarea { font-size: 15px; }
+.o_form_view .oe_title h1 { font-weight: 800; color: var(--ei-ink); }
+.o_form_view .o_form_statusbar { background: transparent; border: 0; padding: 12px 0; }
+.o_form_view .o_statusbar_status .o_arrow_button {
+    font-weight: 600; font-size: 13px; padding: 9px 22px;
+    &.o_arrow_button_current { background: var(--ei-primary) !important; color: #fff !important; }
+}
+
+// ---------------------------------------------------------------- badges and row colours
+.o_field_badge .badge, .badge {
+    border-radius: 999px; font-weight: 700; font-size: 12px; padding: 5px 12px; letter-spacing: .2px;
+}
+.badge.text-bg-success { background: var(--ei-ok-soft) !important; color: var(--ei-ok) !important; }
+.badge.text-bg-warning { background: var(--ei-warn-soft) !important; color: var(--ei-warn) !important; }
+.badge.text-bg-danger  { background: var(--ei-bad-soft) !important; color: var(--ei-bad) !important; }
+.badge.text-bg-info    { background: var(--ei-info-soft) !important; color: var(--ei-info) !important; }
+.badge.text-bg-primary { background: var(--ei-primary-soft) !important; color: var(--ei-primary) !important; }
+.badge.text-bg-secondary, .badge.text-bg-light { background: #EEF1F6 !important; color: var(--ei-muted) !important; }
+.o_data_row.text-success td { color: var(--ei-ok) !important; }
+.o_data_row.text-warning td { color: var(--ei-warn) !important; }
+.o_data_row.text-danger td { color: var(--ei-bad) !important; }
+.o_data_row.text-muted td { color: #94A3B8 !important; }
+
+// ---------------------------------------------------------------- alerts and "what to do now" banners
+.alert { border-radius: 12px; border: 0; }
+.ei-next {
+    display: flex; gap: 14px; align-items: flex-start; padding: 16px 18px; border-radius: 12px; margin: 0 0 20px;
+    background: var(--ei-primary-soft); color: #173A91; border-left: 5px solid var(--ei-primary);
+    .ei-next-ico { flex: 0 0 30px; height: 30px; border-radius: 50%; background: var(--ei-primary); color: #fff; display: grid; place-items: center; font-weight: 800; font-size: 16px; &::before { content: 'i'; font-style: italic; font-family: Georgia, serif; } }
+    .ei-next-title { font-weight: 800; display: block; }
+    &.ei-next-wait { background: var(--ei-warn-soft); color: #7A3B06; border-left-color: #F59E0B; .ei-next-ico { background: #F59E0B; &::before { content: '\23F3'; font-style: normal; font-size: 15px; } } }
+    &.ei-next-done { background: var(--ei-ok-soft); color: #0F5A2C; border-left-color: #22A05B; .ei-next-ico { background: #22A05B; &::before { content: '\2713'; font-style: normal; } } }
+    &.ei-next-stop { background: var(--ei-bad-soft); color: #7F1414; border-left-color: #DC2626; .ei-next-ico { background: #DC2626; &::before { content: '!'; font-style: normal; } } }
+}
+
+// ---------------------------------------------------------------- empty states
+.o_view_nocontent {
+    .o_nocontent_help { background: var(--ei-card); border-radius: var(--ei-radius); box-shadow: var(--ei-shadow);
+        padding: 36px 44px; max-width: 520px; border: 1px solid var(--ei-line); }
+    .o_view_nocontent_smiling_face, h2, .fw-bold { color: var(--ei-ink); }
+    p { font-size: 15px; color: var(--ei-muted); }
+}
+
+// ---------------------------------------------------------------- kanban cards
+.o_kanban_view .o_kanban_renderer { padding: 16px; gap: 14px; background: transparent; }
+.o_kanban_view .o_kanban_record {
+    border-radius: var(--ei-radius) !important; border: 1px solid var(--ei-line) !important;
+    box-shadow: var(--ei-shadow); background: var(--ei-card); padding: 0 !important; overflow: hidden;
+    transition: transform .12s, box-shadow .12s;
+    &:hover { transform: translateY(-2px); box-shadow: 0 6px 22px rgba(20,33,61,.14); }
+}
+.ei-card-body {
+    padding: 16px 18px; border-left: 6px solid #CBD5E1; min-height: 150px;
+    &.ei-s-draft, &.ei-s-new { border-left-color: #94A3B8; }
+    &.ei-s-submitted, &.ei-s-reviewed, &.ei-s-under_review, &.ei-s-proposed, &.ei-s-validated, &.ei-s-received, &.ei-s-mismatch, &.ei-s-classified, &.ei-s-assigned { border-left-color: #F59E0B; }
+    &.ei-s-approved, &.ei-s-active, &.ei-s-posted, &.ei-s-verified, &.ei-s-signed, &.ei-s-matched, &.ei-s-resolved, &.ei-s-billed { border-left-color: #22A05B; }
+    &.ei-s-rejected, &.ei-s-cancelled, &.ei-s-reversed, &.ei-s-failed { border-left-color: #DC2626; }
+    .ei-card-title { font-size: 17px; font-weight: 800; color: var(--ei-ink); }
+    .ei-card-sub { color: var(--ei-muted); font-size: 13px; }
+    .ei-card-num { font-size: 22px; font-weight: 800; color: var(--ei-ink); }
+    .ei-card-row { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-top: 10px; }
+    .ei-card-foot { margin-top: 12px; display: flex; justify-content: space-between; align-items: center; }
+}
+
+// ---------------------------------------------------------------- chatter: calmer
+.o-mail-Chatter { background: transparent; }
+
+// ---------------------------------------------------------------- small screens
+@media (max-width: 767px) {
+    .o_form_view .o_form_sheet { padding: 18px 16px; margin-top: 8px; border-radius: 10px; }
+    .o_control_panel .o_breadcrumb .active { font-size: 18px; }
+    body, .o_web_client { font-size: 16px; }
+}
+
+// ---------------------------------------------------------------- polish
+.o_kanban_ghost { display: none !important; }
+.o_form_view .o_form_statusbar { padding-left: 4px; gap: 6px;
+    .o_statusbar_buttons { display: flex; gap: 8px; flex-wrap: wrap; padding: 0 12px 0 0; }
+}
+.o_form_view .o_form_statusbar .btn { min-height: 42px; padding: 9px 18px; }
+.o_form_view .o_form_sheet .o_list_renderer { border: 1px solid var(--ei-line); border-radius: 10px; overflow: hidden; }
+.o_form_view .o_form_sheet .o_list_table thead th { padding: 10px 8px; }
+.o_form_view .o_form_sheet .o_list_table tbody tr.o_data_row td { padding: 10px 8px; }
+.o_control_panel .o_cp_buttons .btn { min-width: 88px; }
+.o_switch_company_menu { color: #E8EDF7 !important; }

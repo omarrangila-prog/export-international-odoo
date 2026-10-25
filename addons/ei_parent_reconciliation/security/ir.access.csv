@@ -1,0 +1,8 @@
+id,name,model_id,group_id/id,operation,domain
+access_ei_parent_statement_auditor,statement auditor,ei.parent.statement,ei_legacy_master.group_ei_auditor,r,
+access_ei_parent_statement_user,statement user,ei.parent.statement,group_ei_recon_user,cru,
+access_ei_parent_statement_line_auditor,statement line auditor,ei.parent.statement.line,ei_legacy_master.group_ei_auditor,r,
+access_ei_parent_statement_line_user,statement line user,ei.parent.statement.line,group_ei_recon_user,crud,
+access_ei_parent_wizard,import wizard,ei.parent.import.wizard,group_ei_recon_user,crud,
+rule_ei_parent_statement_company,Parent statement: own companies,ei.parent.statement,,crud,"[('company_id', 'in', company_ids)]"
+rule_ei_parent_statement_line_company,Parent statement line: own companies,ei.parent.statement.line,,crud,"[('company_id', 'in', company_ids)]"

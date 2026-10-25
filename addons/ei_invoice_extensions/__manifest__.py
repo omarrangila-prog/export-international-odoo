@@ -1,0 +1,19 @@
+{
+    'name': 'Export International - Supplier Intake & Customer Invoicing',
+    'version': '20.0.1.0.0',
+    'category': 'Accounting',
+    'summary': 'Supplier invoice intake with mismatch blocking, billing of verified liftings, compliance submission log',
+    'author': 'Odoovations',
+    'license': 'LGPL-3',
+    'depends': ['ei_material_lifting', 'account'],
+    'data': [
+        'security/security.xml',
+        'security/ir.access.csv',
+        'data/sequence.xml',
+        'wizard/invoice_wizard_views.xml',
+        'views/intake_views.xml',
+        'views/compliance_views.xml',
+        'views/menus.xml',
+    ],
+    'installable': True,
+}

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_ei_banking" name="Online Banking" parent="ei_legacy_master.menu_ei_root" sequence="10"/>
+    <menuitem id="menu_ei_bank_imports" name="Statement Imports" parent="menu_ei_banking" action="ei_bank_import_action" sequence="10"/>
+    <menuitem id="menu_ei_bank_lines" name="Lines to Review" parent="menu_ei_banking" action="ei_bank_line_action" sequence="20"/>
+    <menuitem id="menu_ei_bank_import_new" name="Import Statement" parent="menu_ei_banking" action="ei_bank_import_wizard_action"
+              sequence="5" groups="ei_bank_operations.group_ei_bank_officer"/>
+    <menuitem id="menu_ei_balance" name="Morning Balance Check" parent="menu_ei_banking" action="ei_balance_check_action" sequence="30"/>
+    <menuitem id="menu_ei_daily_close" name="Daily Posting Review" parent="menu_ei_banking" action="ei_daily_close_action" sequence="40"/>
+    <menuitem id="menu_ei_alias" name="Party Aliases" parent="menu_ei_banking" action="ei_alias_action" sequence="50"/>
+</odoo>

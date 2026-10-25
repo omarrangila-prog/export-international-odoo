@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ei_invoice_wizard_form" model="ir.ui.view">
+        <field name="name">ei.invoice.wizard.form</field>
+        <field name="model">ei.invoice.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Invoice verified liftings">
+                <p class="text-muted">One invoice per customer. Only verified, not yet invoiced liftings are accepted.
+                    Price changes need an invoice approver and a reason.</p>
+                <group><field name="invoice_date"/><field name="post"/></group>
+                <field name="line_ids">
+                    <list editable="bottom" create="0">
+                        <field name="lifting_id" readonly="1"/><field name="verified_mtl"/>
+                        <field name="unit_price"/><field name="adjust_reason"/>
+                    </list>
+                </field>
+                <footer>
+                    <button string="Create invoices" name="action_create" type="object" class="btn-primary"/>
+                    <button string="Cancel" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+    <record id="ei_invoice_wizard_action" model="ir.actions.act_window">
+        <field name="name">Invoice verified liftings</field>
+        <field name="res_model">ei.invoice.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="binding_model_id" ref="ei_material_lifting.model_ei_lifting"/>
+        <field name="binding_view_types">list</field>
+    </record>
+</odoo>

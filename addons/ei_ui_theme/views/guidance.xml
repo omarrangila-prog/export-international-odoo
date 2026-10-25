@@ -1,0 +1,341 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="guide_0_ei_contract_form" model="ir.ui.view">
+        <field name="name">ei_contract_form.guidance</field>
+        <field name="model">ei.contract</field>
+        <field name="inherit_id" ref="ei_contract_da.ei_contract_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/*[1]" position="before">
+                <div class="ei-next" invisible="state not in ('draft')">
+                    <span class="ei-next-ico"/>
+                    <div><span class="ei-next-title">Your turn</span><span>Add the contract lines, attach the parent company's contract paper, then press <b>Send for review</b>.</span></div>
+                </div>
+                <div class="ei-next ei-next-wait" invisible="state not in ('reviewed')">
+                    <span class="ei-next-ico"/>
+                    <div><span class="ei-next-title">Waiting for approval</span><span>A second person must approve this contract. You cannot approve your own work.</span></div>
+                </div>
+                <div class="ei-next" invisible="state not in ('approved')">
+                    <span class="ei-next-ico"/>
+                    <div><span class="ei-next-title">Approved</span><span>Press <b>Activate</b> when the contract starts. The rates are now frozen.</span></div>
+                </div>
+                <div class="ei-next ei-next-done" invisible="state not in ('active')">
+                    <span class="ei-next-ico"/>
+                    <div><span class="ei-next-title">Active</span><span>You can now enter delivery advices (DAs) against this contract.</span></div>
+                </div>
+                <div class="ei-next ei-next-done" invisible="state not in ('fulfilled', 'closed')">
+                    <span class="ei-next-ico"/>
+                    <div><span class="ei-next-title">Finished</span><span>All the material on this contract has been dealt with.</span></div>
+                </div>
+                <div class="ei-next ei-next-stop" invisible="state not in ('cancelled', 'amended')">
+                    <span class="ei-next-ico"/>
+                    <div><span class="ei-next-title">Not in use</span><span>This contract was cancelled or replaced by a newer revision.</span></div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+    <record id="guide_1_ei_da_form" model="ir.ui.view">
+        <field name="name">ei_da_form.guidance</field>
+        <field name="model">ei.da</field>
+        <field name="inherit_id" ref="ei_contract_da.ei_da_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/*[1]" position="before">
+                <div class="ei-next" invisible="state not in ('draft')">
+                    <span class="ei-next-ico"/>
+                    <div><span class="ei-next-title">Your turn</span><span>Add the lines (how many MTL, for which customer), attach the DA paper from the parent company, then press <b>Send for review</b>.</span></div>
+                </div>
+                <div class="ei-next ei-next-wait" invisible="state not in ('under_review')">
+                    <span class="ei-next-ico"/>
+                    <div><span class="ei-next-title">Waiting for approval</span><span>A second person checks the quantities and rates. The system refuses more MTL than the contract still has.</span></div>
+                </div>
+                <div class="ei-next ei-next-done" invisible="state not in ('approved')">
+                    <span class="ei-next-ico"/>
+                    <div><span class="ei-next-title">Approved</span><span>Next: press <b>Generate Daily Order</b> to prepare the order request.</span></div>
+                </div>
+                <div class="ei-next ei-next-done" invisible="state not in ('fulfilled', 'closed')">
+                    <span class="ei-next-ico"/>
+                    <div><span class="ei-next-title">All lifted</span><span>The material on this DA has been lifted.</span></div>
+                </div>
+                <div class="ei-next ei-next-stop" invisible="state not in ('cancelled', 'amended')">
+                    <span class="ei-next-ico"/>
+                    <div><span class="ei-next-title">Not in use</span><span>This DA was cancelled or replaced by an amendment.</span></div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+    <record id="guide_2_ei_formula_form" model="ir.ui.view">
+        <field name="name">ei_formula_form.guidance</field>
+        <field name="model">ei.formula.definition</field>
+        <field name="inherit_id" ref="ei_contract_da.ei_formula_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/*[1]" position="before">
+                <div class="ei-next ei-next-wait" invisible="state not in ('draft')">
+                    <span class="ei-next-ico"/>
+                    <div><span class="ei-next-title">Not usable yet</span><span>A formula can only be used on contracts after an accountant approves it. It needs at least one step and a passing test.</span></div>
+                </div>
+                <div class="ei-next ei-next-done" invisible="state not in ('approved')">
+                    <span class="ei-next-ico"/>
+                    <div><span class="ei-next-title">Approved</span><span>Contracts can use this formula. To change it, make a new version.</span></div>
+                </div>
+                <div class="ei-next ei-next-stop" invisible="state not in ('retired')">
+                    <span class="ei-next-ico"/>
+                    <div><span class="ei-next-title">Retired</span><span>Replaced by a newer version. Old contracts keep their frozen result.</span></div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+    <record id="guide_3_ei_daily_order_form" model="ir.ui.view">
+        <field name="name">ei_daily_order_form.guidance</field>
+        <field name="model">ei.daily.order</field>
+        <field name="inherit_id" ref="ei_daily_orders.ei_daily_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/*[1]" position="before">
+                <div class="ei-next" invisible="state not in ('draft')">
+                    <span class="ei-next-ico"/>
+                    <div><span class="ei-next-title">Your turn</span><span>Check the quantities. A second person approves it, then you can print or email it.</span></div>
+                </div>
+                <div class="ei-next ei-next-done" invisible="state not in ('approved')">
+                    <span class="ei-next-ico"/>
+                    <div><span class="ei-next-title">Approved</span><span>Print it or send it. When the supplier's invoice arrives, type its number on the line - this does <b>not</b> mean the material was lifted.</span></div>
+                </div>
+                <div class="ei-next ei-next-stop" invisible="state not in ('cancelled')">
+                    <span class="ei-next-ico"/>
+                    <div><span class="ei-next-title">Cancelled</span><span>This order request was cancelled.</span></div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+    <record id="guide_4_ei_lifting_form" model="ir.ui.view">
+        <field name="name">ei_lifting_form.guidance</field>
+        <field name="model">ei.lifting</field>
+        <field name="inherit_id" ref="ei_material_lifting.ei_lifting_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/*[1]" position="before">
+                <div class="ei-next" invisible="state not in ('draft')">
+                    <span class="ei-next-ico"/>
+                    <div><span class="ei-next-title">Your turn</span><span>Attach the gate pass or weighbridge slip. A second person verifies the load. <b>Nothing counts as lifted until it is verified.</b></span></div>
+                </div>
+                <div class="ei-next ei-next-done" invisible="state not in ('verified')">
+                    <span class="ei-next-ico"/>
+                    <div><span class="ei-next-title">Verified</span><span>This quantity now counts as lifted. It is ready to be invoiced to the customer.</span></div>
+                </div>
+                <div class="ei-next ei-next-stop" invisible="state not in ('reversed', 'cancelled')">
+                    <span class="ei-next-ico"/>
+                    <div><span class="ei-next-title">Not counted</span><span>This loading was reversed or cancelled and does not count.</span></div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+    <record id="guide_5_ei_bank_import_form" model="ir.ui.view">
+        <field name="name">ei_bank_import_form.guidance</field>
+        <field name="model">ei.bank.import</field>
+        <field name="inherit_id" ref="ei_bank_operations.ei_bank_import_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/*[1]" position="before">
+                <div class="ei-next ei-next-stop" invisible="state not in ('received')">
+                    <span class="ei-next-ico"/>
+                    <div><span class="ei-next-title">Look at the red box first</span><span>The file has a problem. You may continue, but the person approving must write why the numbers differ.</span></div>
+                </div>
+                <div class="ei-next" invisible="state not in ('validated', 'proposed')">
+                    <span class="ei-next-ico"/>
+                    <div><span class="ei-next-title">Check every payment</span><span>Open each payment below and confirm who paid. Press <b>Suggest parties</b> for hints. Payments you cannot identify go to 'unidentified'. Then a second person approves.</span></div>
+                </div>
+                <div class="ei-next ei-next-wait" invisible="state not in ('approved')">
+                    <span class="ei-next-ico"/>
+                    <div><span class="ei-next-title">Approved</span><span>A third person posts it into the books. The person who imported it cannot post it.</span></div>
+                </div>
+                <div class="ei-next ei-next-done" invisible="state not in ('posted')">
+                    <span class="ei-next-ico"/>
+                    <div><span class="ei-next-title">In the books</span><span>These payments are now in the accounts.</span></div>
+                </div>
+                <div class="ei-next ei-next-stop" invisible="state not in ('rejected')">
+                    <span class="ei-next-ico"/>
+                    <div><span class="ei-next-title">Rejected</span><span>Nothing from this file went into the books.</span></div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+    <record id="guide_6_ei_bank_line_form" model="ir.ui.view">
+        <field name="name">ei_bank_line_form.guidance</field>
+        <field name="model">ei.bank.import.line</field>
+        <field name="inherit_id" ref="ei_bank_operations.ei_bank_line_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/*[1]" position="before">
+                <div class="ei-next" invisible="state not in ('new', 'proposed')">
+                    <span class="ei-next-ico"/>
+                    <div><span class="ei-next-title">Who paid this?</span><span>Confirm the party with the blue button. The suggestion is only a hint - a payment image is not proof of money.</span></div>
+                </div>
+                <div class="ei-next" invisible="state not in ('verified')">
+                    <span class="ei-next-ico"/>
+                    <div><span class="ei-next-title">Party confirmed</span><span>If this payment settles invoices, add them below. Otherwise leave it.</span></div>
+                </div>
+                <div class="ei-next ei-next-wait" invisible="state not in ('unidentified')">
+                    <span class="ei-next-ico"/>
+                    <div><span class="ei-next-title">Unidentified</span><span>This will go to a holding account until someone finds out who paid.</span></div>
+                </div>
+                <div class="ei-next ei-next-done" invisible="state not in ('posted')">
+                    <span class="ei-next-ico"/>
+                    <div><span class="ei-next-title">In the books</span><span>This payment is posted.</span></div>
+                </div>
+                <div class="ei-next ei-next-stop" invisible="state not in ('duplicate', 'rejected')">
+                    <span class="ei-next-ico"/>
+                    <div><span class="ei-next-title">Not used</span><span>Duplicate or rejected - it will not go into the books.</span></div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+    <record id="guide_7_ei_cash_voucher_form" model="ir.ui.view">
+        <field name="name">ei_cash_voucher_form.guidance</field>
+        <field name="model">ei.cash.voucher</field>
+        <field name="inherit_id" ref="ei_cashbook.ei_cash_voucher_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/*[1]" position="before">
+                <div class="ei-next" invisible="state not in ('draft')">
+                    <span class="ei-next-ico"/>
+                    <div><span class="ei-next-title">Your turn</span><span>Fill in the amount and category, attach the receipt, then press <b>Submit</b>.</span></div>
+                </div>
+                <div class="ei-next ei-next-wait" invisible="state not in ('submitted')">
+                    <span class="ei-next-ico"/>
+                    <div><span class="ei-next-title">Waiting for approval</span><span>Someone else must approve this voucher.</span></div>
+                </div>
+                <div class="ei-next ei-next-done" invisible="state not in ('posted')">
+                    <span class="ei-next-ico"/>
+                    <div><span class="ei-next-title">Done</span><span>Posted to the cash book.</span></div>
+                </div>
+                <div class="ei-next ei-next-stop" invisible="state not in ('rejected', 'reversed')">
+                    <span class="ei-next-ico"/>
+                    <div><span class="ei-next-title">Not counted</span><span>This voucher was rejected or reversed.</span></div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+    <record id="guide_8_ei_cash_count_form" model="ir.ui.view">
+        <field name="name">ei_cash_count_form.guidance</field>
+        <field name="model">ei.cash.count</field>
+        <field name="inherit_id" ref="ei_cashbook.ei_cash_count_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/*[1]" position="before">
+                <div class="ei-next" invisible="state not in ('draft')">
+                    <span class="ei-next-ico"/>
+                    <div><span class="ei-next-title">Count the cash</span><span>Enter the notes and coins you counted. A different person presses <b>Close day</b>.</span></div>
+                </div>
+                <div class="ei-next ei-next-done" invisible="state not in ('closed')">
+                    <span class="ei-next-ico"/>
+                    <div><span class="ei-next-title">Closed</span><span>The count is saved.</span></div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+    <record id="guide_9_ei_intake_form" model="ir.ui.view">
+        <field name="name">ei_intake_form.guidance</field>
+        <field name="model">ei.supplier.intake</field>
+        <field name="inherit_id" ref="ei_invoice_extensions.ei_intake_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/*[1]" position="before">
+                <div class="ei-next" invisible="state not in ('draft')">
+                    <span class="ei-next-ico"/>
+                    <div><span class="ei-next-title">Your turn</span><span>Type what the supplier's invoice says, attach it, then press <b>Run checks</b>.</span></div>
+                </div>
+                <div class="ei-next ei-next-stop" invisible="state not in ('mismatch')">
+                    <span class="ei-next-ico"/>
+                    <div><span class="ei-next-title">Something does not match</span><span>Read the red box. Fix the figures, or an approver can accept the difference with a written reason.</span></div>
+                </div>
+                <div class="ei-next ei-next-done" invisible="state not in ('matched', 'reviewed')">
+                    <span class="ei-next-ico"/>
+                    <div><span class="ei-next-title">Checks passed</span><span>Press <b>Create draft bill</b>. Accounting posts it.</span></div>
+                </div>
+                <div class="ei-next ei-next-done" invisible="state not in ('billed')">
+                    <span class="ei-next-ico"/>
+                    <div><span class="ei-next-title">Bill created</span><span>Accounting takes it from here.</span></div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+    <record id="guide_10_ei_parent_statement_form" model="ir.ui.view">
+        <field name="name">ei_parent_statement_form.guidance</field>
+        <field name="model">ei.parent.statement</field>
+        <field name="inherit_id" ref="ei_parent_reconciliation.ei_parent_statement_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/*[1]" position="before">
+                <div class="ei-next" invisible="state not in ('imported', 'classified')">
+                    <span class="ei-next-ico"/>
+                    <div><span class="ei-next-title">Look at the differences</span><span>Give each difference an owner, then press <b>Owners assigned</b>.</span></div>
+                </div>
+                <div class="ei-next" invisible="state not in ('assigned')">
+                    <span class="ei-next-ico"/>
+                    <div><span class="ei-next-title">Resolve each difference</span><span>Open each one, write what you found, then press <b>All resolved</b>.</span></div>
+                </div>
+                <div class="ei-next ei-next-wait" invisible="state not in ('resolved')">
+                    <span class="ei-next-ico"/>
+                    <div><span class="ei-next-title">Ready to sign</span><span>An approver signs it off. The person who imported it cannot sign.</span></div>
+                </div>
+                <div class="ei-next ei-next-done" invisible="state not in ('signed')">
+                    <span class="ei-next-ico"/>
+                    <div><span class="ei-next-title">Signed off</span><span>This month is reconciled with the parent company.</span></div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+    <record id="guide_11_ei_legacy_code_form" model="ir.ui.view">
+        <field name="name">ei_legacy_code_form.guidance</field>
+        <field name="model">ei.legacy.code</field>
+        <field name="inherit_id" ref="ei_legacy_master.ei_legacy_code_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/*[1]" position="before">
+                <div class="ei-next ei-next-wait" invisible="verification_status not in ('needs_review')">
+                    <span class="ei-next-ico"/>
+                    <div><span class="ei-next-title">A person must decide</span><span>This old code may not be what its list suggests (cash, suspense, expense...). An accountant decides.</span></div>
+                </div>
+                <div class="ei-next" invisible="verification_status not in ('proposed', 'unverified')">
+                    <span class="ei-next-ico"/>
+                    <div><span class="ei-next-title">Suggestion only</span><span>The 'suggested use' is a guess. Approve it or choose the right use.</span></div>
+                </div>
+                <div class="ei-next ei-next-done" invisible="verification_status not in ('approved')">
+                    <span class="ei-next-ico"/>
+                    <div><span class="ei-next-title">Approved</span><span>Press <b>Create Odoo record</b> to turn it into a real journal or contact.</span></div>
+                </div>
+                <div class="ei-next ei-next-stop" invisible="verification_status not in ('rejected')">
+                    <span class="ei-next-ico"/>
+                    <div><span class="ei-next-title">Rejected</span><span>This code will not be used.</span></div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+    <record id="guide_12_ei_import_batch_form" model="ir.ui.view">
+        <field name="name">ei_import_batch_form.guidance</field>
+        <field name="model">ei.import.batch</field>
+        <field name="inherit_id" ref="ei_legacy_master.ei_import_batch_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/*[1]" position="before">
+                <div class="ei-next" invisible="state not in ('imported')">
+                    <span class="ei-next-ico"/>
+                    <div><span class="ei-next-title">Check the numbers</span><span>Each sheet should show the expected number of rows. An approver signs the batch when everything matches.</span></div>
+                </div>
+                <div class="ei-next ei-next-done" invisible="state not in ('signed')">
+                    <span class="ei-next-ico"/>
+                    <div><span class="ei-next-title">Signed</span><span>This import is final.</span></div>
+                </div>
+                <div class="ei-next ei-next-stop" invisible="state not in ('failed')">
+                    <span class="ei-next-ico"/>
+                    <div><span class="ei-next-title">Nothing was imported</span><span>Fix the errors listed and import again.</span></div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+    <record id="guide_13_ei_trade_lc_form" model="ir.ui.view">
+        <field name="name">ei_trade_lc_form.guidance</field>
+        <field name="model">ei.trade.lc</field>
+        <field name="inherit_id" ref="ei_trade_lc.ei_trade_lc_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/*[1]" position="before">
+                <div class="ei-next ei-next-wait" invisible="state not in ('unverified')">
+                    <span class="ei-next-ico"/>
+                    <div><span class="ei-next-title">Only an old reference so far</span><span>Enter the LC number, bank, currency and amount from the bank's papers, then press <b>Verify</b>.</span></div>
+                </div>
+                <div class="ei-next ei-next-done" invisible="state not in ('verified')">
+                    <span class="ei-next-ico"/>
+                    <div><span class="ei-next-title">Verified</span><span>Facts are recorded. LC accounting stays switched off until the accountant approves it.</span></div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>

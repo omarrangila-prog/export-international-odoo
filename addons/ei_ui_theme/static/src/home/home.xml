@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="ei_ui_theme.Home">
+        <div class="o_action ei-home">
+            <div class="ei-home-inner">
+                <t t-if="this.state.loading and !this.state.data">
+                    <div class="ei-loading"><span class="ei-spin"/> Loading your day...</div>
+                </t>
+                <t t-elif="this.state.error">
+                    <div class="ei-card ei-error">
+                        <h3>We could not load your page</h3>
+                        <p>Please check your connection and try again.</p>
+                        <button class="ei-btn ei-btn-primary" t-on-click="() => this.onRefresh()">Try again</button>
+                    </div>
+                </t>
+                <t t-else="">
+                    <t t-set="d" t-value="this.state.data"/>
+
+                    <!-- Header -->
+                    <header class="ei-hero">
+                        <div>
+                            <div class="ei-hero-date" t-out="d.date"/>
+                            <h1 class="ei-hero-title"><span t-out="d.greeting"/>, <span t-out="d.name"/></h1>
+                            <p class="ei-hero-sub" t-if="d.empty">No work areas are assigned to you yet. Please ask your administrator.</p>
+                            <p class="ei-hero-sub" t-elif="d.attention">
+                                <b t-out="d.attention"/> <t t-if="d.attention == 1">thing is</t><t t-else="">things are</t> waiting for you today. Start with the red and yellow cards below.
+                            </p>
+                            <p class="ei-hero-sub" t-else="">Everything is up to date. Nothing needs your attention right now.</p>
+                        </div>
+                        <button class="ei-btn ei-btn-ghost" t-on-click="() => this.onRefresh()" title="Refresh">
+                            <svg t-att-class="this.state.loading ? 'ei-svg ei-rot' : 'ei-svg'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path t-att-d="this.icon('fa-refresh')"/></svg> Updated <span t-out="d.updated"/>
+                        </button>
+                    </header>
+
+                    <!-- Quick start -->
+                    <section t-if="d.quick.length" class="ei-section">
+                        <h2 class="ei-h2">What do you want to do?</h2>
+                        <div class="ei-quick">
+                            <button t-foreach="d.quick" t-as="q" t-key="q.key" class="ei-quick-btn" t-on-click="() => this.onQuick(q.key)">
+                                <span class="ei-quick-ico"><svg class="ei-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path t-att-d="this.icon(q.icon)"/></svg></span>
+                                <span class="ei-quick-label" t-out="q.label"/>
+                            </button>
+                        </div>
+                    </section>
+
+                    <!-- Needs attention -->
+                    <section t-foreach="d.areas" t-as="area" t-key="area.key" class="ei-section">
+                        <h2 class="ei-h2" t-out="area.label"/>
+                        <div class="ei-grid">
+                            <button t-foreach="area.tasks" t-as="t" t-key="t.key" t-att-class="'ei-task ei-tone-' + t.tone" t-on-click="() => this.onTask(t.key)">
+                                <span class="ei-task-ico"><svg class="ei-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path t-att-d="this.icon(t.count ? t.icon : 'fa-check')"/></svg></span>
+                                <span class="ei-task-body">
+                                    <span class="ei-task-count" t-out="t.count"/>
+                                    <span class="ei-task-label" t-out="t.label"/>
+                                    <span class="ei-task-hint" t-if="t.count" t-out="t.hint"/>
+                                    <span class="ei-task-hint" t-else="">All done</span>
+                                </span>
+                            </button>
+                        </div>
+                    </section>
+
+                    <!-- Your day step by step -->
+                    <section t-if="d.steps.length" class="ei-section">
+                        <h2 class="ei-h2">Your day, step by step</h2>
+                        <div class="ei-card ei-steps">
+                            <button t-foreach="d.steps" t-as="s" t-key="s.key" class="ei-step" t-on-click="() => this.onStep(s.key)">
+                                <span t-att-class="'ei-step-mark ' + (s.done ? 'is-done' : 'is-todo')">
+                                    <svg class="ei-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path t-att-d="this.icon(s.done ? 'fa-check' : 'fa-circle-o')"/></svg>
+                                </span>
+                                <span class="ei-step-text">
+                                    <span class="ei-step-label" t-out="s.label"/>
+                                    <span class="ei-step-hint" t-out="s.hint"/>
+                                </span>
+                                <span t-att-class="'ei-step-info ' + (s.done ? 'is-done' : 'is-todo')" t-out="s.info"/>
+                                <svg class="ei-svg ei-step-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path t-att-d="this.icon('fa-angle-right')"/></svg>
+                            </button>
+                        </div>
+                    </section>
+
+                    <!-- Money -->
+                    <section t-if="d.money.length" class="ei-section">
+                        <h2 class="ei-h2">Money at a glance</h2>
+                        <div class="ei-grid ei-grid-4">
+                            <button t-foreach="d.money" t-as="m" t-key="m.key" t-att-class="'ei-kpi ei-kpi-' + m.tone" t-on-click="() => this.onMoney(m.key)">
+                                <span class="ei-kpi-ico"><svg class="ei-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path t-att-d="this.icon(m.icon)"/></svg></span>
+                                <span class="ei-kpi-label" t-out="m.label"/>
+                                <span class="ei-kpi-value" t-out="m.value"/>
+                                <span class="ei-kpi-hint" t-out="m.hint"/>
+                            </button>
+                        </div>
+                    </section>
+
+                    <!-- Banks -->
+                    <section t-if="d.banks.length" class="ei-section">
+                        <h2 class="ei-h2">Bank accounts</h2>
+                        <div class="ei-grid">
+                            <div t-foreach="d.banks" t-as="b" t-key="b_index" class="ei-card ei-bank">
+                                <div class="ei-bank-name"><svg class="ei-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path t-att-d="this.icon('fa-university')"/></svg> <span t-out="b.name"/></div>
+                                <div class="ei-bank-balance" t-out="b.balance"/>
+                                <div t-att-class="'ei-pill ei-pill-' + b.tone"><span class="ei-dot"/> <span t-out="b.text"/></div>
+                                <div class="ei-bank-note">Balance according to your books</div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Material -->
+                    <section t-if="d.material and d.material.ordered" class="ei-section">
+                        <h2 class="ei-h2">Material on active contracts</h2>
+                        <div class="ei-card ei-material">
+                            <div class="ei-bar">
+                                <div class="ei-bar-alloc" t-att-style="'width:' + d.material.pct_alloc + '%'"/>
+                                <div class="ei-bar-lift" t-att-style="'width:' + d.material.pct_lift + '%'"/>
+                            </div>
+                            <div class="ei-legend">
+                                <div><span class="ei-sw ei-sw-lift"/> <b t-out="d.material.lifted"/> MTL lifted</div>
+                                <div><span class="ei-sw ei-sw-alloc"/> <b t-out="d.material.allocated"/> MTL promised on delivery advices</div>
+                                <div><span class="ei-sw ei-sw-left"/> <b t-out="d.material.left"/> MTL still free</div>
+                                <div class="ei-muted">of <b t-out="d.material.ordered"/> MTL on contracts</div>
+                            </div>
+                        </div>
+                    </section>
+                </t>
+            </div>
+        </div>
+    </t>
+</templates>

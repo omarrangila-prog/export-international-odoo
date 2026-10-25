@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ei_import_wizard_form" model="ir.ui.view">
+        <field name="name">ei.import.wizard.form</field>
+        <field name="model">ei.import.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Import legacy codes">
+                <p class="text-muted">
+                    Loads the code list as raw, read-only references. Nothing is turned into a partner, journal
+                    or account by this step. A file with any validation error imports nothing.
+                </p>
+                <group><field name="file" filename="filename"/><field name="filename" invisible="1"/></group>
+                <footer>
+                    <button string="Import" name="action_import" type="object" class="btn-primary"/>
+                    <button string="Cancel" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+    <record id="ei_import_wizard_action" model="ir.actions.act_window">
+        <field name="name">Import legacy codes</field>
+        <field name="res_model">ei.import.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <record id="ei_approve_wizard_form" model="ir.ui.view">
+        <field name="name">ei.legacy.code.approve.wizard.form</field>
+        <field name="model">ei.legacy.code.approve.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Mapping decision">
+                <group>
+                    <field name="decision" widget="radio"/>
+                    <field name="target_type" invisible="decision != 'approve'" required="decision == 'approve'"/>
+                    <field name="note" placeholder="Required for suspense / cash / suspected references"/>
+                </group>
+                <field name="code_ids" widget="many2many_tags" readonly="1"/>
+                <footer>
+                    <button string="Apply" name="action_apply" type="object" class="btn-primary"/>
+                    <button string="Cancel" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+    <record id="ei_approve_wizard_action" model="ir.actions.act_window">
+        <field name="name">Approve / reject mapping</field>
+        <field name="res_model">ei.legacy.code.approve.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="binding_model_id" ref="model_ei_legacy_code"/>
+        <field name="binding_view_types">list</field>
+    </record>
+</odoo>

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_cash_count" model="ir.actions.report">
+        <field name="name">Daily Cash Book</field>
+        <field name="model">ei.cash.count</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">ei_cashbook.report_cash_count</field>
+        <field name="binding_model_id" ref="model_ei_cash_count"/>
+        <field name="binding_type">report</field>
+    </record>
+    <template id="report_cash_count">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <h2>Daily Cash Book - <span t-field="o.journal_id.name"/> - <span t-field="o.date"/></h2>
+                        <p>Custodian: <span t-field="o.custodian_id.name"/> | Status: <span t-field="o.state"/></p>
+                        <table class="table table-sm">
+                            <tr><td>Opening balance</td><td class="text-end"><span t-field="o.opening_balance"/></td></tr>
+                            <tr><td>Receipts</td><td class="text-end"><span t-field="o.receipts"/></td></tr>
+                            <tr><td>Payments</td><td class="text-end"><span t-field="o.payments"/></td></tr>
+                            <tr><td><b>Book balance</b></td><td class="text-end"><b><span t-field="o.book_balance"/></b></td></tr>
+                            <tr><td>Counted</td><td class="text-end"><span t-field="o.counted_amount"/></td></tr>
+                            <tr><td><b>Difference</b></td><td class="text-end"><b><span t-field="o.discrepancy"/></b></td></tr>
+                        </table>
+                        <h4>Vouchers</h4>
+                        <t t-set="vouchers" t-value="o.env['ei.cash.voucher'].search([('journal_id', '=', o.journal_id.id), ('date', '=', o.date), ('state', 'in', ('posted', 'reversed'))])"/>
+                        <table class="table table-sm">
+                            <thead><tr><th>No.</th><th>Type</th><th>Category</th><th>Description</th><th class="text-end">Amount</th><th>Maker</th><th>Checker</th></tr></thead>
+                            <tbody>
+                                <tr t-foreach="vouchers" t-as="v">
+                                    <td><span t-field="v.name"/></td><td><span t-field="v.kind"/></td>
+                                    <td><span t-field="v.category_id.name"/></td><td><span t-field="v.description"/></td>
+                                    <td class="text-end"><span t-field="v.amount"/></td>
+                                    <td><span t-field="v.maker_id.name"/></td><td><span t-field="v.checker_id.name"/></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p t-if="o.discrepancy_note">Note: <span t-field="o.discrepancy_note"/></p>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>
