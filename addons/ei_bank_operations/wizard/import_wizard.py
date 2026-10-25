@@ -1,7 +1,6 @@
-import base64
-
 from odoo import fields, models, _
 from odoo.exceptions import UserError
+from odoo.addons.ei_legacy_master.models.parsing import upload_bytes
 
 
 class EiBankImportWizard(models.TransientModel):
@@ -17,7 +16,7 @@ class EiBankImportWizard(models.TransientModel):
 
     def action_import(self):
         batch = self.env['ei.bank.import'].import_file(
-            self.journal_id, self.filename, base64.b64decode(self.file), self.opening_balance, self.closing_balance)
+            self.journal_id, self.filename, upload_bytes(self.file), self.opening_balance, self.closing_balance)
         return {'type': 'ir.actions.act_window', 'res_model': 'ei.bank.import', 'res_id': batch.id,
                 'views': [(False, 'form')]}
 

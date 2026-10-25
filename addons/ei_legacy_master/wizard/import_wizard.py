@@ -1,9 +1,8 @@
-import base64
-
 from odoo import fields, models, _
 from odoo.exceptions import AccessError, UserError
 
 from ..models.legacy_code import TARGET_TYPES
+from ..models.parsing import upload_bytes
 
 
 class EiImportWizard(models.TransientModel):
@@ -16,7 +15,7 @@ class EiImportWizard(models.TransientModel):
     def action_import(self):
         if not self.env.user.has_group('ei_legacy_master.group_ei_importer'):
             raise AccessError(_("Only legacy-code importers can run an import."))
-        batch = self.env['ei.import.batch'].import_file(self.filename, base64.b64decode(self.file))
+        batch = self.env['ei.import.batch'].import_file(self.filename, upload_bytes(self.file))
         return {'type': 'ir.actions.act_window', 'res_model': 'ei.import.batch', 'res_id': batch.id,
                 'views': [(False, 'form')], 'target': 'current'}
 

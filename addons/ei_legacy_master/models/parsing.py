@@ -30,6 +30,21 @@ def sheet_key(name):
     return (name or '').strip()
 
 
+def upload_bytes(value):
+    """The bytes of a file uploaded through a Binary field.
+
+    Odoo 20 hands the field back as a lazy BinaryValue whose raw bytes are `.content`; older Odoo (and any caller that
+    still passes base64 text or bytes) gets decoded as base64. Decoding a BinaryValue as base64 is what made every
+    import wizard fail on screen in Odoo 20 while direct calls in the tests kept passing."""
+    if not value:
+        return b''
+    content = getattr(value, 'content', None)
+    if content is not None:
+        return bytes(content)
+    import base64
+    return base64.b64decode(value if isinstance(value, (bytes, bytearray)) else str(value).encode())
+
+
 def sha256(data):
     return hashlib.sha256(data).hexdigest()
 

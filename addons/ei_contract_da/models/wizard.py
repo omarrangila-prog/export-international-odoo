@@ -12,8 +12,13 @@ class EiReasonWizard(models.TransientModel):
     method = fields.Char(required=True)
     reason = fields.Char(required=True)
 
+    def _allowed(self):
+        """(model, method) pairs this wizard may run. Each module that offers a "reason" button adds its own pair here,
+        so a button can never be offered without being allowed (a test checks every such action)."""
+        return set(ALLOWED)
+
     def action_apply(self):
-        if (self.res_model, self.method) not in ALLOWED:
+        if (self.res_model, self.method) not in self._allowed():
             raise UserError(_("Action not allowed."))
         recs = self.env[self.res_model].browse(self.env.context.get('active_ids', []))
         getattr(recs, self.method)(self.reason)

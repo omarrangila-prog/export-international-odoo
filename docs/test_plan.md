@@ -42,3 +42,19 @@ Not done: performance/load test, penetration/security review, UAT with the clien
 | Opening a page writes nothing; other company sees none of it (T13); query count bounded | GREEN | test_p12-p14 |
 | Keyboard search, explain toggle, drill-down, role-limited view in a real browser | GREEN (manual script) | `node tests/ui_party360.js` |
 | Screen reader pass, WCAG contrast audit, supervised user test | NOT DONE | |
+
+## EXI ONE upgrade (25-26 Oct 2026) - what each piece is proven by
+| Check | Status | Evidence |
+|---|---|---|
+| Home figures, alerts and My Work are counted from real records, per role; money only for finance, management and auditor; role-less user gets an empty page | GREEN | `ei_ui_theme` tests `test_home_v2` (01-08, 10-21, 40-44), `test_ui` |
+| Maker-checker on My Work; priority rules; snooze, assign, escalate, close-my-reminder change real data; assign only to people who can do the step | GREEN | `test_home_v2` 10-18 |
+| Universal search respects permissions, treats `%`, `_` and old codes literally | GREEN | `test_home_v2` 30-32, browser spec 03 |
+| CEO and every role can open every figure they can see | GREEN | `ei_management_dashboard.test_15`, `test_home_v2.test_04`, browser spec 02 |
+| Every reason-wizard button is allowed by its wizard; cancel order and reverse lifting work through the wizard | GREEN | `ei_ui_theme.test_16`, `ei_daily_orders.test_05b`, `ei_material_lifting.test_01b`, browser flow 5b |
+| The three import wizards accept what the screen uploads | GREEN | `ei_ui_theme.test_17`, browser flows 7-9 |
+| Every action and wizard works from the screen: revise, amend, new version, email, print a real PDF, generate order, invoice wizard, imports, dashboard | GREEN | browser spec 01 (26 checks); the same spec fails 8 on the pre-upgrade code: `docs/e2e_baseline_reproduction.md` |
+| Six widths x key screens x light and dark: no overflow, nothing clipped, no console or server errors, every stylesheet compiles, axe finds no serious accessibility issue | GREEN | browser spec 05 |
+| Right-to-left layout | GREEN (Arabic stands in) | browser spec 06; Urdu text NOT done: `docs/urdu_plan.md` |
+| Keyboard: `/` search, menu and dialog focus, Escape, Tab trap | GREEN | browser spec 03 |
+| Home cost does not grow per task | GREEN | `test_home_v2.test_44` |
+| Dark theme on rarely used Odoo screens, supervised screen-reader pass, staff usability test, 50k-line performance | NOT DONE | |

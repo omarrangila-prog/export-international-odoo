@@ -77,6 +77,15 @@ class TestOrders(TransactionCase):
         with self.assertRaises(UserError):
             o.action_cancel('x')                      # invoice recorded
 
+    def test_05b_cancel_through_the_screen_wizard(self):
+        """The "Cancel order request" button opens a reason wizard; Confirm used to answer 'Action not allowed'."""
+        o = self.Order.generate_from_da(self.da, '2026-10-02')
+        wiz = self.env['ei.reason.wizard'].with_context(active_ids=o.ids).create(
+            {'res_model': 'ei.daily.order', 'method': 'action_cancel', 'reason': 'wrong day'})
+        wiz.action_apply()
+        self.assertEqual(o.state, 'cancelled')
+        self.assertEqual(self.da.line_ids._requestable_mtl(), 10)
+
     def test_06_cancel_frees_quantity(self):
         o = self.Order.generate_from_da(self.da, '2026-10-01')
         o.action_cancel('wrong day')

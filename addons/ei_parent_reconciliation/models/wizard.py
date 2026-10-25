@@ -1,6 +1,5 @@
-import base64
-
 from odoo import fields, models
+from odoo.addons.ei_legacy_master.models.parsing import upload_bytes
 
 
 class EiParentImportWizard(models.TransientModel):
@@ -15,7 +14,7 @@ class EiParentImportWizard(models.TransientModel):
 
     def action_import(self):
         st = self.env['ei.parent.statement'].import_file(self.partner_id, self.date_from, self.date_to, self.filename,
-                                                          base64.b64decode(self.file))
+                                                          upload_bytes(self.file))
         if st.state != 'rejected':
             st.action_match()
         return {'type': 'ir.actions.act_window', 'res_model': 'ei.parent.statement', 'res_id': st.id, 'views': [(False, 'form')]}

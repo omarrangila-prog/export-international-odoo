@@ -63,6 +63,17 @@ class TestLifting(TransactionCase):
         self.assertEqual((self.da.lifted_mtl, self.da.remaining_to_lift, self.da.state), (4, 6, 'approved'))
         self.assertEqual(self.contract.line_ids.lifted_mtl, 4)
 
+    def test_01b_reverse_through_the_screen_wizard(self):
+        """The "Reverse lifting" button opens a reason wizard; Confirm used to answer 'Action not allowed'."""
+        self.classify()
+        l = self.lift(4)
+        l.with_user(self.reviewer).action_verify()
+        wiz = self.env['ei.reason.wizard'].with_user(self.reviewer).with_context(active_ids=l.ids).create(
+            {'res_model': 'ei.lifting', 'method': 'action_reverse', 'reason': 'wrong truck'})
+        wiz.action_apply()
+        self.assertEqual((l.state, l.reverse_reason), ('reversed', 'wrong truck'))
+        self.assertEqual(self.da.lifted_mtl, 0, 'a reversed lifting no longer counts as lifted')
+
     def test_02_draft_lifting_counts_nothing(self):
         self.classify()
         self.lift(4)

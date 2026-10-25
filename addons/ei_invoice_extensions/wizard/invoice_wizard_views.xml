@@ -10,7 +10,7 @@
                 <group><field name="invoice_date"/><field name="post"/></group>
                 <field name="line_ids">
                     <list editable="bottom" create="0">
-                        <field name="lifting_id" readonly="1"/><field name="verified_mtl"/>
+                        <field name="lifting_id" readonly="1" force_save="1"/><field name="verified_mtl"/>
                         <field name="unit_price"/><field name="adjust_reason"/>
                     </list>
                 </field>

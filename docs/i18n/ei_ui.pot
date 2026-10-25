@@ -1,0 +1,4425 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* ei_party360
+# 	* ei_ui_theme
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 20.0-20261018\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-10-25 18:06+0000\n"
+"PO-Revision-Date: 2026-10-25 18:06+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid " · %s waiting for a check"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/search/search_box.xml:0
+msgid "\". Try part of a name, an invoice number or an old code like 4.20."
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "%(a)s MTL promised, %(l)s MTL truly lifted"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid "%(a)s of %(b)s asked for"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "%(a)s of %(b)s banks confirmed today"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "%(a)s of %(b)s banks confirmed with the bank today"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid "%(a)s of %(b)s lifted"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid "%(a)s of %(b)s loadings invoiced"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid "%(n)s · %(amt)s"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "%(u)s active, %(n)s without an Export International role"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "%.3f MTL still to lift"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "%s active"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "%s approved"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "%s approved and open"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "%s bank payment"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "%s bank payment to match"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "%s bank payments"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "%s bank payments to match"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "%s billed"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "%s entered today"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "%s loading invoiced"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "%s loading verified"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid "%s loadings"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "%s loadings invoiced"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "%s loadings verified"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "%s need attention"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "%s not configured (nothing is connected yet)"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "%s of it is overdue"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/work.py:0
+msgid "%s old codes are waiting for a decision"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "%s open difference"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "%s open differences"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "%s payment needs a person to confirm the payer"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "%s payments need a person to confirm the payer"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "%s payments still to finish"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "%s ready to invoice"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "%s receipt posted"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "%s receipts posted"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "%s to approve"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "%s to invoice"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "%s to resolve"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "%s to sign off"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "%s to verify"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "%s unpaid invoice"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "%s unpaid invoices"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "%s waiting for approval"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "%s waiting to be verified"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "(most urgent are first)"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-javascript
+#: code:addons/ei_party360/static/src/party360/party360.xml:0
+msgid ""
+").\n"
+"                        Use the arrow keys and Enter to choose."
+msgstr ""
+
+#. module: ei_party360
+#. odoo-javascript
+#: code:addons/ei_party360/static/src/party360/party360.xml:0
+msgid ""
+". They are left out; they are not zero. Ask the team that owns them if you "
+"need a number."
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid "1 loading"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "1-30 days late"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "1. Confirm each bank balance with the bank"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "2. Import bank statements and check every payment"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "3. Enter contracts and delivery advices received today"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "31-60 days late"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "4. Enter cash vouchers and count the cash"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "5. Prepare today's Daily Order Request"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "6. Record trucks that loaded and verify them"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "61-90 days late"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "7. Enter supplier invoices as they arrive"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "8. Invoice the material that was delivered"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.guide_11_ei_legacy_code_form
+msgid ""
+"<span class=\"ei-next-title\">A person must decide</span><span>This old code"
+" may not be what its list suggests (cash, suspense, expense...). An "
+"accountant decides.</span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.guide_0_ei_contract_form
+msgid ""
+"<span class=\"ei-next-title\">Active</span><span>You can now enter delivery "
+"advices (DAs) against this contract.</span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.guide_1_ei_da_form
+msgid ""
+"<span class=\"ei-next-title\">All lifted</span><span>The material on this DA"
+" has been lifted.</span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.guide_5_ei_bank_import_form
+msgid ""
+"<span class=\"ei-next-title\">Approved</span><span>A third person posts it "
+"into the books. The person who imported it cannot post it.</span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.guide_2_ei_formula_form
+msgid ""
+"<span class=\"ei-next-title\">Approved</span><span>Contracts can use this "
+"formula. To change it, make a new version.</span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.guide_1_ei_da_form
+msgid ""
+"<span class=\"ei-next-title\">Approved</span><span>Next: press <b>Generate "
+"Daily Order</b> to prepare the order request.</span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.guide_0_ei_contract_form
+msgid ""
+"<span class=\"ei-next-title\">Approved</span><span>Press <b>Activate</b> "
+"when the contract starts. The rates are now frozen.</span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.guide_11_ei_legacy_code_form
+msgid ""
+"<span class=\"ei-next-title\">Approved</span><span>Press <b>Create Odoo "
+"record</b> to turn it into a real journal or contact.</span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.guide_3_ei_daily_order_form
+msgid ""
+"<span class=\"ei-next-title\">Approved</span><span>Print it or send it. When"
+" the supplier's invoice arrives, type its number on the line - this does "
+"<b>not</b> mean the material was lifted.</span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.guide_9_ei_intake_form
+msgid ""
+"<span class=\"ei-next-title\">Bill created</span><span>Accounting takes it "
+"from here.</span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.guide_3_ei_daily_order_form
+msgid ""
+"<span class=\"ei-next-title\">Cancelled</span><span>This order request was "
+"cancelled.</span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.guide_5_ei_bank_import_form
+msgid ""
+"<span class=\"ei-next-title\">Check every payment</span><span>Open each "
+"payment below and confirm who paid. Press <b>Suggest parties</b> for hints. "
+"Payments you cannot identify go to 'unidentified'. Then a second person "
+"approves.</span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.guide_12_ei_import_batch_form
+msgid ""
+"<span class=\"ei-next-title\">Check the numbers</span><span>Each sheet "
+"should show the expected number of rows. An approver signs the batch when "
+"everything matches.</span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.guide_9_ei_intake_form
+msgid ""
+"<span class=\"ei-next-title\">Checks passed</span><span>Press <b>Create "
+"draft bill</b>. Accounting posts it.</span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.guide_8_ei_cash_count_form
+msgid ""
+"<span class=\"ei-next-title\">Closed</span><span>The count is saved.</span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.guide_8_ei_cash_count_form
+msgid ""
+"<span class=\"ei-next-title\">Count the cash</span><span>Enter the notes and"
+" coins you counted. A different person presses <b>Close day</b>.</span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.guide_7_ei_cash_voucher_form
+msgid ""
+"<span class=\"ei-next-title\">Done</span><span>Posted to the cash "
+"book.</span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.guide_0_ei_contract_form
+msgid ""
+"<span class=\"ei-next-title\">Finished</span><span>All the material on this "
+"contract has been dealt with.</span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.guide_5_ei_bank_import_form
+msgid ""
+"<span class=\"ei-next-title\">In the books</span><span>These payments are "
+"now in the accounts.</span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.guide_6_ei_bank_line_form
+msgid ""
+"<span class=\"ei-next-title\">In the books</span><span>This payment is "
+"posted.</span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.guide_10_ei_parent_statement_form
+msgid ""
+"<span class=\"ei-next-title\">Look at the differences</span><span>Give each "
+"difference an owner, then press <b>Owners assigned</b>.</span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.guide_5_ei_bank_import_form
+msgid ""
+"<span class=\"ei-next-title\">Look at the red box first</span><span>The file"
+" has a problem. You may continue, but the person approving must write why "
+"the numbers differ.</span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.guide_4_ei_lifting_form
+msgid ""
+"<span class=\"ei-next-title\">Not counted</span><span>This loading was "
+"reversed or cancelled and does not count.</span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.guide_7_ei_cash_voucher_form
+msgid ""
+"<span class=\"ei-next-title\">Not counted</span><span>This voucher was "
+"rejected or reversed.</span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.guide_1_ei_da_form
+msgid ""
+"<span class=\"ei-next-title\">Not in use</span><span>This DA was cancelled "
+"or replaced by an amendment.</span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.guide_0_ei_contract_form
+msgid ""
+"<span class=\"ei-next-title\">Not in use</span><span>This contract was "
+"cancelled or replaced by a newer revision.</span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.guide_2_ei_formula_form
+msgid ""
+"<span class=\"ei-next-title\">Not usable yet</span><span>A formula can only "
+"be used on contracts after an accountant approves it. It needs at least one "
+"step and a passing test.</span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.guide_6_ei_bank_line_form
+msgid ""
+"<span class=\"ei-next-title\">Not used</span><span>Duplicate or rejected - "
+"it will not go into the books.</span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.guide_12_ei_import_batch_form
+msgid ""
+"<span class=\"ei-next-title\">Nothing was imported</span><span>Fix the "
+"errors listed and import again.</span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.guide_13_ei_trade_lc_form
+msgid ""
+"<span class=\"ei-next-title\">Only an old reference so far</span><span>Enter"
+" the LC number, bank, currency and amount from the bank's papers, then press"
+" <b>Verify</b>.</span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.guide_6_ei_bank_line_form
+msgid ""
+"<span class=\"ei-next-title\">Party confirmed</span><span>If this payment "
+"settles invoices, add them below. Otherwise leave it.</span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.guide_10_ei_parent_statement_form
+msgid ""
+"<span class=\"ei-next-title\">Ready to sign</span><span>An approver signs it"
+" off. The person who imported it cannot sign.</span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.guide_5_ei_bank_import_form
+msgid ""
+"<span class=\"ei-next-title\">Rejected</span><span>Nothing from this file "
+"went into the books.</span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.guide_11_ei_legacy_code_form
+msgid ""
+"<span class=\"ei-next-title\">Rejected</span><span>This code will not be "
+"used.</span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.guide_10_ei_parent_statement_form
+msgid ""
+"<span class=\"ei-next-title\">Resolve each difference</span><span>Open each "
+"one, write what you found, then press <b>All resolved</b>.</span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.guide_2_ei_formula_form
+msgid ""
+"<span class=\"ei-next-title\">Retired</span><span>Replaced by a newer "
+"version. Old contracts keep their frozen result.</span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.guide_10_ei_parent_statement_form
+msgid ""
+"<span class=\"ei-next-title\">Signed off</span><span>This month is "
+"reconciled with the parent company.</span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.guide_12_ei_import_batch_form
+msgid ""
+"<span class=\"ei-next-title\">Signed</span><span>This import is "
+"final.</span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.guide_9_ei_intake_form
+msgid ""
+"<span class=\"ei-next-title\">Something does not match</span><span>Read the "
+"red box. Fix the figures, or an approver can accept the difference with a "
+"written reason.</span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.guide_11_ei_legacy_code_form
+msgid ""
+"<span class=\"ei-next-title\">Suggestion only</span><span>The 'suggested "
+"use' is a guess. Approve it or choose the right use.</span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.guide_6_ei_bank_line_form
+msgid ""
+"<span class=\"ei-next-title\">Unidentified</span><span>This will go to a "
+"holding account until someone finds out who paid.</span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.guide_13_ei_trade_lc_form
+msgid ""
+"<span class=\"ei-next-title\">Verified</span><span>Facts are recorded. LC "
+"accounting stays switched off until the accountant approves it.</span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.guide_4_ei_lifting_form
+msgid ""
+"<span class=\"ei-next-title\">Verified</span><span>This quantity now counts "
+"as lifted. It is ready to be invoiced to the customer.</span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.guide_1_ei_da_form
+msgid ""
+"<span class=\"ei-next-title\">Waiting for approval</span><span>A second "
+"person checks the quantities and rates. The system refuses more MTL than the"
+" contract still has.</span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.guide_0_ei_contract_form
+msgid ""
+"<span class=\"ei-next-title\">Waiting for approval</span><span>A second "
+"person must approve this contract. You cannot approve your own work.</span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.guide_7_ei_cash_voucher_form
+msgid ""
+"<span class=\"ei-next-title\">Waiting for approval</span><span>Someone else "
+"must approve this voucher.</span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.guide_6_ei_bank_line_form
+msgid ""
+"<span class=\"ei-next-title\">Who paid this?</span><span>Confirm the party "
+"with the blue button. The suggestion is only a hint - a payment image is not"
+" proof of money.</span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.guide_0_ei_contract_form
+msgid ""
+"<span class=\"ei-next-title\">Your turn</span><span>Add the contract lines, "
+"attach the parent company's contract paper, then press <b>Send for "
+"review</b>.</span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.guide_1_ei_da_form
+msgid ""
+"<span class=\"ei-next-title\">Your turn</span><span>Add the lines (how many "
+"MTL, for which customer), attach the DA paper from the parent company, then "
+"press <b>Send for review</b>.</span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.guide_4_ei_lifting_form
+msgid ""
+"<span class=\"ei-next-title\">Your turn</span><span>Attach the gate pass or "
+"weighbridge slip. A second person verifies the load. <b>Nothing counts as "
+"lifted until it is verified.</b></span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.guide_3_ei_daily_order_form
+msgid ""
+"<span class=\"ei-next-title\">Your turn</span><span>Check the quantities. A "
+"second person approves it, then you can print or email it.</span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.guide_7_ei_cash_voucher_form
+msgid ""
+"<span class=\"ei-next-title\">Your turn</span><span>Fill in the amount and "
+"category, attach the receipt, then press <b>Submit</b>.</span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.guide_9_ei_intake_form
+msgid ""
+"<span class=\"ei-next-title\">Your turn</span><span>Type what the supplier's"
+" invoice says, attach it, then press <b>Run checks</b>.</span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.ei_kanban_parent_statement
+msgid "<span>Agree</span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.ei_kanban_parent_statement
+msgid "<span>Differences</span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.ei_kanban_bank_import
+msgid "<span>Duplicates skipped</span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.ei_kanban_da
+msgid "<span>Lifted so far</span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.ei_kanban_lifting
+msgid "<span>On the gate pass</span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.ei_kanban_bank_import
+msgid "<span>Payments in file</span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.ei_kanban_da
+msgid "<span>Promised</span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.ei_kanban_daily_order
+msgid "<span>Requested</span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.ei_kanban_parent_statement
+msgid "<span>Still open</span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.ei_kanban_bank_import
+msgid "<span>Still to check</span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.ei_kanban_da
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.ei_kanban_daily_order
+msgid "<span>Still to lift</span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.ei_kanban_intake
+msgid "<span>Total</span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.ei_kanban_contract
+msgid "<span>Valid until</span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.ei_kanban_lifting
+msgid "<span>Verified as lifted</span>"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid ""
+"A delivery advice line carries a purchase or sale rate that is not the "
+"contract rate. Check the reason."
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "A second person must approve them"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model,name:ei_ui_theme.model_ei_work_snooze
+msgid "A task one user has put aside for a few days"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_activity__message_needaction
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_line_activity__message_needaction
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_daily_order_activity__message_needaction
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_formula_activity__message_needaction
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_legacy_code_activity__message_needaction
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_activity__message_needaction
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_line_activity__message_needaction
+msgid "Action Needed"
+msgstr ""
+
+#. modules: ei_party360, ei_ui_theme
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Active contracts"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_activity__activity_ids
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_line_activity__activity_ids
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_daily_order_activity__activity_ids
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_formula_activity__activity_ids
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_legacy_code_activity__activity_ids
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_activity__activity_ids
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_line_activity__activity_ids
+msgid "Activities"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_activity__activity_exception_decoration
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_line_activity__activity_exception_decoration
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_daily_order_activity__activity_exception_decoration
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_formula_activity__activity_exception_decoration
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_legacy_code_activity__activity_exception_decoration
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_activity__activity_exception_decoration
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_line_activity__activity_exception_decoration
+msgid "Activity Exception Decoration"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_activity__activity_plans_ids
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_line_activity__activity_plans_ids
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_daily_order_activity__activity_plans_ids
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_formula_activity__activity_plans_ids
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_legacy_code_activity__activity_plans_ids
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_activity__activity_plans_ids
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_line_activity__activity_plans_ids
+msgid "Activity Plans"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_activity__activity_state
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_line_activity__activity_state
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_daily_order_activity__activity_state
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_formula_activity__activity_state
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_legacy_code_activity__activity_state
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_activity__activity_state
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_line_activity__activity_state
+msgid "Activity State"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_activity__activity_type_icon
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_line_activity__activity_type_icon
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_daily_order_activity__activity_type_icon
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_formula_activity__activity_type_icon
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_legacy_code_activity__activity_type_icon
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_activity__activity_type_icon
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_line_activity__activity_type_icon
+msgid "Activity Type Icon"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid ""
+"Adds up the MTL on every line of every approved delivery advice (DA) where "
+"this party is the parent company or the customer."
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid ""
+"Adds up the MTL requested on approved daily orders for this party's delivery"
+" advices."
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid ""
+"Adds up the verified MTL of truck loadings that someone checked against the "
+"gate pass and weighbridge slip. A supplier invoice never counts as lifting."
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_line_activity__adjustment_move_id
+msgid "Adjusting document"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "All configured"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "All payments are done"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_line_activity__allocated
+msgid "Allocated"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_line_activity__allocation_ids
+msgid "Allocation"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model,name:ei_ui_theme.model_ei_bank_allocation
+msgid "Allocation of a bank line to an invoice or bill"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/search.py:0
+msgid "Also known as %s"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-javascript
+#: code:addons/ei_party360/static/src/party360/party360.xml:0
+msgid "Also known as:"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_line_activity__amount
+msgid "Amount"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_legacy_code_activity__approval_note
+msgid "Approval Note"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Approvals waiting too long"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/work.py:0
+msgid "Approve"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/work.py:0
+msgid "Approve bank statement"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/work.py:0
+msgid "Approve cash voucher"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/work.py:0
+msgid "Approve contract"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/work.py:0
+msgid "Approve daily order"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/work.py:0
+msgid "Approve delivery advice"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/work.py:0
+msgid "Approve formula"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/work.py:0
+msgid "Approve, then print or email"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_daily_order_activity__approved_at
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_formula_activity__approved_at
+msgid "Approved At"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_activity__approved_by
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_daily_order_activity__approved_by
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_formula_activity__approved_by
+msgid "Approved By"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_legacy_code_activity__approved_target_type
+msgid "Approved Target Type"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Approved daily orders"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Approved delivery advices"
+msgstr ""
+
+#. modules: ei_party360, ei_ui_theme
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Approved documents"
+msgstr ""
+
+#. modules: ei_party360, ei_ui_theme
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Approved minus verified"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid "Approved on delivery advices"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid "Asked for on daily orders"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "Assign"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "Assign this task"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "Assign to someone..."
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "Assigned to"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "Assigned to you"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "At a glance"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_activity__message_attachment_count
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_line_activity__message_attachment_count
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_daily_order_activity__message_attachment_count
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_formula_activity__message_attachment_count
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_legacy_code_activity__message_attachment_count
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_activity__message_attachment_count
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_line_activity__message_attachment_count
+msgid "Attachment Count"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "Back on"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_line_activity__balance
+msgid "Balance"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Bank and books differ by %s"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid "Bank and parent company"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Bank balances"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Bank balances that do not agree with the books today"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "Bank confirmed"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid "Bank line %s"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid ""
+"Bank lines the system THINKS belong to this party. Nobody has confirmed "
+"them, so they are not counted as received money."
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid "Bank money only suggested"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid "Bank money received (party confirmed)"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Bank money to match"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/search.py:0
+msgid "Bank payments"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Bank payments to check"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Bank receipts nobody has identified"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_line_activity__ref
+msgid "Bank reference"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid ""
+"Bank statement lines where a person confirmed this party as the payer. Each "
+"line comes from an imported bank statement."
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Bank-confirmed and posted"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_legacy_code_activity__batch_signed
+msgid "Batch Signed"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Books, checked against the bank"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "Bring back"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_formula_activity__owner_id
+msgid "Business owner"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Call or check the portal, then type the balance"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "Cancel"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_daily_order_activity__cancel_reason
+msgid "Cancel Reason"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Cash"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Cash boxes, according to the books"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Cash counted and closed"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Cash in hand"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Cash not counted yet"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/search.py:0
+msgid "Cash vouchers"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Cash vouchers waiting for approval"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/work.py:0
+msgid "Check and sign off"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Check each gate pass and weighbridge slip"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/work.py:0
+msgid "Check quantities and rates, then approve"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/work.py:0
+msgid "Check the gate pass and weighbridge slip"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/work.py:0
+msgid "Check the papers, then approve"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/work.py:0
+msgid "Check the payments, then approve"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/work.py:0
+msgid "Check the receipt, then approve"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid "Checked by a second person"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/work.py:0
+msgid "Choose tomorrow, 3 days or a week."
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/work.py:0
+msgid "Classify"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/work.py:0
+msgid "Classify old code"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "Close my reminder"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/work.py:0
+msgid "Closed from My Work"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_activity__closing_balance
+msgid "Closing balance (per statement)"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_activity__closing_diff
+msgid "Closing vs opening+lines"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_formula_activity__code
+msgid "Code"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Collected today"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_line_activity__comment
+msgid "Comment"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_activity__company_id
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_line_activity__company_id
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_daily_order_activity__company_id
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_formula_activity__company_id
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_legacy_code_activity__company_id
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_activity__company_id
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_line_activity__company_id
+msgid "Company"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_bank_import_activity__company_id
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_bank_import_line_activity__company_id
+msgid "Company related to this journal"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_activity__computed_closing
+msgid "Computed Closing"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_line_activity__confidence
+msgid "Confidence"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Configured"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/work.py:0
+msgid "Confirm who paid"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Confirmed with the bank today"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Connections to other systems"
+msgstr ""
+
+#. module: ei_party360
+#: model:ir.model,name:ei_party360.model_res_partner
+msgid "Contact"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid "Contract"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid "Contract %s"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_line_activity__contract_ref
+msgid "Contract Ref"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model,name:ei_ui_theme.model_ei_contract_line
+msgid "Contract line"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Contract lines"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+#: code:addons/ei_ui_theme/models/search.py:0
+msgid "Contracts"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid ""
+"Contracts with this party as parent company that are approved or active."
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Copy them from the parent company's papers"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/work.py:0
+msgid "Create the customer invoice"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_activity__create_uid
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_line_activity__create_uid
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_daily_order_activity__create_uid
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_formula_activity__create_uid
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_legacy_code_activity__create_uid
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_activity__create_uid
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_line_activity__create_uid
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_work_snooze__create_uid
+msgid "Created by"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_activity__create_date
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_line_activity__create_date
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_daily_order_activity__create_date
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_formula_activity__create_date
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_legacy_code_activity__create_date
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_activity__create_date
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_line_activity__create_date
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_work_snooze__create_date
+msgid "Created on"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_parent_statement_line_activity__adjustment_move_id
+msgid ""
+"Credit note / bill created through normal accounting; never an edit of a "
+"posted entry."
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_activity__currency_id
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_line_activity__currency_id
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_activity__currency_id
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_line_activity__currency_id
+msgid "Currency"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid "Customer invoice %s"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+#: code:addons/ei_ui_theme/models/search.py:0
+msgid "Customer invoices"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid "Customer invoices issued"
+msgstr ""
+
+#. module: ei_party360
+#: model:ir.ui.menu,name:ei_party360.menu_ei_party360
+msgid "Customers & Suppliers"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/search.py:0
+msgid "Customers and suppliers"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "Customers owe nothing right now."
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Customers owe us"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.ei_kanban_da
+msgid "DA"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model,name:ei_ui_theme.model_ei_da_line
+msgid "DA line"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_line_activity__da_ref
+msgid "Da Ref"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model,name:ei_ui_theme.model_ei_daily_order_line
+msgid "Daily Order Request line"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid "Daily order"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid "Daily order %s"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+#: code:addons/ei_ui_theme/models/search.py:0
+msgid "Daily orders"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid "Daily orders for this supplier that are still drafts."
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid "Daily orders to approve"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Daily summary email job"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_line_activity__date
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_daily_order_activity__date
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_line_activity__date
+msgid "Date"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_activity__date_from
+msgid "Date From"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_activity__date_to
+msgid "Date To"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "Day"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/work.py:0
+msgid "Decide what this old code becomes"
+msgstr ""
+
+#. modules: ei_party360, ei_ui_theme
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Delivered, not yet invoiced"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid "Delivery advice"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid "Delivery advice %s"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Delivery advice rates that differ from the contract"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+#: code:addons/ei_ui_theme/models/search.py:0
+msgid "Delivery advices"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid ""
+"Delivery advices for this party that are under review and need a second "
+"person."
+msgstr ""
+
+#. modules: ei_party360, ei_ui_theme
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Delivery advices to approve"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_line_activity__difference
+msgid "Difference"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Differences with parent companies"
+msgstr ""
+
+#. modules: ei_party360, ei_ui_theme
+#: model:ir.model.fields,field_description:ei_party360.field_ei_party360__display_name
+#: model:ir.model.fields,field_description:ei_party360.field_res_partner__display_name
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_allocation__display_name
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_activity__display_name
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_line__display_name
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_line_activity__display_name
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_contract_line__display_name
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_da_line__display_name
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_daily_order_activity__display_name
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_daily_order_line__display_name
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_formula_activity__display_name
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_home__display_name
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_legacy_code_activity__display_name
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_activity__display_name
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_line__display_name
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_line_activity__display_name
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_search__display_name
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_supplier_intake_line__display_name
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_work__display_name
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_work_snooze__display_name
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ir_http__display_name
+#: model:ir.model.fields,field_description:ei_ui_theme.field_res_users__display_name
+msgid "Display Name"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_legacy_code_activity__legacy_code
+msgid "Displayed two-decimal text exactly as in the source (4.20, never 4.2)."
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid "Documents waiting"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "Due date (optional)"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_line_activity__duplicate_of_id
+msgid "Duplicate Of"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_formula_activity__effective_from
+msgid "Effective From"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_formula_activity__effective_to
+msgid "Effective To"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_formula_activity__company_id
+msgid "Empty = shared by all companies (default)."
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "Escalate"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "Escalate to management"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "Escalate to management..."
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "Escalated"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/work.py:0
+msgid "Escalated by %(who)s: %(why)s"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/work.py:0
+msgid "Escalated to management by %(who)s: %(why)s"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid ""
+"Every manager gets a reminder and a note is left on the record. Say why it "
+"cannot wait."
+msgstr ""
+
+#. module: ei_party360
+#. odoo-javascript
+#: code:addons/ei_party360/static/src/party360/party360.xml:0
+msgid "Everything about one customer or supplier, on one page."
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Everything agrees"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_line_activity__evidence_note
+msgid "Evidence Note"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_legacy_code_activity__source_row
+msgid "Excel row"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_legacy_code_activity__is_exception
+msgid "Exception reference"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Expected gross spread"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.module.module,shortdesc:base.module_ei_ui_theme
+msgid "Export International - Easy Interface"
+msgstr ""
+
+#. module: ei_party360
+#: model:ir.module.module,shortdesc:base.module_ei_party360
+msgid "Export International - Party 360"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_activity__file_sha256
+msgid "File SHA-256"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_activity__file_sha256
+msgid "File Sha256"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_activity__filename
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_activity__filename
+msgid "Filename"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "Filter my work"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-javascript
+#: code:addons/ei_party360/static/src/party360/party360.xml:0
+#: model:ir.actions.client,name:ei_party360.action_ei_party360
+msgid "Find a customer or supplier"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/work.py:0
+msgid "Find the reason and record it"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_line_activity__fingerprint
+msgid "Fingerprint"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_legacy_code_activity__batch_id
+msgid "First imported in"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/work.py:0
+msgid "Fix"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/work.py:0
+msgid "Fix supplier invoice"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_activity__message_follower_ids
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_line_activity__message_follower_ids
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_daily_order_activity__message_follower_ids
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_formula_activity__message_follower_ids
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_legacy_code_activity__message_follower_ids
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_activity__message_follower_ids
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_line_activity__message_follower_ids
+msgid "Followers"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_activity__message_partner_ids
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_line_activity__message_partner_ids
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_daily_order_activity__message_partner_ids
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_formula_activity__message_partner_ids
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_legacy_code_activity__message_partner_ids
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_activity__message_partner_ids
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_line_activity__message_partner_ids
+msgid "Followers (Partners)"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid ""
+"For each approved DA line: approved MTL minus verified lifted MTL, added up."
+" It is worked out line by line, so an over-lifted line cannot hide a short "
+"one."
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Found"
+msgstr ""
+
+#. modules: ei_party360, ei_ui_theme
+#. odoo-javascript
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+#: code:addons/ei_party360/static/src/party360/party360.xml:0
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "From contract to payment"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Gate pass and weighbridge slip"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Good afternoon"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Good evening"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Good morning"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.module.module,summary:base.module_ei_ui_theme
+msgid ""
+"Guided Home page, plain-language menus, cards, help text and a clean visual "
+"theme"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model,name:ei_ui_theme.model_ir_http
+msgid "HTTP Routing"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_line_activity__has_balance
+msgid "Has Balance"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_activity__has_message
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_line_activity__has_message
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_daily_order_activity__has_message
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_formula_activity__has_message
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_legacy_code_activity__has_message
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_activity__has_message
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_line_activity__has_message
+msgid "Has Message"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.actions.client,name:ei_ui_theme.action_ei_home
+#: model:ir.ui.menu,name:ei_ui_theme.menu_ei_home
+msgid "Home"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model,name:ei_ui_theme.model_ei_home
+msgid "Home page data"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-javascript
+#: code:addons/ei_party360/static/src/party360/party360.xml:0
+msgid "How is this worked out?"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "How late"
+msgstr ""
+
+#. modules: ei_party360, ei_ui_theme
+#: model:ir.model.fields,field_description:ei_party360.field_ei_party360__id
+#: model:ir.model.fields,field_description:ei_party360.field_res_partner__id
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_allocation__id
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_activity__id
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_line__id
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_line_activity__id
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_contract_line__id
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_da_line__id
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_daily_order_activity__id
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_daily_order_line__id
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_formula_activity__id
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_home__id
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_legacy_code_activity__id
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_activity__id
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_line__id
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_line_activity__id
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_search__id
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_supplier_intake_line__id
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_work__id
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_work_snooze__id
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ir_http__id
+#: model:ir.model.fields,field_description:ei_ui_theme.field_res_users__id
+msgid "ID"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_activity__activity_exception_icon
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_line_activity__activity_exception_icon
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_daily_order_activity__activity_exception_icon
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_formula_activity__activity_exception_icon
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_legacy_code_activity__activity_exception_icon
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_activity__activity_exception_icon
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_line_activity__activity_exception_icon
+msgid "Icon"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_bank_import_activity__activity_exception_icon
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_bank_import_line_activity__activity_exception_icon
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_daily_order_activity__activity_exception_icon
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_formula_activity__activity_exception_icon
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_legacy_code_activity__activity_exception_icon
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_parent_statement_activity__activity_exception_icon
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_parent_statement_line_activity__activity_exception_icon
+msgid "Icon to indicate an exception activity."
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_bank_import_activity__message_needaction
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_bank_import_line_activity__message_needaction
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_daily_order_activity__message_needaction
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_formula_activity__message_needaction
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_legacy_code_activity__message_needaction
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_parent_statement_activity__message_needaction
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_parent_statement_line_activity__message_needaction
+msgid "If checked, new messages require your attention."
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_bank_import_activity__message_has_error
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_bank_import_activity__message_has_sms_error
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_bank_import_line_activity__message_has_error
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_bank_import_line_activity__message_has_sms_error
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_daily_order_activity__message_has_error
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_daily_order_activity__message_has_sms_error
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_formula_activity__message_has_error
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_formula_activity__message_has_sms_error
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_legacy_code_activity__message_has_error
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_legacy_code_activity__message_has_sms_error
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_parent_statement_activity__message_has_error
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_parent_statement_activity__message_has_sms_error
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_parent_statement_line_activity__message_has_error
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_parent_statement_line_activity__message_has_sms_error
+msgid "If checked, some messages have a delivery error."
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_line_activity__import_id
+msgid "Import"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_activity__imported_at
+msgid "Imported At"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_activity__imported_by
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_activity__imported_by
+msgid "Imported By"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_line_activity__imported_on
+msgid "Imported On"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_line_activity__internal_amount
+msgid "Internal Amount"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_line_activity__internal_move_id
+msgid "Internal Move"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_line_activity__internal_tax
+msgid "Internal Tax"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_activity__internal_total
+msgid "Internal Total"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/work.py:0
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.ei_kanban_intake
+msgid "Invoice"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_line_activity__invoice_no
+msgid "Invoice No"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/work.py:0
+msgid "Invoice delivered material"
+msgstr ""
+
+#. modules: ei_party360, ei_ui_theme
+#. odoo-javascript
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "Invoiced"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Invoiced %(i)s, received %(r)s in the last %(n)s days."
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "Invoiced and received per day"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Invoiced and received, last %s days"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Invoiced truck loadings"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_activity__message_is_follower
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_line_activity__message_is_follower
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_daily_order_activity__message_is_follower
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_formula_activity__message_is_follower
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_legacy_code_activity__message_is_follower
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_activity__message_is_follower
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_line_activity__message_is_follower
+msgid "Is Follower"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_line_activity__is_unidentified
+msgid "Is Unidentified"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_activity__issues
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_activity__issues
+msgid "Issues"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_activity__journal_id
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_line_activity__journal_id
+msgid "Journal"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_legacy_code_activity__trade_lc_ids
+msgid "LC records"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_legacy_code_activity__last_sync
+msgid "Last Sync"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_activity__write_uid
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_line_activity__write_uid
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_daily_order_activity__write_uid
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_formula_activity__write_uid
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_legacy_code_activity__write_uid
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_activity__write_uid
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_line_activity__write_uid
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_work_snooze__write_uid
+msgid "Last Updated by"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_activity__write_date
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_line_activity__write_date
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_daily_order_activity__write_date
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_formula_activity__write_date
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_legacy_code_activity__write_date
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_activity__write_date
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_line_activity__write_date
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_work_snooze__write_date
+msgid "Last Updated on"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Last confirmed on %s"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_legacy_code_activity__last_batch_id
+msgid "Last seen in"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_activity__ledger_opening
+msgid "Ledger balance before first line"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_legacy_code_activity__legacy_code
+msgid "Legacy Code"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid "Lifted"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_activity__line_ids
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_daily_order_activity__line_ids
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_activity__line_ids
+msgid "Line"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid ""
+"Lines where the parent company's statement and our books disagree and nobody"
+" has resolved it yet. The amount is the total size of the differences."
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_legacy_code_activity__linked_model
+msgid "Linked Odoo model"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_legacy_code_activity__linked_res_id
+msgid "Linked record id"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-javascript
+#: code:addons/ei_party360/static/src/party360/party360.xml:0
+msgid "Loading this party..."
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "Loading your page"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.ei_kanban_da
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.ei_kanban_daily_order
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.ei_kanban_lifting
+msgid "MTL"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "MTL on active contracts."
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "MTL promised on delivery advices"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "MTL still free"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "MTL truly lifted"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Made from approved delivery advices"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_daily_order_activity__maker_id
+msgid "Maker"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/work.py:0
+msgid "Match"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_line_activity__match_note
+msgid "Match Note"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/work.py:0
+msgid "Match bank payment"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Match each payment to the right party"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-javascript
+#: code:addons/ei_party360/static/src/party360/party360.xml:0
+msgid "Matching parties"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid "Material"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_bank_import_activity__activity_type_icon
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_bank_import_line_activity__activity_type_icon
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_daily_order_activity__activity_type_icon
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_formula_activity__activity_type_icon
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_legacy_code_activity__activity_type_icon
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_parent_statement_activity__activity_type_icon
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_parent_statement_line_activity__activity_type_icon
+msgid "Material Symbols icon e.g. checklist"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Material lifting"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Material on active contracts"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_activity__message_has_error
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_line_activity__message_has_error
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_daily_order_activity__message_has_error
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_formula_activity__message_has_error
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_legacy_code_activity__message_has_error
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_activity__message_has_error
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_line_activity__message_has_error
+msgid "Message Delivery error"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_activity__message_ids
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_line_activity__message_ids
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_daily_order_activity__message_ids
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_formula_activity__message_ids
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_legacy_code_activity__message_ids
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_activity__message_ids
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_line_activity__message_ids
+msgid "Messages"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid ""
+"Money arrived but nobody knows who paid. It stays out of the books until "
+"someone confirms."
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid "Money in the books"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_activity__my_activity_date_deadline
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_line_activity__my_activity_date_deadline
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_daily_order_activity__my_activity_date_deadline
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_formula_activity__my_activity_date_deadline
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_legacy_code_activity__my_activity_date_deadline
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_activity__my_activity_date_deadline
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_line_activity__my_activity_date_deadline
+msgid "My Activity Deadline"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model,name:ei_ui_theme.model_ei_work
+msgid "My Work Today"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "My work today"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_activity__n_duplicate
+msgid "N Duplicate"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_activity__n_exceptions
+msgid "N Exceptions"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_activity__n_lines
+msgid "N Lines"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_activity__n_matched
+msgid "N Matched"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_activity__n_open
+msgid "N Open"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/search.py:0
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_activity__name
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_daily_order_activity__name
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_formula_activity__name
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_activity__name
+msgid "Name"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_line_activity__narration
+msgid "Narration"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "Needs attention"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Never confirmed with the bank"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/work.py:0
+msgid "New today"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_activity__activity_date_deadline
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_line_activity__activity_date_deadline
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_daily_order_activity__activity_date_deadline
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_formula_activity__activity_date_deadline
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_legacy_code_activity__activity_date_deadline
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_activity__activity_date_deadline
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_line_activity__activity_date_deadline
+msgid "Next Activity Deadline"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_activity__activity_summary
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_line_activity__activity_summary
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_daily_order_activity__activity_summary
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_formula_activity__activity_summary
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_legacy_code_activity__activity_summary
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_activity__activity_summary
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_line_activity__activity_summary
+msgid "Next Activity Summary"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_activity__activity_type_id
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_line_activity__activity_type_id
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_daily_order_activity__activity_type_id
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_formula_activity__activity_type_id
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_legacy_code_activity__activity_type_id
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_activity__activity_type_id
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_line_activity__activity_type_id
+msgid "Next Activity Type"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "Next:"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "No alerts."
+msgstr ""
+
+#. module: ei_party360
+#. odoo-javascript
+#: code:addons/ei_party360/static/src/party360/party360.xml:0
+msgid "No approved old code is linked to this party yet."
+msgstr ""
+
+#. module: ei_party360
+#. odoo-javascript
+#: code:addons/ei_party360/static/src/party360/party360.xml:0
+msgid "No delivery advices for this party yet."
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid ""
+"No duplicate payments, unmatched invoices or stuck approvals right now."
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "No invoices or receipts in this period."
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/work.py:0
+msgid ""
+"No manager is set up to receive escalations. Ask the administrator to give "
+"someone the management role."
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid "No order yet"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-javascript
+#: code:addons/ei_party360/static/src/party360/party360.xml:0
+msgid "No party found. Try part of the name, a nickname, or the old code."
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "No receipts posted yet today"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "No work areas are assigned to you yet. Please ask your administrator."
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "Nobody else has the role needed for this step."
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "None configured - emails stay in the queue"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "None entered yet"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Not due yet"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_formula_activity__rounding_mode
+msgid "Not established by the source documents; the accountant decides."
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Not installed - Daily Order and invoice PDFs cannot be made"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid "Not paid"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Not prepared yet"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_legacy_code_activity__nickname
+msgid "Not unique and may be empty; never used as an identifier."
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid "Not visible to your role"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "Note (optional)"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_legacy_code_activity__notes
+msgid "Notes"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/search/search_box.xml:0
+msgid "Nothing found for \""
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid "Nothing invoiced yet"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Nothing is overdue"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "Nothing is waiting for you."
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "Nothing matches this filter."
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Nothing to invoice"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid "Nothing to invoice yet"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-javascript
+#: code:addons/ei_party360/static/src/party360/party360.xml:0
+msgid "Nothing to report"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid "Nothing verified yet"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Nothing waiting"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "Nothing was changed. Check your connection and try again."
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_activity__message_needaction_counter
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_line_activity__message_needaction_counter
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_daily_order_activity__message_needaction_counter
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_formula_activity__message_needaction_counter
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_legacy_code_activity__message_needaction_counter
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_activity__message_needaction_counter
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_line_activity__message_needaction_counter
+msgid "Number of Actions"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_activity__message_has_error_counter
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_line_activity__message_has_error_counter
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_daily_order_activity__message_has_error_counter
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_formula_activity__message_has_error_counter
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_legacy_code_activity__message_has_error_counter
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_activity__message_has_error_counter
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_line_activity__message_has_error_counter
+msgid "Number of errors"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_bank_import_activity__message_needaction_counter
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_bank_import_line_activity__message_needaction_counter
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_daily_order_activity__message_needaction_counter
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_formula_activity__message_needaction_counter
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_legacy_code_activity__message_needaction_counter
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_parent_statement_activity__message_needaction_counter
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_parent_statement_line_activity__message_needaction_counter
+msgid "Number of messages requiring action"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_bank_import_activity__message_has_error_counter
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_bank_import_line_activity__message_has_error_counter
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_daily_order_activity__message_has_error_counter
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_formula_activity__message_has_error_counter
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_legacy_code_activity__message_has_error_counter
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_parent_statement_activity__message_has_error_counter
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_parent_statement_line_activity__message_has_error_counter
+msgid "Number of messages with delivery error"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/search.py:0
+msgid "Old code"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/search.py:0
+msgid "Old code %s"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/search.py:0
+msgid ""
+"Old code - not linked to a party yet (an accountant must approve its "
+"mapping)"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/search.py:0
+msgid "Old codes"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "On active contracts, before costs and taxes. Not profit."
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "One click creates the customer invoices"
+msgstr ""
+
+#. module: ei_party360
+#: model:ir.module.module,summary:base.module_ei_party360
+msgid ""
+"One page per customer or supplier: old codes, material chain, money, bank "
+"evidence and history"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-javascript
+#: code:addons/ei_party360/static/src/party360/party360.xml:0
+msgid "Open contact"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Open daily orders"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Open differences with parent companies"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid "Open differences with the parent company"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid ""
+"Open payable items in the posted ledger for this party, in company currency."
+" Supplier invoices still being checked are NOT included."
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid ""
+"Open receivable items in the posted ledger for this party, in company "
+"currency. Draft invoices and unmatched bank lines are NOT included."
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_activity__opening_balance
+msgid "Opening balance (per statement)"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_activity__opening_diff
+msgid "Opening vs ledger"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_legacy_code_activity__original_name
+msgid "Original NAME"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_legacy_code_activity__nickname
+msgid "Original NICK"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_legacy_code_activity__source_sheet
+msgid "Original sheet name, trailing spaces preserved."
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "Out of"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Outgoing email server"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Over 90 days late"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_line_activity__owner_id
+msgid "Owner"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "PDF engine (printing and emailing orders and invoices)"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid "Paid"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_formula_activity__param_keys
+msgid "Param Keys"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_activity__partner_id
+msgid "Parent company"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid "Parent statement %s"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model,name:ei_ui_theme.model_ei_parent_statement_line
+msgid "Parent statement line / exception"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/search.py:0
+msgid "Parent statements"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid "Partly paid"
+msgstr ""
+
+#. modules: ei_party360, ei_ui_theme
+#. odoo-javascript
+#. odoo-python
+#: code:addons/ei_party360/static/src/party360/party360.xml:0
+#: code:addons/ei_ui_theme/models/search.py:0
+msgid "Party 360"
+msgstr ""
+
+#. module: ei_party360
+#: model_terms:ir.ui.view,arch_db:ei_party360.view_partner_form_ei_party360
+msgid "Party 360 - see everything"
+msgstr ""
+
+#. module: ei_party360
+#: model:ir.model,name:ei_party360.model_ei_party360
+msgid "Party 360 page data"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid "Party confirmed"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Payment"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid "Payment registered, not yet matched to the bank"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/work.py:0
+msgid "Please handle: %s"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/work.py:0
+msgid "Please write why this cannot wait."
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_bank_import_line_activity__amount
+msgid "Positive = receipt, negative = payment."
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Possible duplicate bank payments"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/work.py:0
+msgid "Post"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/work.py:0
+msgid "Post bank statement"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/work.py:0
+msgid "Post it into the books"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_activity__posted_at
+msgid "Posted At"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_activity__posted_by
+msgid "Posted By"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid ""
+"Posted customer invoices and credit notes for this party, in company "
+"currency (credit notes count as minus)."
+msgstr ""
+
+#. modules: ei_party360, ei_ui_theme
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Posted in the books"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Prepared"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_daily_order_activity__print_count
+msgid "Print Count"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/work.py:0
+msgid ""
+"Priority: high = a problem or waiting %(h)s days or more; medium = waiting a"
+" day or more. Overdue = waiting %(o)s days or more (change it in Settings)."
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_legacy_code_activity__proposal_reason
+msgid "Proposal Reason"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_legacy_code_activity__proposed_target_type
+msgid "Proposed Target Type"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Provisional"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "Put aside"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid ""
+"Quantity, rate or total differs from the delivery advice. They are blocked "
+"until someone reviews them."
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Quantity, rate or total does not match"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_formula_activity__rationale
+msgid "Rationale"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-javascript
+#: code:addons/ei_party360/static/src/party360/party360.xml:0
+msgid "Read from the system at"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Receipts and payments, then the cash in the box"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "Receivables by how late they are"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "Received"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "Received in the bank"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-javascript
+#: code:addons/ei_party360/static/src/party360/party360.xml:0
+msgid "Recently opened"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Reconciliation"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Records waiting without any attached paper"
+msgstr ""
+
+#. modules: ei_party360, ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_party360/static/src/party360/party360.xml:0
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "Refresh"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "Refresh this page"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "Reminders assigned to you"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_bank_import_activity__variance_note
+msgid "Required to approve when a balance difference exists."
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_work_snooze__res_id
+msgid "Res"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_work_snooze__res_model
+msgid "Res Model"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_line_activity__resolution
+msgid "Resolution"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_line_activity__resolution_state
+msgid "Resolution State"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/work.py:0
+msgid "Resolve"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/work.py:0
+msgid "Resolve difference with parent company"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_line_activity__resolved_by
+msgid "Resolved By"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_activity__activity_user_id
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_line_activity__activity_user_id
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_daily_order_activity__activity_user_id
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_formula_activity__activity_user_id
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_legacy_code_activity__activity_user_id
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_activity__activity_user_id
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_line_activity__activity_user_id
+msgid "Responsible User"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid "Reversed"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_formula_activity__rounding_mode
+msgid "Rounding Mode"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_activity__message_has_sms_error
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_line_activity__message_has_sms_error
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_daily_order_activity__message_has_sms_error
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_formula_activity__message_has_sms_error
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_legacy_code_activity__message_has_sms_error
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_activity__message_has_sms_error
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_line_activity__message_has_sms_error
+msgid "SMS Delivery error"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/search/search_box.xml:0
+msgid "Search customers, suppliers, contracts, invoices and bank references"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/search/search_box.xml:0
+msgid "Search results"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/search/search_box.xml:0
+msgid "Searching"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/work.py:0
+msgid "See what does not match"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_line_activity__sequence
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_line_activity__sequence
+msgid "Sequence"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "Show all"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "Show fewer"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-javascript
+#: code:addons/ei_party360/static/src/party360/party360.xml:0
+msgid "Show the records"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/work.py:0
+msgid "Sign off"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/work.py:0
+msgid "Sign off parent statement"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_activity__signed_at
+msgid "Signed At"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_activity__signed_by
+msgid "Signed By"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_activity__source
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_line_activity__source
+msgid "Source"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_legacy_code_activity__source_sheet
+msgid "Source Sheet"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_legacy_code_activity__file_sha256
+msgid "Source file SHA-256"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_legacy_code_activity__source_sheet_key
+msgid "Source sheet"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Staff accounts"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model,name:ei_ui_theme.model_ei_bank_import_line
+msgid "Staged bank line"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "Start something"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_activity__state
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_line_activity__state
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_daily_order_activity__state
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_formula_activity__state
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_activity__state
+msgid "State"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_activity__statement_id
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_line_activity__statement_id
+msgid "Statement"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_line_activity__statement_amount
+msgid "Statement Amount"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_line_activity__statement_line_id
+msgid "Statement Line"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_line_activity__statement_qty
+msgid "Statement Qty"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_line_activity__statement_tax
+msgid "Statement Tax"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_activity__statement_total
+msgid "Statement Total"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_parent_statement_line_activity__status
+msgid "Status"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_bank_import_activity__activity_state
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_bank_import_line_activity__activity_state
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_daily_order_activity__activity_state
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_formula_activity__activity_state
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_legacy_code_activity__activity_state
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_parent_statement_activity__activity_state
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_parent_statement_line_activity__activity_state
+msgid ""
+"Status based on activities\n"
+"Overdue: Due date is already passed\n"
+"Today: Activity date is today\n"
+"Planned: Future activities."
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_formula_activity__step_ids
+msgid "Step"
+msgstr ""
+
+#. modules: ei_party360, ei_ui_theme
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Still to lift"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_line_activity__suggested_partner_id
+msgid "Suggested Partner"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid "Suggested only - not confirmed"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid "Suggestion only - not confirmed"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_formula_activity__supersedes_id
+msgid "Supersedes"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_daily_order_activity__parent_partner_id
+msgid "Supplier (parent company)"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid "Supplier invoice %s"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model,name:ei_ui_theme.model_ei_supplier_intake_line
+msgid "Supplier invoice intake line"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+#: code:addons/ei_ui_theme/models/search.py:0
+msgid "Supplier invoices"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid ""
+"Supplier invoices and truck loadings need their paper (invoice, gate pass, "
+"weighbridge slip) before they can be checked."
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Supplier invoices that do not match"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid ""
+"Supplier invoices where the quantity, rate or total did not match our "
+"records. They are blocked until someone reviews them."
+msgstr ""
+
+#. modules: ei_party360, ei_ui_theme
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Supplier invoices with a problem"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_legacy_code_activity__is_exception
+msgid ""
+"Suspense, cash or suspected account: must never be imported blindly as a "
+"live bank."
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Switched off"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Switched on"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "System"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "System checks"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_formula_activity__test_ids
+msgid "Test"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/work.py:0
+msgid "Test it, then approve"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/work.py:0
+msgid "That person is not allowed to do this step."
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "The"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid ""
+"The balance the bank gave is different from our ledger. Find the missing or "
+"extra entries."
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "The list is limited to the"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid ""
+"The page could not be refreshed. What you see is from the last successful "
+"load."
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid ""
+"The parent company's ledger and ours disagree. They stay visible until "
+"someone resolves them."
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "The same bank line appeared twice. Do not post both."
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/search/search_box.xml:0
+msgid "The search could not run. Check your connection and try again."
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "The system checks them against the delivery advice"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_work_snooze__until
+msgid "The task comes back on this day."
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid "They owe us"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/work.py:0
+msgid "This kind of record cannot be assigned yet."
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/search.py:0
+msgid "This kind of record cannot be opened from search."
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/work.py:0
+msgid "This kind of record is not part of My Work."
+msgstr ""
+
+#. module: ei_party360
+#. odoo-javascript
+#: code:addons/ei_party360/static/src/party360/party360.xml:0
+msgid "This page could not be loaded"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid "This party no longer exists."
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/work.py:0
+msgid "This record no longer exists."
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid "This record type cannot be opened from here."
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.constraint,message:ei_ui_theme.constraint_ei_work_snooze_one_per_task
+msgid "This task is already snoozed."
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "Today's routine"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_daily_order_activity__total_remaining
+msgid "Total Remaining"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_daily_order_activity__total_requested
+msgid "Total Requested"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Total owed %s."
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "Trends and balances"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.ei_kanban_lifting
+msgid "Truck"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid "Truck loading, gate pass %s"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/search.py:0
+msgid "Truck loadings"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Truck loadings to verify"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid "Truly lifted (verified)"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "Try again"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-javascript
+#: code:addons/ei_party360/static/src/party360/party360.xml:0
+msgid "Type a name, nickname or old code, e.g. 4.20"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-javascript
+#: code:addons/ei_party360/static/src/party360/party360.xml:0
+msgid ""
+"Type at least two letters of the name or nickname, or the old code exactly "
+"as it was written (for example"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_bank_import_activity__activity_exception_decoration
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_bank_import_line_activity__activity_exception_decoration
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_daily_order_activity__activity_exception_decoration
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_formula_activity__activity_exception_decoration
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_legacy_code_activity__activity_exception_decoration
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_parent_statement_activity__activity_exception_decoration
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_parent_statement_line_activity__activity_exception_decoration
+msgid "Type of the exception activity on record."
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model,name:ei_ui_theme.model_ei_search
+msgid "Universal search"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Unknown alert."
+msgstr ""
+
+#. modules: ei_party360, ei_ui_theme
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Unknown figure."
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid "Unknown measure."
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Unknown step."
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Unpaid customer invoices"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Unpaid supplier bills"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_activity__n_open
+msgid "Unresolved"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_work_snooze__until
+msgid "Until"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "Updated"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model,name:ei_ui_theme.model_res_users
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_work_snooze__user_id
+msgid "User"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_activity__variance_note
+msgid "Variance Note"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_legacy_code_activity__verification_status
+msgid "Verification Status"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_legacy_code_activity__verified_at
+msgid "Verified At"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_line_activity__verified_by
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_legacy_code_activity__verified_by
+msgid "Verified By"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Verified loadings ready to invoice"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_bank_import_line_activity__partner_id
+msgid "Verified party"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Verified truck loadings"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid ""
+"Verified truck loadings that have no customer invoice yet. They are ready to"
+" be invoiced."
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/work.py:0
+msgid "Verify"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/work.py:0
+msgid "Verify truck loading"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,field_description:ei_ui_theme.field_ei_formula_activity__version
+msgid "Version"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "View only"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/work.py:0
+msgid "Waiting %s days"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid ""
+"Waiting %s days or more for a decision. The number of days is a setting."
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/work.py:0
+msgid "Waiting 1 day"
+msgstr ""
+
+#. modules: ei_party360, ei_ui_theme
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Waiting for a person"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.ei_kanban_lifting
+msgid "Waiting to be verified by another person"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "We could not load your page"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "We owe suppliers"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid "We owe them"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "What happened recently"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-javascript
+#: code:addons/ei_party360/static/src/party360/party360.xml:0
+msgid "What happened, newest first"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "What is stuck across the company"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "When this page was read from the system"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Who owes us, by how late"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "Who should do it?"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "Why can this not wait?"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model.fields,help:ei_ui_theme.field_ei_formula_activity__rationale
+msgid "Why this rule exists and where it comes from (document, clause)."
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "Worth %s in total"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/work.py:0
+msgid "You can assign work only on records you are allowed to change."
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/work.py:0
+msgid "You can escalate only records you are allowed to change."
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/work.py:0
+msgid "You can only close your own reminders."
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid "Your role cannot open these records."
+msgstr ""
+
+#. module: ei_party360
+#. odoo-javascript
+#: code:addons/ei_party360/static/src/party360/party360.xml:0
+msgid "Your role cannot see these sections:"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "aging_30"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "aging_60"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "aging_90"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "aging_90plus"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "amount"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "approved"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid "bank"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "date"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid "documents"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model,name:ei_ui_theme.model_ei_bank_import_activity
+msgid "ei.bank.import.activity"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "ei.bank.import.line"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model,name:ei_ui_theme.model_ei_bank_import_line_activity
+msgid "ei.bank.import.line.activity"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "ei.cash.voucher"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model,name:ei_ui_theme.model_ei_daily_order_activity
+msgid "ei.daily.order.activity"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model,name:ei_ui_theme.model_ei_formula_activity
+msgid "ei.formula.activity"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model,name:ei_ui_theme.model_ei_legacy_code_activity
+msgid "ei.legacy.code.activity"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "ei.lifting"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model,name:ei_ui_theme.model_ei_parent_statement_activity
+msgid "ei.parent.statement.activity"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "ei.parent.statement.line"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model:ir.model,name:ei_ui_theme.model_ei_parent_statement_line_activity
+msgid "ei.parent.statement.line.activity"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "ei.supplier.intake"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-javascript
+#: code:addons/ei_party360/static/src/party360/party360.xml:0
+msgid "figures are zero"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/work.py:0
+msgid "for 3 days"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/work.py:0
+msgid "for a week"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "id"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "invoice_status"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid ""
+"items that need a second person are waiting for someone else, because you "
+"prepared them."
+msgstr ""
+
+#. module: ei_party360
+#. odoo-python
+#: code:addons/ei_party360/models/party360.py:0
+msgid "money"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "most urgent of"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "move_type"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "new"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "not_paid"
+msgstr ""
+
+#. module: ei_party360
+#. odoo-javascript
+#: code:addons/ei_party360/static/src/party360/party360.xml:0
+msgid "or"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "payment_state"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "reminders"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "state"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "statement_id.state"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "to approve"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/home.py:0
+msgid "to match"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-python
+#: code:addons/ei_ui_theme/models/work.py:0
+msgid "until tomorrow"
+msgstr ""
+
+#. module: ei_ui_theme
+#. odoo-javascript
+#: code:addons/ei_ui_theme/static/src/home/home.xml:0
+msgid "· due"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.ei_kanban_lifting
+msgid "· gate pass"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.ei_kanban_contract
+msgid "· ref"
+msgstr ""
+
+#. module: ei_ui_theme
+#: model_terms:ir.ui.view,arch_db:ei_ui_theme.ei_kanban_intake
+msgid "⚠ Something does not match - open to see what"
+msgstr ""
