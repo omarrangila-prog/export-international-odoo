@@ -3,15 +3,13 @@
 # usage: tests/run_all.sh [dbname]     (needs ~/odoo20 - see docs/deployment_runbook.md)
 set -u
 cd "$(dirname "$0")/.."
+. migration/env.sh
 DB=${1:-ei_fulltest}
 LOG=${TMPDIR:-/tmp}/ei_full_run.log
-R=$HOME/odoo20/root/usr/lib/python3/dist-packages
-AP=$R/odoo/addons,$PWD/addons
-dropdb --if-exists "$DB"; createdb "$DB"
-$HOME/odoo20/odoo20 -c /dev/null -d "$DB" --addons-path=$AP \
-  -i ei_legacy_master,ei_bank_operations,ei_cashbook,ei_contract_da,ei_daily_orders,ei_material_lifting,ei_invoice_extensions,ei_parent_reconciliation,ei_trade_lc,ei_management_dashboard,ei_ui_theme,ei_party360 \
-  --test-enable --test-tags ei --stop-after-init --without-demo=all --http-port=8179 > "$LOG" 2>&1
-echo "odoo exit code: $?"
+ei_drop_db "$DB"; createdb "$DB"
+ei_odoo -d "$DB" -i "$EI_MODULES" --test-enable --test-tags ei --stop-after-init --without-demo=all --http-port=8179 > "$LOG" 2>&1
+ODOO_EXIT=$?
+echo "odoo exit code: $ODOO_EXIT"
 python3 - "$LOG" <<'PY'
 import re, sys, datetime, collections
 log = open(sys.argv[1], errors='replace').read()
@@ -35,3 +33,14 @@ for mod, ts in per.items():
 open('docs/test_results.md', 'w').write('\n'.join(lines) + '\n')
 print('\n'.join(lines[:18]))
 PY
+
+# The real-browser suite is part of the standard run (skip only on purpose: EI_SKIP_E2E=1). It runs on a fresh copy of the
+# pristine staging database, so it needs the same machine setup as the unit tests plus Playwright (see tests/e2e/README.md).
+E2E_EXIT=0
+if [ -z "${EI_SKIP_E2E:-}" ]; then
+  tests/run_e2e.sh; E2E_EXIT=$?
+  echo "browser suite exit code: $E2E_EXIT  (details: docs/e2e_results.md)"
+else
+  echo "browser suite SKIPPED on purpose (EI_SKIP_E2E set)"
+fi
+[ "$ODOO_EXIT" -eq 0 ] && [ "$E2E_EXIT" -eq 0 ]

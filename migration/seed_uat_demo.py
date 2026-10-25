@@ -27,6 +27,8 @@ ROLES = {
     'demo.recon': ['ei_parent_reconciliation.group_ei_recon_user'],
     'demo.reconapprover': ['ei_parent_reconciliation.group_ei_recon_approver'],
     'demo.ceo': ['ei_management_dashboard.group_ei_management'],
+    'demo.finance': ['account.group_account_manager', 'ei_bank_operations.group_ei_bank_approver', 'ei_cashbook.group_ei_cash_approver'],
+    'demo.sysadmin': ['base.group_system', 'ei_legacy_master.group_ei_user'],   # administrator with NO business role
 }
 U = {}
 for login, groups in ROLES.items():
@@ -79,6 +81,15 @@ if not env['ei.contract'].search([('contract_ref', '=', 'DEMO/ISL/001')]):
             d.with_user(U['contractapprover']).action_approve()
         return d
     da1, da2, da3 = mkda('DA-DEMO-5501', 40, c1), mkda('DA-DEMO-5502', 25, c2), mkda('DA-DEMO-5503', 30, c1, approve=False)
+    # a second supplier with an approved DA that has NO order yet (lets the browser suite press "Generate Daily Order")
+    parent2 = env['res.partner'].search([('name', '=', 'DEMO Parent Steel Mill 2')]) or env['res.partner'].create({'name': 'DEMO Parent Steel Mill 2', 'is_company': True})
+    ct3 = as_('contracts', 'ei.contract').create({
+        'parent_partner_id': parent2.id, 'contract_ref': 'DEMO/ISL/002', 'contract_type': 'local_direct',
+        'line_ids': [Command.create({'product_id': prod.id, 'grade': 'HR 3.0 mm', 'ordered_mtl': 50, 'purchase_rate': 200000, 'sale_rate': 210000})]})
+    att(ct3); ct3.with_user(U['contracts']).action_review(); ct3.with_user(U['contractapprover']).action_approve(); ct3.with_user(U['contracts']).action_activate()
+    da4 = as_('contracts', 'ei.da').create({'name': 'DA-DEMO-6601', 'parent_partner_id': parent2.id, 'contract_id': ct3.id,
+        'line_ids': [Command.create({'contract_line_id': ct3.line_ids.id, 'mtl': 20, 'customer_id': c2.id})]})
+    att(da4); da4.with_user(U['contracts']).action_review(); da4.with_user(U['contractapprover']).action_approve()
     order = env['ei.daily.order'].with_user(U['contracts']).generate_from_da(da1)
     env['ei.daily.order'].with_user(U['contracts']).generate_from_da(da2)
     order.with_user(U['contractapprover']).action_approve()

@@ -1,0 +1,21 @@
+# Real-browser end-to-end suite
+
+Runs Chromium (Playwright) against a real Odoo 20 server on a fresh copy of the pristine staging database. It is part of the
+standard run: `tests/run_all.sh` (unit tests, then this). On its own: `tests/run_e2e.sh [--spec NAME]`.
+
+Needs: Node 20+, `playwright` and `axe-core` resolvable from `NODE_PATH` (this machine: `~/tfmsg-website/node_modules`), a Chromium for Playwright,
+PostgreSQL, the Odoo 20 unpack in `~/odoo20` and `wkhtmltopdf` on the path (`migration/env.sh` adds it) because one flow prints a real PDF.
+
+How it works: `migration/build_staging.sh ei_e2e_tpl` builds the pristine template once (a few minutes; rebuilt automatically when a module manifest is newer, or with
+`EI_E2E_REBUILD=1`); every run clones it, updates the clone to the current code, starts a loopback-only server on port 8372 and runs the specs in `specs/` in order.
+Results: `docs/e2e_results.md`, screenshots in `docs/ui/e2e/`. Exit code 1 if any check fails.
+
+| Spec | What it proves |
+|---|---|
+| 01 | Every action and wizard that returns a window action: revise, amend, new version, email composer, print a real PDF, generate order, cancel-order wizard, invoice wizard, the three import wizards, dashboard and its drill-downs (on the pre-upgrade code the cancel, invoice and import wizards fail: `docs/e2e_baseline_reproduction.md`) |
+| 02 | Seven role personas see the right Home and nothing more; every money figure opens its records (the CEO access regression) |
+| 03 | Every figure, alert, pipeline stage and launcher button opens real records; My Work snooze, assign and escalate change real data; search; Ctrl+K; dark theme |
+| 04 | Party 360: keyboard search, explain-this-number, drill-down, role limits, compact on a phone |
+| 05 | Six widths (375, 390, 768, 1024, 1440, 1920) x key screens x light and dark: no overflow, nothing clipped, no console or server errors, axe finds nothing serious on our screens |
+
+Reproducing a bug first: run `node tests/e2e/run.js --base http://127.0.0.1:PORT --spec 01` against an older checkout (git worktree of `b7ef73e` and a database built from it); the result of doing exactly that is in `docs/e2e_baseline_reproduction.md`.
