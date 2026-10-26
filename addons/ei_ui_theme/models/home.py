@@ -104,10 +104,11 @@ PROFILE_KPIS = {
     'general': ['k_contracts', 'k_left'],
 }
 PROFILE_LAYOUT = {
-    # the "New" menu in the header holds the starting points; the launcher section stays only where starting things IS the job
-    'executive': ['hero', 'flows', 'recent', 'alerts', 'kpis', 'work', 'charts', 'activity'],
-    'finance': ['hero', 'flows', 'recent', 'alerts', 'kpis', 'work', 'charts', 'activity'],
-    'accountant': ['work', 'kpis', 'alerts', 'hero', 'flows', 'charts', 'recent', 'activity'],
+    # the "New" menu in the header holds the starting points; the launcher section stays only where starting things IS the job.
+    # The three money roles open on a summary strip and one block of "what needs you" (alerts + decisions): the first screen is the work.
+    'executive': ['summary', 'decide', 'hero', 'flows', 'recent', 'kpis', 'work', 'charts', 'activity'],
+    'finance': ['summary', 'decide', 'hero', 'flows', 'recent', 'kpis', 'work', 'charts', 'activity'],
+    'accountant': ['summary', 'decide', 'hero', 'flows', 'recent', 'kpis', 'work', 'charts', 'activity'],
     'logistics': ['work', 'kpis', 'quick', 'hero', 'flows', 'alerts', 'recent', 'activity', 'charts'],
     'contract': ['work', 'kpis', 'quick', 'hero', 'flows', 'alerts', 'recent', 'activity', 'charts'],
     'data_entry': ['work', 'quick', 'kpis', 'alerts', 'hero', 'recent', 'activity', 'charts', 'flows'],

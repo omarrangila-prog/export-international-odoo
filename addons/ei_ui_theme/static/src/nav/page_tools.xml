@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="ei_ui_theme.PageTools">
+        <button t-if="this.state.list" type="button" class="ei-density-toggle" t-att-style="'top:' + this.state.top + 'px; right:' + this.state.right + 'px'"
+                t-on-click="() => this.toggle()" t-att-aria-pressed="this.state.compact ? 'true' : 'false'" t-att-title="this.state.compact ? 'Back to comfortable rows' : 'Show more rows on the screen (compact)'">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+            <span><t t-if="this.state.compact">Comfortable</t><t t-else="">Compact</t></span>
+        </button>
+    </t>
+</templates>

@@ -40,10 +40,9 @@
                                     </div>
                                 </div>
                             </div>
-                            <p class="ei-top-lead">Your business at a glance: money, material and bank in one place.</p>
                             <p class="ei-top-sub">
-                                <span class="ei-role"><svg class="ei-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.icon('user')"/></svg><span t-out="d.header.user"/> · <span t-out="d.header.role"/></span>
-                                <span class="ei-sep" aria-hidden="true">·</span><span t-out="d.header.company"/><span class="ei-sep" aria-hidden="true">·</span><span t-out="d.header.date"/>
+                                <span class="ei-role"><svg class="ei-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.icon('user')"/></svg><span class="ei-role-user"><span t-out="d.header.user"/> · </span><span t-out="d.header.role"/></span>
+                                <span class="ei-sub-company"><span class="ei-sep" aria-hidden="true">·</span><span t-out="d.header.company"/></span><span class="ei-sep" aria-hidden="true">·</span><span t-out="d.header.date"/>
                             </p>
                         </div>
                         <div class="ei-top-tools">
@@ -77,8 +76,67 @@
 
                     <t t-foreach="this.layout" t-as="sec" t-key="sec">
 
+                    <!-- on a phone the secondary sections fold into one-line bars -->
+                    <button t-if="this.foldable(sec)" type="button" class="ei-foldbar" t-on-click="() => this.toggleFold(sec)" t-att-aria-expanded="this.isOpen(sec) ? 'true' : 'false'">
+                        <span t-out="this.foldTitle(sec)"/><svg class="ei-svg ei-foldchev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.icon('chevron')"/></svg>
+                    </button>
+
+                    <!-- ===== summary: five figures, each says what it is made of ===== -->
+                    <section t-if="sec === 'summary'" class="ei-section ei-summary" aria-label="Summary figures">
+                        <div class="ei-sum-grid">
+                            <button t-foreach="this.summaryTiles" t-as="t" t-key="t.key" t-att-class="'ei-sum ei-tone-' + t.tone" t-on-click="() => this.onSummary(t)" t-att-title="t.help || false"
+                                    t-att-aria-label="t.label + ': ' + t.value + '. ' + t.tag + '. ' + t.sub + '. Open the records.'">
+                                <span class="ei-sum-top"><span class="ei-sum-label" t-out="t.label"/><span class="ei-sum-tag" t-out="t.tag"/></span>
+                                <span class="ei-sum-value ei-num" t-out="t.value"/>
+                                <span class="ei-sum-sub" t-out="t.sub"/>
+                            </button>
+                        </div>
+                    </section>
+
+                    <!-- ===== decide: what needs a person, in one block ===== -->
+                    <section t-if="sec === 'decide'" class="ei-section ei-decide" aria-labelledby="ei-h-alerts">
+                        <div class="ei-decide-grid">
+                            <article class="ei-hcard ei-decide-alerts">
+                                <header class="ei-hcard-head">
+                                    <h2 class="ei-hcard-title" id="ei-h-alerts">Needs attention <span t-if="d.alerts.length" class="ei-count" t-out="d.alerts.length"/></h2>
+                                </header>
+                                <div t-if="!d.alerts.length" class="ei-allclear" role="status">
+                                    <svg class="ei-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.icon('check')"/></svg>
+                                    <span><b>No alerts.</b> No duplicate payments, unmatched invoices or stuck approvals right now.</span>
+                                </div>
+                                <ul t-else="" class="ei-alerts ei-dalerts">
+                                    <li t-foreach="this.decideAlerts" t-as="a" t-key="a.key">
+                                        <button t-att-class="'ei-alert ei-sev-' + a.severity" t-on-click="() => this.onAlert(a)">
+                                            <span class="ei-alert-ico"><svg class="ei-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.icon(a.severity === 'danger' ? 'alert' : 'flag')"/></svg></span>
+                                            <span class="ei-alert-text"><span class="ei-alert-label"><span class="visually-hidden" t-out="a.severity === 'danger' ? 'Problem: ' : 'Warning: '"/><span t-out="a.label"/><span t-if="a.age" class="ei-alert-age" t-out="a.age"/></span><span class="ei-alert-detail" t-out="a.detail"/></span>
+                                            <span class="ei-alert-count" t-out="a.count"/>
+                                            <span t-if="a.cta" class="ei-alert-cta"><t t-out="a.cta"/><svg class="ei-svg ei-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.icon('chevron')"/></svg></span>
+                                        </button>
+                                    </li>
+                                </ul>
+                                <button t-if="d.alerts.length > 4" class="ei-link ei-decide-more" t-on-click="() => this.state.allAlerts = !this.state.allAlerts" t-att-aria-expanded="this.state.allAlerts ? 'true' : 'false'"><t t-if="this.state.allAlerts">Show fewer</t><t t-else="">Show all <t t-out="d.alerts.length"/></t></button>
+                            </article>
+                            <article class="ei-hcard ei-decide-tasks">
+                                <header class="ei-hcard-head">
+                                    <h2 class="ei-hcard-title"><t t-if="this.decideTasks.mine">Your decisions</t><t t-else="">Team queue</t> <span class="ei-count" t-out="this.decideTasks.total"/></h2>
+                                    <button class="ei-link" t-on-click="() => this.goTo('work')">All work</button>
+                                </header>
+                                <p t-if="!this.decideTasks.rows.length" class="ei-allclear" role="status"><b>Nothing is waiting.</b></p>
+                                <ul t-else="" class="ei-dtasks">
+                                    <li t-foreach="this.decideTasks.rows" t-as="t" t-key="t.id">
+                                        <button class="ei-dtask" t-on-click="() => this.onTask(t)" t-att-aria-label="t.step + ': ' + t.title + '. ' + t.age_text + '. Open.'">
+                                            <span t-att-class="'ei-prio-dot ei-prio-' + t.priority" aria-hidden="true"/>
+                                            <span class="ei-dtask-main"><span class="ei-task-step" t-out="t.step"/><span class="ei-task-title" t-out="this.shortName(t)"/><span class="ei-task-meta"><t t-if="t.party" t-out="t.party"/><t t-if="t.party and t.amount"> - </t><span t-if="t.amount" class="ei-num" t-out="t.amount"/></span></span>
+                                            <span t-att-class="'ei-age' + (t.overdue ? ' is-late' : '')" t-out="t.age_text"/>
+                                        </button>
+                                    </li>
+                                </ul>
+                            </article>
+                        </div>
+                    </section>
+
                     <!-- ===== hero: the contract-to-payment pipeline, what customers owe, and the question box ===== -->
-                    <section t-if="sec === 'hero'" class="ei-section ei-hero" aria-labelledby="ei-h-hero">
+                    <section t-if="sec === 'hero' and this.isOpen('hero')" class="ei-section ei-hero" aria-labelledby="ei-h-hero">
                         <h2 class="visually-hidden" id="ei-h-hero">The business at a glance</h2>
                         <div class="ei-hero-grid">
                             <article t-if="d.pipeline.length" class="ei-hcard ei-hero-pipe">
@@ -122,10 +180,11 @@
                                     <button class="ei-iconbtn ei-tablebtn" t-on-click="() => this.state.tables.aging = !this.state.tables.aging" t-att-aria-pressed="this.state.tables.aging ? 'true' : 'false'" t-att-aria-label="this.state.tables.aging ? 'Show chart' : 'Show as table'" t-att-title="this.state.tables.aging ? 'Show chart' : 'Show as table'"><svg class="ei-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.icon('list')"/></svg></button>
                                 </header>
                                 <t t-set="ag" t-value="this.agingHero"/>
-                                <div class="ei-bignum-row">
+                                <div t-if="!this.hasSummary" class="ei-bignum-row">
                                     <span class="ei-bignum ei-num" t-out="ag.total_text"/>
                                     <span t-if="ag.total" t-att-class="'ei-dchip ' + (ag.latePct > 0 ? 'is-bad' : 'is-ok')"><t t-out="ag.latePct"/>% late</span>
                                 </div>
+                                <p t-else="" class="ei-agesum"><b class="ei-num" t-out="ag.total_text"/> in total <span t-if="ag.total" t-att-class="'ei-dchip ' + (ag.latePct > 0 ? 'is-bad' : 'is-ok')"><t t-out="ag.latePct"/>% late</span></p>
                                 <div t-if="!ag.empty and !this.state.tables.aging" class="ei-agemeter" role="img" t-att-aria-label="ag.meterLabel">
                                     <t t-foreach="ag.rows" t-as="r" t-key="r.label"><span t-if="r.value > 0" t-att-class="'ei-step-' + r.step" t-att-style="'flex: ' + r.value + ' 1 0'"/></t>
                                 </div>
@@ -173,7 +232,7 @@
                     </section>
 
                     <!-- ===== flows: this period against the one before, then banks and who owes most ===== -->
-                    <section t-if="sec === 'flows'" class="ei-section" aria-labelledby="ei-h-flows">
+                    <section t-if="sec === 'flows' and this.isOpen('flows')" class="ei-section" aria-labelledby="ei-h-flows">
                         <h2 class="ei-h2" id="ei-h-flows">Money and material <span class="ei-h2-note" t-if="d.flows.length"><t t-out="d.period.range"/>, compared to <t t-out="d.period.compare"/></span></h2>
                         <div class="ei-flow-grid">
                             <article t-foreach="d.flows" t-as="f" t-key="f.key" t-att-class="'ei-hcard ei-flow ei-c-' + f.color">
@@ -218,7 +277,8 @@
                                     <h3 class="ei-hcard-title">Bank balances</h3>
                                     <button class="ei-iconbtn ei-flow-open" t-on-click="() => this.onKpi({key: 'bank'})" aria-label="Open the bank confirmations" title="Open the records"><svg class="ei-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.icon('arrowright')"/></svg></button>
                                 </header>
-                                <div class="ei-bignum-row"><span class="ei-bignum ei-num" t-out="d.banks_total"/><span class="ei-dchip">Book balance</span></div>
+                                <div t-if="!this.hasSummary" class="ei-bignum-row"><span class="ei-bignum ei-num" t-out="d.banks_total"/><span class="ei-dchip">Book balance</span></div>
+                                <p t-else="" class="ei-agesum"><b class="ei-num" t-out="d.banks_total"/> <span class="ei-dchip">Book balance</span></p>
                                 <p class="ei-hcard-sub">What the ledger holds. It is bank-confirmed only when someone typed the bank's own balance and the two agree.</p>
                                 <ul class="ei-banklist">
                                     <li t-foreach="d.banks" t-as="b" t-key="b.name">
@@ -235,8 +295,7 @@
                                     <span class="ei-hico ei-hico-s2"><svg class="ei-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.icon('party')"/></svg></span>
                                     <h3 class="ei-hcard-title" t-out="d.top_owing.title"/>
                                 </header>
-                                <div class="ei-bignum-row"><span class="ei-bignum ei-num" t-out="d.top_owing.total_text"/></div>
-                                <p class="ei-hcard-sub">Owed in total. Each row opens the party.</p>
+                                <p class="ei-hcard-sub">Owed in total: <b class="ei-num" t-out="d.top_owing.total_text"/>. Each row opens the party.</p>
                                 <ul class="ei-owelist">
                                     <li t-foreach="d.top_owing.rows" t-as="r" t-key="r.partner_id">
                                         <button class="ei-owe" t-on-click="() => this.onOwing(r)" t-att-aria-label="r.name + ' owes ' + r.text + (r.overdue ? ', of which ' + r.overdue_text + ' is overdue' : '') + '. Open the party.'">
@@ -253,7 +312,7 @@
                     </section>
 
                     <!-- ===== recent documents ===== -->
-                    <section t-if="sec === 'recent'" class="ei-section" aria-labelledby="ei-h-recent">
+                    <section t-if="sec === 'recent' and this.isOpen('recent')" class="ei-section" aria-labelledby="ei-h-recent">
                         <article class="ei-hcard ei-recent">
                             <header class="ei-hcard-head">
                                 <span class="ei-hico ei-hico-s1"><svg class="ei-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.icon(d.recent.kind === 'invoices' ? 'invoice' : 'truck')"/></svg></span>
@@ -280,7 +339,7 @@
                     </section>
 
                     <!-- ===== layer 1: figures ===== -->
-                    <section t-if="sec === 'kpis'" class="ei-section" aria-labelledby="ei-h-kpis">
+                    <section t-if="sec === 'kpis' and this.isOpen('kpis')" class="ei-section" aria-labelledby="ei-h-kpis">
                         <h2 class="ei-h2" id="ei-h-kpis">At a glance</h2>
                         <div class="ei-grid-kpi">
                             <button t-foreach="this.kpiMain" t-as="k" t-key="k.key" t-att-class="'ei-kpi ei-tone-' + k.tone" t-att-title="k.help || false" t-on-click="() => this.onKpi(k)" t-att-aria-label="k.label + ': ' + k.value + '. ' + k.sub + '. Open the records.'">
@@ -301,7 +360,7 @@
                     </section>
 
                     <!-- ===== layer 2: alerts ===== -->
-                    <section t-if="sec === 'alerts'" class="ei-section" aria-labelledby="ei-h-alerts">
+                    <section t-if="sec === 'alerts' and this.isOpen('alerts')" class="ei-section" aria-labelledby="ei-h-alerts">
                         <h2 class="ei-h2" id="ei-h-alerts">Needs attention <span t-if="d.alerts.length" class="ei-count" t-out="d.alerts.length"/></h2>
                         <div t-if="!d.alerts.length" class="ei-card ei-allclear" role="status">
                             <svg class="ei-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.icon('check')"/></svg>
@@ -321,7 +380,7 @@
                     </section>
 
                     <!-- ===== My work today ===== -->
-                    <section t-if="sec === 'work'" class="ei-section" aria-labelledby="ei-h-work">
+                    <section t-if="sec === 'work' and this.isOpen('work')" class="ei-section" aria-labelledby="ei-h-work">
                         <div class="ei-work-head">
                             <h2 class="ei-h2" id="ei-h-work"><t t-if="d.work.oversight">What is stuck across the company</t><t t-else="">My work today</t> <span class="ei-count" t-out="d.work.total"/></h2>
                             <div class="ei-chips" role="group" aria-label="Filter my work">
@@ -376,7 +435,7 @@
                     </section>
 
                     <!-- ===== material on active contracts (its own card when the hero shows what customers owe) ===== -->
-                    <section t-if="sec === 'charts'" class="ei-section" aria-labelledby="ei-h-charts">
+                    <section t-if="sec === 'charts' and this.isOpen('charts')" class="ei-section" aria-labelledby="ei-h-charts">
                         <article class="ei-hcard ei-chart">
                             <header class="ei-hcard-head">
                                 <span class="ei-hico ei-hico-s3"><svg class="ei-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.icon('truck')"/></svg></span>
@@ -395,7 +454,7 @@
                     </section>
 
                     <!-- ===== recent activity ===== -->
-                    <section t-if="sec === 'activity'" class="ei-section" aria-labelledby="ei-h-act">
+                    <section t-if="sec === 'activity' and this.isOpen('activity')" class="ei-section" aria-labelledby="ei-h-act">
                         <h2 class="ei-h2" id="ei-h-act">What happened recently</h2>
                         <ul class="ei-card ei-feed">
                             <li t-foreach="this.activityRows" t-as="g" t-key="g.key">
@@ -431,7 +490,7 @@
                     </section>
 
                     <!-- ===== quick actions, grouped ===== -->
-                    <section t-if="sec === 'quick'" class="ei-section" aria-labelledby="ei-h-quick">
+                    <section t-if="sec === 'quick' and this.isOpen('quick')" class="ei-section" aria-labelledby="ei-h-quick">
                         <h2 class="ei-h2" id="ei-h-quick">Start something</h2>
                         <div class="ei-launch">
                             <div t-foreach="d.quick" t-as="g" t-key="g.key" class="ei-card ei-launch-group" role="group" t-att-aria-label="g.label">
@@ -445,7 +504,7 @@
                     </section>
 
                     <!-- ===== system health (administrators) ===== -->
-                    <section t-if="sec === 'system'" class="ei-section" aria-labelledby="ei-h-sys">
+                    <section t-if="sec === 'system' and this.isOpen('system')" class="ei-section" aria-labelledby="ei-h-sys">
                         <h2 class="ei-h2" id="ei-h-sys">System checks</h2>
                         <ul class="ei-card ei-checks">
                             <li t-foreach="d.system.checks" t-as="c" t-key="c.label">

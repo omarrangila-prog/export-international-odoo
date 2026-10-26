@@ -4,7 +4,8 @@ import { registry } from "@web/core/registry";
 // The activity panel (messages, notes, reminders) used to take a third of every record. This button, beside the pager, hides or shows it;
 // the choice is remembered in this browser. Where the record is already narrow, Odoo puts the panel below the sheet and there is nothing to hide.
 const KEY = "ei.chatter.hidden";
-const read = () => { try { return localStorage.getItem(KEY) === "1"; } catch { return false; } };
+// the record comes first: the activity panel is closed until a person opens it (and then stays as they left it)
+const read = () => { try { return localStorage.getItem(KEY) !== "0"; } catch { return true; } };
 
 export class EiChatterToggle extends Component {
     static template = "ei_ui_theme.ChatterToggle";
@@ -21,10 +22,10 @@ export class EiChatterToggle extends Component {
         onWillUnmount(() => { this.observer.disconnect(); window.removeEventListener("resize", this.update); });
     }
     measure() {
-        const panel = document.querySelector(".o_form_view .o-mail-Form-chatter.o-aside, .o_form_view.ei-chatter-off .o_form_renderer");
+        const panel = document.querySelector(".o_form_view .o-mail-ChatterContainer");         // still in the page when it is hidden
         const pager = document.querySelector(".o_form_view .o_control_panel .o_cp_pager");
         const anchor = pager || document.querySelector(".o_form_view .o_control_panel");
-        const present = !!document.querySelector(".o_form_view .o_form_renderer") && (!!panel || this.state.hidden) && !!anchor;
+        const present = !!document.querySelector(".o_form_view .o_form_renderer") && !!panel && !!anchor;
         this.state.present = present;
         if (present) {
             const r = anchor.getBoundingClientRect();

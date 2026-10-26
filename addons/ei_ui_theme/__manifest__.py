@@ -13,6 +13,7 @@
         'views/cards.xml',
         'views/guidance.xml',
         'views/help.xml',
+        'views/login_templates.xml',
     ],
     'assets': {
         'web._assets_primary_variables': [
@@ -26,11 +27,18 @@
             'ei_ui_theme/static/src/nav/nav_current.js',
             'ei_ui_theme/static/src/nav/chatter_toggle.js',
             'ei_ui_theme/static/src/nav/chatter_toggle.xml',
+            'ei_ui_theme/static/src/nav/page_tools.js',
+            'ei_ui_theme/static/src/nav/page_tools.xml',
+            'ei_ui_theme/static/src/nav/env_badge.js',
+            'ei_ui_theme/static/src/nav/env_badge.xml',
             'ei_ui_theme/static/src/search/search_box.js',
             'ei_ui_theme/static/src/search/search_box.xml',
             'ei_ui_theme/static/src/search/command_provider.js',
             'ei_ui_theme/static/src/home/home.js',
             'ei_ui_theme/static/src/home/home.xml',
+        ],
+        'web.assets_frontend': [
+            'ei_ui_theme/static/src/login/login.scss',
         ],
         'web.assets_web_dark': [
             'ei_ui_theme/static/src/scss/theme.dark.scss',

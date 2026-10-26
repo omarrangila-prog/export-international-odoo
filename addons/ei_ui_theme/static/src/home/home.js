@@ -42,7 +42,7 @@ export class EiHome extends Component {
         this.state = proxy({
             loading: true, error: false, data: null, filter: "all", showSnoozed: false, menu: null, dialog: null, busy: false,
             toast: null, tables: { aging: false }, snoozed: null, allTasks: false,
-            period: "14d", flowTables: {}, flowTip: null, pipeTip: null, ask: "", newMenu: false, openDays: {},
+            period: "14d", flowTables: {}, flowTip: null, pipeTip: null, ask: "", newMenu: false, allAlerts: false, openDays: {}, phone: window.innerWidth <= 640, folds: {},
         });
         this.filters = FILTERS;
         this.snoozeChoices = SNOOZE;
@@ -53,8 +53,9 @@ export class EiHome extends Component {
             if (this.state.newMenu && !ev.target.closest(".ei-newwrap")) { this.state.newMenu = false; }
         };
         onWillStart(() => this.load());
-        onMounted(() => { document.addEventListener("keydown", this.onKey); document.addEventListener("click", this.onDocClick); });
-        onWillUnmount(() => { document.removeEventListener("keydown", this.onKey); document.removeEventListener("click", this.onDocClick); clearTimeout(this.toastTimer); });
+        this.onResize = () => { this.state.phone = window.innerWidth <= 640; };
+        onMounted(() => { document.addEventListener("keydown", this.onKey); document.addEventListener("click", this.onDocClick); window.addEventListener("resize", this.onResize); });
+        onWillUnmount(() => { document.removeEventListener("keydown", this.onKey); document.removeEventListener("click", this.onDocClick); window.removeEventListener("resize", this.onResize); clearTimeout(this.toastTimer); });
     }
 
     // ------------------------------------------------------------------ data
@@ -81,6 +82,8 @@ export class EiHome extends Component {
     get layout() { return this.state.data.layout.filter((s) => this.hasSection(s)); }
     hasSection(key) {
         const d = this.state.data;
+        if (key === "summary") { return this.summaryTiles.length > 0; }
+        if (key === "decide") { return true; }
         if (key === "hero") { return d.pipeline.length > 0 || !!d.charts.aging || !!d.charts.material; }
         if (key === "flows") { return d.flows.length > 0 || d.banks.length > 0 || !!d.top_owing; }
         if (key === "recent") { return !!d.recent && d.recent.rows.length > 0; }
@@ -94,13 +97,59 @@ export class EiHome extends Component {
         if (key === "system") { return !!d.system; }
         return false;
     }
-    // one figure, one place: what the hero shows (what customers owe) and the bank card (bank balances) are not repeated as tiles
+    // one figure, one place: the summary strip carries what customers owe, the bank balance and the bank money to match
     get kpis() {
         const d = this.state.data, here = new Set();
-        if (this.agingHero) { here.add("ar"); }
-        if (d.banks.length && d.layout.includes("flows")) { here.add("bank"); }
+        if (d.layout.includes("summary")) { ["ar", "bank", "waiting"].forEach((k) => here.add(k)); }
+        else {
+            if (this.agingHero) { here.add("ar"); }
+            if (d.banks.length && d.layout.includes("flows")) { here.add("bank"); }
+        }
         return d.kpis.filter((k) => !here.has(k.key));
     }
+    get hasSummary() { return this.state.data.layout.includes("summary"); }
+    // ---- the first screen: five figures (each says what it is made of), then what needs a person
+    get summaryTiles() {
+        const d = this.state.data, k = (key) => d.kpis.find((x) => x.key === key), out = [];
+        const bank = k("bank"), ar = k("ar"), waiting = k("waiting");
+        if (bank) { out.push({ key: "bank", label: "Bank balance", tag: "Book balance", value: bank.value, sub: bank.sub, tone: bank.tone, help: bank.help }); }
+        if (ar) { out.push({ key: "ar", label: "Customers owe us", tag: "Posted ledger", value: ar.value, sub: ar.sub, tone: ar.tone, help: ar.help }); }
+        if (waiting) { out.push({ key: "waiting", label: "Bank money to match", tag: "Not settled yet", value: waiting.value, sub: waiting.sub, tone: waiting.tone, help: waiting.help }); }
+        if (ar || bank || waiting) {
+            const items = d.work.items, act = items.filter((t) => t.can_act && !t.view_only);
+            out.push({ key: "decisions", label: "Waiting for your decision", tag: "Your role", value: String(act.length), sub: act.length ? `${items.length - act.length} more in the team queue` : (items.length ? `Nothing for you; ${items.length} in the team queue` : "Nothing is waiting"), tone: act.length ? "warning" : "ok", help: "Steps your role may perform now. A step you prepared yourself needs a second person." });
+        }
+        const lifted = d.flows.find((f) => f.key === "lifted");
+        if (lifted) { out.push({ key: "lifted", label: "Material lifted", tag: "Verified loadings", value: lifted.text, sub: `${lifted.delta.text} against the days before`, tone: lifted.delta.tone === "bad" ? "warning" : "ok", help: lifted.sub }); }
+        return out;
+    }
+    onSummary(t) {
+        if (t.key === "decisions") { this.state.filter = "act"; return this.goTo("work"); }
+        if (t.key === "lifted") { return this.onFlow({ key: "lifted" }); }
+        return this.onKpi({ key: t.key });
+    }
+    // ---- what needs a person: every alert (with its next step) and the first decisions, side by side
+    get decideAlerts() { return this.state.allAlerts ? this.state.data.alerts : this.state.data.alerts.slice(0, 4); }
+    get decideTasks() {
+        const items = this.state.data.work.items, act = items.filter((t) => t.can_act && !t.view_only);
+        return { mine: act.length > 0, rows: (act.length ? act : items).slice(0, 4), total: act.length || items.length };
+    }
+    goTo(sec) {
+        if (this.foldable(sec) && !this.state.folds[sec]) { this.state.folds[sec] = true; }
+        const go = () => {
+            const el = document.getElementById("ei-h-" + sec);
+            if (el) { el.scrollIntoView({ behavior: "smooth", block: "start" }); el.focus?.({ preventScroll: true }); }
+        };
+        if (this.isOpen(sec)) { setTimeout(go, 60); }
+    }
+    // ---- on a phone the secondary sections fold into one-line bars; what needs a person stays open
+    foldable(sec) {
+        if (!this.state.phone || ["summary", "decide", "alerts", "system"].includes(sec)) { return false; }
+        return sec !== "work" || this.state.data.layout.includes("decide");     // the decisions block already shows the first items
+    }
+    isOpen(sec) { return !this.foldable(sec) || !!this.state.folds[sec]; }
+    toggleFold(sec) { this.state.folds[sec] = !this.state.folds[sec]; }
+    foldTitle(sec) { return { work: "All work", hero: "Contract to payment", flows: "Money and material", recent: "Recent documents", kpis: "At a glance", charts: "Material on contracts", activity: "What happened recently", quick: "Start something" }[sec] || sec; }
     get kpiMain() { return this.kpis.slice(0, 4); }
     get kpiMore() { return this.kpis.slice(4); }
     get tasks() {

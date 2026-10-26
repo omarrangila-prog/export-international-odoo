@@ -67,7 +67,9 @@ class TestHomeV2(TransactionCase):
             d = self.home(user)
             self.assertEqual(d['profile'], profile, user.login)
             self.assertEqual(sorted(d['layout']), sorted(set(d['layout'])), 'no section is listed twice')
-        self.assertEqual(self.home(self.ceo)['layout'][0], 'hero')          # the overview first
+        ceo_layout = self.home(self.ceo)['layout']
+        self.assertEqual(ceo_layout[:2], ['summary', 'decide'])             # the first screen is the figures and what needs a person
+        self.assertLess(ceo_layout.index('hero'), ceo_layout.index('work'))  # then the overview, before the long work list
         self.assertEqual(self.home(self.approver)['layout'][0], 'work')     # workflow first
         self.assertEqual(self.home(self.sysadmin)['layout'][0], 'system')
 

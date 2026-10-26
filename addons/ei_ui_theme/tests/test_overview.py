@@ -160,7 +160,7 @@ class TestOverview(TestJourney):
         kpi = next((k for k in d['kpis'] if k['key'] == 'bank'), None)
         if kpi:
             self.assertEqual(kpi['value'], d['banks_total'])
-        known = {'hero', 'flows', 'kpis', 'alerts', 'work', 'charts', 'recent', 'activity', 'quick', 'system'}
+        known = {'summary', 'decide', 'hero', 'flows', 'kpis', 'alerts', 'work', 'charts', 'recent', 'activity', 'quick', 'system'}
         for user in (self.ceo, self.bapprover, self.officer, self.maker, self.dispatch, self.cashclerk, self.capprover):
             lay = self.home(user)['layout']
             self.assertTrue(set(lay) <= known, (user.login, lay))

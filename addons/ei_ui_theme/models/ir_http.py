@@ -13,3 +13,10 @@ class IrHttp(models.AbstractModel):
         if choice in ('dark', 'light'):
             return choice
         return super().color_scheme()
+
+    def session_info(self):
+        """The top bar shows a badge when this database is not the live one (an administrator sets the label in System Parameters:
+        `ei.environment_label`, for example "STAGING - synthetic demo data"). Nothing is shown when the parameter is empty."""
+        res = super().session_info()
+        res['ei_environment_label'] = self.env['ir.config_parameter'].sudo().get_str('ei.environment_label', '')
+        return res

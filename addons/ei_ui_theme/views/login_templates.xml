@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- The sign-in page in the same language as the application: a brand line, the environment, then the form. Odoo's own form, security and
+         password recovery are untouched. -->
+    <template id="login_brand" inherit_id="web.login" name="Export International sign-in brand">
+        <xpath expr="//div[@id='oe_structure_login_top']" position="after">
+            <div class="ei-login-brand">
+                <span class="ei-login-mark" aria-hidden="true">EI</span>
+                <div class="ei-login-name"><b>Export International</b><small>Sign in to continue</small></div>
+                <span t-if="ei_environment" class="ei-login-env" t-out="ei_environment"/>
+            </div>
+        </xpath>
+    </template>
+</odoo>

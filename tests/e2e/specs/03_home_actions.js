@@ -64,7 +64,7 @@ module.exports = {
       await p.getByRole('button', { name: /^Put aside/ }).click(); await p.waitForTimeout(1200);
       ctx.check((await p.locator('.ei-task .ei-task-title').allInnerTexts()).map(t => t.trim()).includes(first), 'it is listed under "Put aside"');
       await p.getByRole('button', { name: 'Bring back' }).first().click(); await p.waitForTimeout(1200);
-      await p.getByRole('button', { name: /^All/ }).click(); await p.waitForTimeout(500);
+      await p.locator('.ei-chips').getByRole('button', { name: /^All/ }).click(); await p.waitForTimeout(500);
       ctx.check((await p.locator('.ei-task .ei-task-title').allInnerTexts()).map(t => t.trim()).includes(first), 'bringing it back puts it on the list again');
       void before;
     }

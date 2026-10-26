@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="ei_ui_theme.EnvBadge">
+        <span class="ei-env-badge" role="status" t-att-title="'This is not the live system: ' + this.label" ><span class="ei-env-full" t-out="this.label"/><span class="ei-env-short" t-out="this.short"/></span>
+    </t>
+</templates>

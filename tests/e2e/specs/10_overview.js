@@ -71,7 +71,12 @@ module.exports = {
     await ceo.home();
     const owedBooks = (await admin.rpc('account.move.line', 'search_read', [[['parent_state', '=', 'posted'], ['reconciled', '=', false], ['account_type', '=', 'asset_receivable']], ['amount_residual', 'partner_id']]));
     const owedTotal = owedBooks.reduce((t, r) => t + r.amount_residual, 0);
-    ctx.check(Math.abs(digits(await p.locator('.ei-hero-money .ei-bignum').innerText()) - owedTotal) < 0.01, '5 "Customers owe us" equals the open receivable items in the books', String(owedTotal));
+    // the receivable appears twice for the executive (summary tile + ageing card): both must equal the books
+    const owedCard = p.locator('.ei-hero-money:has(.ei-agerows)').first();
+    const owedOnCard = (await owedCard.locator('.ei-bignum, .ei-agesum b').first().innerText());
+    ctx.check(Math.abs(digits(owedOnCard) - owedTotal) < 0.01, '5 "Customers owe us" equals the open receivable items in the books', String(owedTotal));
+    const sumTile = p.locator('.ei-sum:has(.ei-sum-label:text-is("Customers owe us")) .ei-sum-value');
+    ctx.check(await sumTile.count() === 0 || Math.abs(digits(await sumTile.innerText()) - owedTotal) < 0.01, '5 and the summary tile at the top says the same amount', await sumTile.count() ? await sumTile.innerText() : 'no summary for this role');
     const ageRows = await p.locator('.ei-agerows li').count();
     const pcts = (await p.locator('.ei-agepct').allInnerTexts()).map(t => parseInt(t, 10));
     ctx.check(ageRows === 5 && Math.abs(pcts.reduce((a, b) => a + b, 0) - 100) <= 3, '5 five ageing rows whose shares add up to the whole', pcts.join('+'));

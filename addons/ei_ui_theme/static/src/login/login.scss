@@ -1,0 +1,20 @@
+// The sign-in page: the same soft page, white rounded card and blue action as the application. Only look and feel; the form, the
+// password recovery and every security flow are Odoo's own.
+body.o_web_login {
+    --ei-blue: #1D4ED8; --ei-ink: #0F1B33; --ei-muted: #566275; --ei-line: #CBD3DF;
+    background: radial-gradient(900px 420px at 8% -10%, rgba(42, 120, 214, .14), transparent 62%), radial-gradient(760px 380px at 100% 0%, rgba(27, 175, 122, .09), transparent 60%), #F4F6FA !important;
+    font-family: "Inter", "Segoe UI", system-ui, -apple-system, "Noto Sans", Roboto, Arial, sans-serif; color: #1E293B;
+    --bs-primary: #1D4ED8; --bs-primary-rgb: 29, 78, 216; --bs-link-color: #1D4ED8; --bs-link-hover-color: #1E40AF; --bs-link-color-rgb: 29, 78, 216;
+    .container { max-width: 520px; }
+    .card.o_database_list { width: 100% !important; max-width: 440px !important; background: #fff !important; border: 1px solid rgba(15, 27, 51, .06) !important; border-radius: 22px; box-shadow: 0 1px 2px rgba(15, 27, 51, .04), 0 18px 48px rgba(29, 78, 216, .10); padding: 10px 14px 6px; }
+    .ei-login-brand { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin: 6px 0 22px; padding-top: 6px; }
+    .ei-login-mark { display: inline-grid; place-items: center; width: 46px; height: 46px; border-radius: 14px; background: linear-gradient(135deg, #2A78D6, #1D4ED8); color: #fff; font-weight: 800; letter-spacing: -.02em; }
+    .ei-login-name { display: flex; flex-direction: column; line-height: 1.2; b { font-size: 21px; font-weight: 800; letter-spacing: -.02em; color: var(--ei-ink); } small { font-size: 13.5px; color: var(--ei-muted); } }
+    .ei-login-env { flex-basis: 100%; text-align: center; margin: 0; padding: 5px 12px; border-radius: 999px; background: #FEF3E2; color: #9A4D06; border: 1px solid #F7D9A8; font-size: 12px; font-weight: 700; letter-spacing: .03em; }
+    label { font-weight: 600; color: var(--ei-muted); font-size: 13.5px; }
+    .form-control { min-height: 46px; border-radius: 12px; border: 1px solid var(--ei-line); padding-inline: 14px; &:focus { border-color: var(--ei-blue); box-shadow: 0 0 0 4px #E8EEFC; } }
+    .btn-primary { background-color: #1D4ED8 !important; border-color: #1D4ED8 !important; color: #fff !important; &:hover { background-color: #1E40AF !important; border-color: #1E40AF !important; } --bs-btn-bg: #1D4ED8; --bs-btn-border-color: #1D4ED8; --bs-btn-hover-bg: #1E40AF; --bs-btn-hover-border-color: #1E40AF; --bs-btn-active-bg: #1E40AF; --bs-btn-disabled-bg: #1D4ED8; min-height: 46px; border-radius: 12px; font-weight: 700; background: var(--ei-blue); border-color: var(--ei-blue); box-shadow: 0 6px 16px rgba(29, 78, 216, .22); &:hover { background: #1E40AF; border-color: #1E40AF; } }
+    a:not(.btn), .btn-link { color: var(--ei-blue) !important; font-weight: 600; }
+    .btn-outline-secondary, .btn-secondary, .btn-light, .btn.border { color: var(--ei-ink) !important; border-color: var(--ei-line) !important; border-radius: 12px; }
+    .text-muted, .small { color: var(--ei-muted) !important; }
+}

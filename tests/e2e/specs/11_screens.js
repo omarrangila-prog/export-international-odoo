@@ -65,15 +65,15 @@ module.exports = {
     ctx.check(chat && radius(chat) >= 16, '3 the conversation beside it is its own rounded card', JSON.stringify(chat));
     const hs = await p.evaluate(() => { const e = document.querySelector('.o_form_sheet_bg'); return { sw: e.scrollWidth, cw: e.clientWidth }; });
     ctx.check(hs.sw <= hs.cw + 1, '3 the record has no sideways scrollbar of its own', JSON.stringify(hs));
+    ctx.check(await p.locator('.ei-chatter-toggle').count() === 1 && !(await p.locator('.o-mail-ChatterContainer').isVisible()) && /Show activity/.test(await p.locator('.ei-chatter-toggle').innerText()), '3 the record comes first: the activity panel is closed until opened, and a button says so');
     const w1 = (await style(p, '.o_form_sheet', [])).width;
-    ctx.check(await p.locator('.ei-chatter-toggle').count() === 1 && (await style(p, '.o-mail-ChatterContainer', [])).width <= 392, '3 the activity panel is a narrow side panel with a button to hide it', `chatter ${(await style(p, '.o-mail-ChatterContainer', [])).width}px`);
     await p.locator('.ei-chatter-toggle').click(); await p.waitForTimeout(500);
     const w2 = (await style(p, '.o_form_sheet', [])).width;
-    ctx.check(!(await p.locator('.o-mail-ChatterContainer').isVisible()) && w2 > w1 + 200, '3 hiding it gives the record the full width (the details come first, not an empty panel)', `${w1} -> ${w2}`);
+    ctx.check(await p.locator('.o-mail-ChatterContainer').isVisible() && (await style(p, '.o-mail-ChatterContainer', [])).width <= 392 && w2 < w1 - 200, '3 opening it gives a narrow side panel and the record gives up only that much width', `sheet ${w1} -> ${w2}`);
     await p.reload(); await p.waitForSelector('.o_form_sheet', { timeout: 20000 }); await p.waitForTimeout(800);
-    ctx.check(!(await p.locator('.o-mail-ChatterContainer').isVisible()), '3 the choice is remembered when the page is opened again');
+    ctx.check(await p.locator('.o-mail-ChatterContainer').isVisible(), '3 the choice is remembered when the page is opened again');
     await p.locator('.ei-chatter-toggle').click(); await p.waitForTimeout(400);
-    ctx.check(await p.locator('.o-mail-ChatterContainer').isVisible(), '3 and the button brings it back');
+    ctx.check(!(await p.locator('.o-mail-ChatterContainer').isVisible()), '3 and the button closes it again');
     await contrast(s, '.o_action_manager', '3 the record');
     await ctx.shot(p, 'screens_form');
     await p.locator('.o_control_panel .btn', { hasText: 'New' }).first().click(); await p.waitForFunction(() => /^New$/.test((document.querySelector('.o_last_breadcrumb_item') || {}).innerText && document.querySelector('.o_last_breadcrumb_item').innerText.trim()), null, { timeout: 15000 }); await p.waitForSelector('.o_form_sheet .o_field_widget input', { timeout: 15000 }); await p.waitForTimeout(700);
@@ -103,6 +103,74 @@ module.exports = {
     await ctx.shot(p, 'screens_dialog');
     await s.discard(m);
     await s.close();
+
+    // ================= the data grid, second pass
+    const g = await new Session(ctx, browser, 'admin', 'admin', [1280, 800], { timeout: 25000 }).start();
+    const gp = g.page; m = g.mark();
+    await g.goto('/odoo/action-ei_legacy_master.ei_legacy_code_action'); await gp.waitForSelector('.o_data_row', { timeout: 25000 }); await gp.waitForTimeout(800);
+    const cut = await gp.evaluate(() => [...document.querySelectorAll('thead th .text-truncate')].filter(e => e.scrollWidth > e.clientWidth + 1).map(e => e.innerText));
+    ctx.check(!cut.length, '7 no column title is cut off ("Approved u..." now wraps onto a second line)', cut.join(' | '));
+    const chip = await gp.evaluate(() => { const b = document.querySelector('.o_list_table .badge'); if (!b) return null; const a = getComputedStyle(b, '::before'); return { content: a.content, w: a.width }; });
+    ctx.check(chip && chip.content !== 'none' && chip.w === '7px', '7 a status chip carries a dot as well as its word', JSON.stringify(chip));
+    const rowH = async () => gp.evaluate(() => Math.round(document.querySelectorAll('.o_data_row')[3].getBoundingClientRect().height));
+    const comfy = await rowH();
+    await gp.locator('.ei-density-toggle').click(); await gp.waitForTimeout(300);
+    const compact = await rowH();
+    ctx.check(comfy - compact >= 10 && /Comfortable/.test(await gp.locator('.ei-density-toggle').innerText()), '7 the density switch makes rows compact, so more of the list fits on the screen', `${comfy}px -> ${compact}px`);
+    await gp.reload(); await gp.waitForSelector('.o_data_row', { timeout: 20000 }); await gp.waitForTimeout(600);
+    ctx.check(await rowH() === compact, '7 and the choice is remembered');
+    await gp.locator('.ei-density-toggle').click();
+    await gp.setViewportSize({ width: 1024, height: 768 }); await gp.waitForTimeout(500);
+    const sticky = await gp.evaluate(async () => {
+      const r = document.querySelector('.o_list_renderer'); const first = () => document.querySelector('.o_data_row td:nth-child(2)').getBoundingClientRect().left;
+      const before = first(); r.scrollLeft = 400; await new Promise(res => setTimeout(res, 200)); return { before: Math.round(before), after: Math.round(first()), scrolled: r.scrollLeft > 0 };
+    });
+    ctx.check(!sticky.scrolled || Math.abs(sticky.after - sticky.before) <= 2, '7 the identifying column stays in view when a wide list scrolls sideways', JSON.stringify(sticky));
+    await g.goto('/odoo/action-ei_reports.action_report_ar_aging'); await gp.waitForSelector('.o_cp_switch_buttons', { timeout: 25000 });
+    await gp.locator('.o_cp_switch_buttons button.o_list').click(); await gp.waitForSelector('.o_data_row', { timeout: 15000 });
+    const fig = await gp.evaluate(() => { const td = document.querySelector('.o_data_row td.o_list_number, .o_data_row td.o_monetary_cell'); if (!td) return null; const cs = getComputedStyle(td); return { align: cs.textAlign, nums: cs.fontVariantNumeric }; });
+    ctx.check(fig && /end|right/.test(fig.align) && /tabular/.test(fig.nums), '7 figures are right-aligned with tabular digits', JSON.stringify(fig));
+    await g.clean('7 the grid screens are clean', m);
+    await g.close();
+
+    // ================= a record on a phone, and a record header that stays
+    const rp = await new Session(ctx, browser, 'admin', 'admin', [390, 844], { timeout: 25000 }).start();
+    const q2 = rp.page; m = rp.mark();
+    await rp.goto('/odoo/action-ei_contract_da.ei_contract_action'); await q2.waitForSelector('.o_kanban_record', { timeout: 25000 });
+    await q2.locator('.o_kanban_record').first().click(); await q2.waitForSelector('.o_form_sheet', { timeout: 20000 }); await q2.waitForTimeout(900);
+    const emptyShown = await q2.evaluate(() => [...document.querySelectorAll('.o_form_view .o_form_label_empty')].filter(l => l.offsetParent !== null).length);
+    ctx.check(emptyShown === 0, '8 on a phone the empty read-only rows are not listed', `${emptyShown} still shown`);
+    const cards = await q2.evaluate(() => { const tr = document.querySelector('.o_field_x2many .o_data_row'); if (!tr) return null; const td = tr.querySelector('td[data-label]'); return { display: getComputedStyle(tr).display, labelled: !!td, label: td && td.dataset.label, before: td && getComputedStyle(td, '::before').content }; });
+    ctx.check(cards && cards.display === 'block' && cards.labelled && cards.before !== 'none', '8 the line items are cards, each value captioned with its column title', JSON.stringify(cards));
+    const lay2 = await rp.layout();
+    ctx.check(!lay2.overflow && !lay2.wide.length && !lay2.clipped.length, '8 the phone record has no sideways scrolling and nothing clipped', JSON.stringify(lay2.wide.concat(lay2.clipped)));
+    const stick = await q2.evaluate(async () => {
+      const sc = document.querySelector('.o_form_sheet_bg'); const bar = document.querySelector('.o_form_sheet_bg > .o_form_statusbar');
+      sc.scrollTop = 300; await new Promise(r => setTimeout(r, 250)); const a = bar.getBoundingClientRect().top, c = sc.getBoundingClientRect().top; return { moved: sc.scrollTop, gap: Math.round(a - c) };
+    });
+    ctx.check(stick.moved === 0 || stick.gap <= 2, '8 the record header (steps and actions) stays in view while the record scrolls', JSON.stringify(stick));
+    const btn = await q2.evaluate(() => [...document.querySelectorAll('.o_form_statusbar .o_statusbar_buttons .btn')].filter(b => b.offsetParent).map(b => Math.round(b.getBoundingClientRect().height)));
+    ctx.check(btn.length === 0 || btn.every(h => h >= 40), '8 the action buttons are touch-sized', btn.join(','));
+    await rp.clean('8 the phone record is clean', m);
+    await ctx.shot(q2, 'screens_phone_record_compact');
+    await rp.close();
+
+    // ================= the sign-in page and the environment badge
+    {
+      const lc = await browser.newContext({ viewport: { width: 1440, height: 900 } }); const lpage = await lc.newPage();
+      await lpage.goto(ctx.base + '/web/login'); await lpage.waitForSelector('input[name=login]', { timeout: 30000 }); await lpage.waitForTimeout(500);
+      const look = await lpage.evaluate(() => { const card = document.querySelector('.card.o_database_list'); const btn = document.querySelector('.oe_login_form .btn-primary'); const env = document.querySelector('.ei-login-env'); return { radius: parseFloat(getComputedStyle(card).borderTopLeftRadius), btn: getComputedStyle(btn).backgroundColor, brand: !!document.querySelector('.ei-login-brand'), env: env ? env.innerText : '', form: !!document.querySelector('form.oe_login_form'), reset: [...document.querySelectorAll('a')].some(a => /Reset Password/i.test(a.innerText)) }; });
+      ctx.check(look.brand && look.radius >= 18 && look.btn === 'rgb(29, 78, 216)', '9 the sign-in page carries the brand and the blue action of the application', JSON.stringify(look));
+      ctx.check(/STAGING|DEMO/i.test(look.env), '9 and says which system it is, so live and staging are never confused', look.env);
+      ctx.check(look.form && look.reset, '9 Odoo\'s own form and password recovery are untouched');
+      await lpage.setViewportSize({ width: 390, height: 844 });
+      const ov = await lpage.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1);
+      ctx.check(!ov, '9 the sign-in page fits a phone');
+      await lc.close();
+      const sb = await new Session(ctx, browser, 'admin', 'admin', [1440, 900], { timeout: 25000 }).start();
+      ctx.check(await sb.page.locator('.o_main_navbar .ei-env-badge').count() === 1 && /STAGING|DEMO/i.test(await sb.page.locator('.ei-env-badge').innerText()), '9 the top bar wears an environment badge when this is not the live system', await sb.page.locator('.ei-env-badge').count() ? await sb.page.locator('.ei-env-badge').innerText() : 'none');
+      await sb.close();
+    }
 
     // ================= dark
     const dk = await new Session(ctx, browser, 'admin', 'admin', [1440, 900], { cookies: [{ name: 'color_scheme', value: 'dark', path: '/' }], timeout: 20000 }).start();

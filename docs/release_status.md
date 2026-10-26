@@ -3,7 +3,7 @@
 **State: functional first build for UAT preparation. Not production-ready. No client data beyond the code list has been loaded.**
 
 ## Verified (reproducible)
-* 289 automated unit tests green on a fresh Odoo 20 database across 16 modules (`docs/test_results.md`), plus a real-browser suite of 12 specs (full run 26 Oct: 746 checks passed, 0 failed, 1 intentional skip) that is part of `tests/run_all.sh` (`docs/e2e_results.md`, `tests/e2e/README.md`).
+* 320 automated unit tests green on a fresh Odoo 20 database across 17 modules (`docs/test_results.md`), plus a real-browser suite of 15 specs (full run 26 Oct: 851 checks passed, 0 failed, 1 intentional skip; `docs/e2e_results.md`).
 * 639 legacy codes load from the real workbook and the CSV with identical content; re-import creates nothing new; codes keep their displayed text form.
 * New Home page and card views for every role; screens reviewed in `docs/ui/final/` (desktop admin/CEO/cash clerk, mobile dispatch). 25+ screens open in headless Chromium without error dialogs or console errors (`docs/screenshots/`).
 * Backup/restore round trip verified.
@@ -52,3 +52,16 @@ AI assistants (M14), Urdu labels, Docker Compose, performance tests, external se
 
 ## Review round and Reports - 26 Oct 2026 (`ei_ui_theme`, `ei_reports`)
 **Home, after reviewing it against a checklist:** the pipeline is eight step cards (no line joining unlike counts; each says what it counts); one place per figure; a negative cash balance is an exception; bank balances are labelled BOOK and a stale confirmation is an alert with a "Confirm the balance" button; who owes most is ranked with overdue against outstanding; every exception names its next step; lifted material is shown as three parts that add up; My Work says who owns what; recent activity is a digest; a "New" menu replaces the launcher at the foot of the page; the activity panel on a record can be hidden. **Reports (`ei_reports`):** see `AUDIT_AND_GAP_REPORT.md`, S18. **Not done:** profit and loss, balance sheet, trial balance, cash flow, PDF export and scheduled delivery of reports, document split-screen viewer, the other routes of the brief's audit (they follow the shared design but have not each been redesigned), a supervised five-second test with real staff.
+
+## Client screenshot review, first checkpoint - 26 Oct 2026 (branch `exi-two`)
+**What changed (and was checked in a real browser):**
+* **EXI-01, a button that fails:** the eight card screens carried `create="1"`, which stops Odoo hiding "New" from people who may not create. Removed. A unit test reads the real view of every role and a browser spec (13) opens every menu entry as nine roles and presses every "New" that is offered: none ends in an Access Error. The access rules were not touched.
+* **Home first screen is work.** For the executive, finance manager and accountant the page opens with five summary figures (each says what it is made of and opens its records) and, beside them, **what needs attention** and **your decisions** (or the team queue). The pipeline, flows, banks and charts follow. On a phone the first alert with its next-step button is inside the first 844 px (it was 2400 px down), money figures never wrap, and the secondary sections start folded. Spec 14 measures all of this at 1366x768, 1280x720, 683 px wide (200 % zoom) and 390x844.
+* **Screens:** density toggle on lists, sticky form status bar, phone record layout (empty fields hidden, x2many rows as cards), the activity panel starts hidden, a STAGING badge on the top bar and the sign-in page.
+* **Sign-in with a PIN** (`ei_pin_login`, `docs/pin_login.md`): a second way in beside user name + password. Everything about it is tested (27 unit tests, spec 15), including that a refusal always reads the same, that it never opens the programming interfaces, and that the system administrator signs in with the password only.
+
+**Verified:** 320 unit tests, 0 failed, on a fresh database (`docs/test_results.md`); the real-browser suite, 15 specs (`docs/e2e_results.md`).
+
+**Not done yet (the rest of the client order):** Party 360 re-organised into tabs, a sticky summary on the bank-matching screen, the approval-evidence dialog, the document split-screen viewer, the report workspace and Preview / Verified / Pending labels, trial balance / profit and loss / balance sheet / cash flow as labelled previews, PDF export and scheduled delivery, Firefox runs, the asset-bundle root-cause write-up, and the five-second test with real staff (a protocol and kit can be supplied; the test itself needs people).
+**Decisions needed:** `docs/open_decisions.md` 26 (which roles may use a PIN) and 27 (the PIN rules).
+

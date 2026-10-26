@@ -24,4 +24,9 @@ Results: `docs/e2e_results.md`, screenshots in `docs/ui/e2e/`. Exit code 1 if an
 | 10 | Overview on Home: period choice, cards equal the records and compare with the days before, pipeline counts, who owes most opens the party, recent invoices, the question box, an operator never sees money, phone/tablet/desktop, dark axe |
 | 11 | Standard screens (lists, cards, records, dialogs, pick-lists): computed styles of what the browser drew (rounded white card, soft shadow, gutter lined up with the top bar, boxed fields, filled step pill, visible Cancel), hover lift, mouse-wheel scrolling, axe contrast, dark theme, phone. Note: `--spec` matches file names by substring, so use `--spec 11_` (`11` also matches `05_responsive_a11y`) |
 
+| 12 | Reports: the catalog, the six real reports (chart, pivot, list), filters, drill-through, who may export, every total equal to the Home figure |
+| 13 | Every role x every menu entry x every "New" that is offered: it opens a form or a dialog, never an Access Error |
+| 14 | Home first screen: at 1366x768 and on a phone the summary figures and the first alert or decision (with its next step) are in the first screen; money figures never wrap; secondary sections start folded on a phone; 1280 and 683 px (200 % zoom) |
+| 15 | Sign-in with a PIN: both tabs, set it from the name menu, sign in with it, wrong PIN and unknown name read alike, the administrator is never offered one, removal, the log never holds a PIN, phone |
+
 Reproducing a bug first: run `node tests/e2e/run.js --base http://127.0.0.1:PORT --spec 01` against an older checkout (git worktree of `b7ef73e` and a database built from it); the result of doing exactly that is in `docs/e2e_baseline_reproduction.md`.
