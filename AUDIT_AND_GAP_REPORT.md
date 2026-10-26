@@ -65,6 +65,13 @@ Status words: **BUILT** = code + test exists and was run. **PARTIAL** = some of 
 | D17 | **P0** | **All three import wizards (bank statement, parent statement, old codes) failed on screen in Odoo 20 with "Oops! Something went wrong".** Odoo 20 hands an uploaded file back as a lazy `BinaryValue`, not base64 text; the wizards base64-decoded it. Every earlier test called `import_file()` directly with bytes, so a person uploading a bank statement was the first to hit it. | Browser flows 7-9; server log `binascii.Error: Invalid base64-encoded string`; unit test `test_17` drives each wizard the way the form does | One shared reader `upload_bytes()` (accepts the Odoo 20 value and legacy base64); used by all three wizards |
 | D18 | P1 | The "Invoice delivered material" wizard failed on Create ("Missing required field Lifting"): the screen marks the lifting read-only, so the browser never sent it | Browser flow 6; server log shows the INSERT with a NULL lifting | `force_save` on that field |
 
+**Found while building the matching screen (26 Oct 2026; each has a unit test that failed on the untouched code first):**
+| # | Sev | Finding | Evidence | Fix |
+|---|---|---|---|---|
+| D19 | P1 | **Two staged bank lines could each claim the same money on one invoice.** A staged line is not in the books, so its invoice still looks fully open; the allocation check only compared each claim with the invoice's open amount. Two receipts of 600 could both allocate 600 to a 1,000 invoice. (What posting then does was read from `_apply`, not replayed: the second line either stops the post at the poster's step or leaves an unmatched credit on the customer.) | `test_banking.test_20`: "UserError not raised" on the untouched code | `_check_alloc` also adds up the claims of every unposted confirmed line on the invoice |
+| D20 | P1 | **An officer could add an allocation but not take one back**: the officer role had create/read/update but not delete on allocations, so the trash-can in the line form raised an access error, and "Nobody knows who paid" told them to remove allocations they could not remove. | `test_banking.test_21`: "You are not allowed to delete ... (ei.bank.allocation)" | Officers may delete, but never once the line is posted, duplicate, rejected or its statement approved; every add and removal is now written on the line |
+| D21 | P1 | **Choosing a different party on a line that already had allocations kept the old party's allocations**, so invoices of party A could be settled by money recorded as party B's. | `test_banking.test_22`: no error on the untouched code | `action_verify_partner` refuses until those allocations are removed (the matching screen offers to remove them) |
+
 **Open:**
 | # | Sev | Finding |
 |---|---|---|
@@ -99,7 +106,7 @@ Status words: **BUILT** = code + test exists and was run. **PARTIAL** = some of 
 | S09 Supplier Invoice Intake | PARTIAL: manual entry, duplicate/mismatch blocking, bill creation; **no OCR/extraction, no side-by-side viewer** |
 | S10 Invoice Studio | PARTIAL: wizard from verified liftings; no template library or preview |
 | S11 Banking Command Center | PARTIAL: list-based; no API |
-| S12 Payment Matching Workbench | PARTIAL: line list + confirm + allocate; not the three-column layout |
+| **S12 Payment Matching Workbench** | **BUILT (new, `ei_matching`).** Three columns (list with four queues, decision, evidence and effect); a suggestion is labelled "Suggestion, not confirmed" with why and how sure, and only a click by a bank officer (with an evidence note unless the name is an approved alias) confirms it; open invoices of the party with an exact-sum or oldest-first *proposal that is never saved by itself*; money already claimed by another staged line is shown and refused (D19); same-amount-nearby warning; "what posting would do" preview that was checked against the real posting; unidentified, reject, ask a colleague, put aside; keyboard; phone step flow. It approves and posts nothing: a bank approver and a different person still do that. Not built: foreign-currency allocation (the model refuses it), an "advance / on account" status, a "this is not a duplicate" action (no such control exists in the bank module; see decisions) |
 | S13 Cash Book | BUILT (basic) |
 | S14 Accounting workspace | Odoo native; CEO now has read-only access |
 | S15 Parent Reconciliation Hub | BUILT |
@@ -110,9 +117,9 @@ Status words: **BUILT** = code + test exists and was run. **PARTIAL** = some of 
 | S20 Integration/System Health | PARTIAL: administrators get real system checks on Home (PDF engine, outgoing mail, summary job, staff accounts, connections); no job/queue health or retry console |
 
 ## 7. Gap against the 24 automations (A01-A24)
-BUILT: A05 (manual intake, duplicate and mismatch), A06, A07, A08, A09, A10, A12, A14, A16 (exact duplicates: bank fingerprint, supplier invoice number, gate pass, contract reference).
-PARTIAL: A02, A03 (order is a button, not automatic), A04 (no arrival tracking), A11 (suggestion vs verified states, no proof intake), A13 (approval yes, amount thresholds no), A20 (bank day only), A22 (formulas have effective dates; not tested against history), A24 (daily summary e-mail exists but its schedule is inactive).
-NOT BUILT: A01, A15, A17, A18, A19, A23.
+BUILT: A05 (manual intake, duplicate and mismatch), A06, A07, A08, A09, A10, A12, A14, A16 (exact duplicates: bank fingerprint, supplier invoice number, gate pass, contract reference). **A17, A18, A19, A24 (new, `ei_automation`):** reminders only, every rule ships OFF, the business owner switches it on and sets the days; see `docs/release_status.md`.
+PARTIAL: A02, A03 (order is a button, not automatic), A04 (no arrival tracking), A11 (suggestion vs verified states, no proof intake), A13 (approval yes, amount thresholds no), A20 (bank day only), A22 (formulas have effective dates; not tested against history).
+NOT BUILT: A01, A15, A23.
 N/A (no external connector exists): A21.
 
 ## 8. Baselines measured (25 Oct 2026, headless Chromium, local machine, warm assets, 5 runs, median)
@@ -132,10 +139,10 @@ Cold-start load time after a server restart was not measured. Not measured, and 
 ## 9. Prioritised backlog (next slices)
 1. **P0 hygiene:** browser tour tests in the standard run (O1); click every Home tile and every wizard result in CI.
 2. **Transaction timeline / "open entire transaction"** from a DA or contract (reuses the Party 360 chain code).
-3. **My Work Today v2:** owner, age, due, assign/delegate/comment on top of the real counts; A17/A18 reminders as the first automations.
+3. ~~**My Work Today v2** and A17/A18 reminders.~~ **Done** (My Work, `ei_automation`).
 4. **Explain-this-number** on the management dashboard (same pattern as Party 360).
 5. Supplier invoice side-by-side viewer + extraction behind an AI/OCR provider flag (needs a data-protection decision).
-6. Three-column payment matching workbench.
+6. ~~Three-column payment matching workbench.~~ **Done** (`ei_matching`).
 7. Approval snapshots (hash of the approved values; any change forces re-approval).
 8. Density/dark theme and user landing preferences.
 9. FoxPro extraction pipeline once files are supplied.

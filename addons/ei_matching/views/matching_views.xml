@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_ei_matching" model="ir.actions.client">
+        <field name="name">Match bank payments</field>
+        <field name="tag">ei_matching</field>
+    </record>
+    <!-- Sits in the Money menu, between "Import a bank statement" and "Bank payments to check" (the plain list stays) -->
+    <menuitem id="menu_ei_matching" name="Match bank payments" parent="ei_bank_operations.menu_ei_banking" action="action_ei_matching" sequence="15"
+              groups="ei_bank_operations.group_ei_bank_officer,ei_bank_operations.group_ei_bank_approver,ei_bank_operations.group_ei_bank_poster,ei_legacy_master.group_ei_auditor"/>
+</odoo>

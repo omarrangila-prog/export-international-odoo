@@ -2,6 +2,7 @@ from collections import Counter
 
 from odoo import api, fields, models, _, Command
 from odoo.exceptions import AccessError, UserError
+from odoo.tools.misc import format_amount
 
 from . import bank_parsing as bp
 
@@ -297,6 +298,10 @@ class EiBankImportLine(models.Model):
                 raise UserError(_("A %s line cannot be assigned a party.", r.state))
             if not partner:
                 raise UserError(_("Choose the party."))
+            stale = r.allocation_ids.filtered(lambda a: a.invoice_id.commercial_partner_id != partner.commercial_partner_id)
+            if stale:
+                raise UserError(_("Invoice(s) %(i)s are allocated to this line for another party. Remove the allocations "
+                                  "before choosing a different party.", i=', '.join(stale.invoice_id.mapped('name'))))
             needs_note = not (r.suggested_partner_id == partner and r.confidence >= 0.9)
             if needs_note and not (note or '').strip():
                 raise UserError(_("Evidence note required: the party is not an approved-alias match "
@@ -375,8 +380,35 @@ class EiBankAllocation(models.Model):
             if a.amount > inv.amount_residual:
                 raise UserError(_("Allocation %(a)s exceeds the open amount %(r)s of %(i)s.",
                                   a=a.amount, r=inv.amount_residual, i=inv.name))
+            # Staged lines are not in the books yet, so the invoice still looks fully open. Without this check two bank
+            # lines could each claim the same money and the second one would silently become an advance on posting.
+            claims = self.search([('invoice_id', '=', inv.id), ('line_id.state', '=', 'verified')])
+            if sum(claims.mapped('amount')) > inv.amount_residual:
+                mine = sum(claims.filtered(lambda c: c.line_id == line).mapped('amount'))
+                left = max(inv.amount_residual - (sum(claims.mapped('amount')) - mine), 0.0)
+                raise UserError(_("The open amount of %(i)s is already claimed by another bank line; only %(l)s is left for this one.",
+                                  i=inv.name, l=left))
             if sum(line.allocation_ids.mapped('amount')) > abs(line.amount):
                 raise UserError(_("Allocations exceed the bank line amount."))
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        recs = super().create(vals_list)
+        for line in (recs.line_id if not self.env.context.get('ei_no_alloc_log') else ()):
+            mine = recs.filtered(lambda a: a.line_id == line)
+            line.message_post(body=_("Allocated by %(u)s: %(w)s.", u=self.env.user.name, w='; '.join(
+                '%s to %s' % (format_amount(self.env, a.amount, a.currency_id), a.invoice_id.name) for a in mine)))
+        return recs
+
+    def unlink(self):
+        for a in self:
+            if a.line_id.state in ('posted', 'duplicate', 'rejected') or a.line_id.import_id.state in LOCKED_STATES:
+                raise UserError(_("Allocations are locked: the bank line is already %s.", a.line_id.state))
+        for line in (self.line_id if not self.env.context.get('ei_no_alloc_log') else ()):
+            mine = self.filtered(lambda a: a.line_id == line)
+            line.message_post(body=_("Allocation removed by %(u)s: %(w)s.", u=self.env.user.name, w='; '.join(
+                '%s to %s' % (format_amount(self.env, a.amount, a.currency_id), a.invoice_id.name) for a in mine)))
+        return super().unlink()
 
     def _apply(self, st_line):
         """Replace (part of) the suspense leg of the statement entry by receivable/payable legs and

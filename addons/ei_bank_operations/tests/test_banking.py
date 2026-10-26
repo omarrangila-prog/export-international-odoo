@@ -280,3 +280,58 @@ class TestBanking(AccountTestInvoicingCommon):
         with self.assertRaises(UserError):
             self.Import.with_user(self.officer).import_file(self.company_data['default_journal_cash'], 'x.csv',
                                                             csv('01/10/2026,A,,,1,1'), 0, 1)
+
+    # --- allocation hygiene found while building the matching screen (AUDIT D19, D20)
+    def test_20_two_bank_lines_cannot_claim_the_same_money_on_one_invoice(self):
+        inv = self.invoice(self.pa, 1000)
+        b = self.stage(['01/10/2026,ARIF 1,T1,,1000,1000', '02/10/2026,ARIF 2,T2,,1000,2000'])
+        l1, l2 = b.line_ids.sorted('sequence')
+        for l in (l1, l2):
+            l.with_user(self.officer).action_verify_partner(self.pa, 'checked')
+        Alloc = self.env['ei.bank.allocation'].with_user(self.officer)
+        Alloc.create({'line_id': l1.id, 'invoice_id': inv.id, 'amount': 600})
+        with self.assertRaises(UserError) as cm:
+            Alloc.create({'line_id': l2.id, 'invoice_id': inv.id, 'amount': 500})     # only 400 is left to claim
+        self.assertIn('another bank line', str(cm.exception))
+        Alloc.create({'line_id': l2.id, 'invoice_id': inv.id, 'amount': 400})
+        self.approve_post(b)
+        self.assertEqual(inv.payment_state, 'paid')
+        self.assertAlmostEqual(inv.amount_residual, 0)
+
+    def test_21_officer_can_take_an_allocation_back_until_the_line_is_posted(self):
+        inv = self.invoice(self.pa, 1000)
+        b = self.stage(['01/10/2026,ARIF,T1,,1000,1000'])
+        line = b.line_ids
+        line.with_user(self.officer).action_verify_partner(self.pa, 'checked')
+        alloc = self.env['ei.bank.allocation'].with_user(self.officer).create({'line_id': line.id, 'invoice_id': inv.id, 'amount': 1000})
+        alloc.unlink()                                            # the form's trash-can icon must work for the person who made it
+        self.assertFalse(line.allocation_ids)
+        alloc = self.env['ei.bank.allocation'].with_user(self.officer).create({'line_id': line.id, 'invoice_id': inv.id, 'amount': 1000})
+        self.approve_post(b)
+        with self.assertRaises((UserError, AccessError)):
+            alloc.with_user(self.officer).unlink()                # but never after posting: the books already used it
+        self.assertEqual(inv.payment_state, 'paid')
+
+    def test_22_a_new_party_cannot_inherit_the_old_partys_allocations(self):
+        inv = self.invoice(self.pa, 1000)
+        b = self.stage(['01/10/2026,ARIF,T1,,1000,1000'])
+        line = b.line_ids
+        line.with_user(self.officer).action_verify_partner(self.pa, 'checked')
+        self.env['ei.bank.allocation'].with_user(self.officer).create({'line_id': line.id, 'invoice_id': inv.id, 'amount': 1000})
+        with self.assertRaises(UserError):
+            line.with_user(self.officer).action_verify_partner(self.pb, 'changed my mind')
+        self.assertEqual(line.partner_id, self.pa)
+        line.allocation_ids.with_user(self.officer).unlink()
+        line.with_user(self.officer).action_verify_partner(self.pb, 'now it is B')
+        self.assertEqual(line.partner_id, self.pb)
+
+    def test_23_allocation_changes_are_written_on_the_line(self):
+        inv = self.invoice(self.pa, 1000)
+        b = self.stage(['01/10/2026,ARIF,T1,,1000,1000'])
+        line = b.line_ids
+        line.with_user(self.officer).action_verify_partner(self.pa, 'checked')
+        alloc = self.env['ei.bank.allocation'].with_user(self.officer).create({'line_id': line.id, 'invoice_id': inv.id, 'amount': 400})
+        alloc.unlink()
+        text = ' '.join(line.message_ids.mapped('body'))
+        self.assertIn('Allocated by', text)
+        self.assertIn('Allocation removed by', text)

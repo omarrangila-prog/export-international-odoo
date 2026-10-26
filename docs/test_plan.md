@@ -43,6 +43,36 @@ Not done: performance/load test, penetration/security review, UAT with the clien
 | Keyboard search, explain toggle, drill-down, role-limited view in a real browser | GREEN (manual script) | `node tests/ui_party360.js` |
 | Screen reader pass, WCAG contrast audit, supervised user test | NOT DONE | |
 
+## Reminders and overdue chasing (ei_automation, 26 Oct 2026)
+| Check | Status | Evidence |
+|---|---|---|
+| Every rule ships OFF; a rule explains what it checks, what it does and who is told | GREEN | `ei_automation` tests 01, 13 |
+| A17 (supplier invoice missing), A18 (approved material not lifted), A19 (overdue customer), A24 (anomalies): the right records, the right colleague, nothing else | GREEN | tests 02, 04, 05, 06, 07 |
+| A reminder is the only side effect; a customer is never contacted; wording for a customer is a DRAFT in the note; a warning appears when unmatched bank money may already cover the invoice | GREEN | tests 05, 06 |
+| A paid invoice is never chased; a condition that clears stops the reminder | GREEN | tests 03, 05 |
+| No duplicates (open reminder, repeat window); cap per run; one failing rule does not stop the others; a reminder goes only to someone who can open the record | GREEN | tests 02, 08, 09, 10 |
+| Only management can change or run a rule; changes are logged; another company cannot see the rules | GREEN | tests 11, 12 |
+| Preview creates nothing; Run now creates exactly the previewed reminders for the right colleague; running twice does not duplicate; non-managers cannot see the rules | GREEN | browser spec 07 |
+
+## Payment matching (ei_matching, 26 Oct 2026)
+| Check | Status | Evidence |
+|---|---|---|
+| Four queues count the right lines; statements already approved are locked out; search finds words, amounts and parties (wildcards literal) | GREEN | `ei_matching` tests 01, 02 |
+| Same amount nearby is a warning and changes nothing | GREEN | test 03 |
+| Put aside hides a line for me only and changes nothing | GREEN | test 04 |
+| A suggestion is labelled, never confirms or allocates; approved alias needs no note, anything else does; a refused call changes nothing | GREEN | tests 05, 06, 10 |
+| Changing the party removes the old party's allocations only when told to | GREEN | test 07 and bank test 22 |
+| Allocation round trip; supplier bills never offered for a receipt; saving posts nothing | GREEN | test 09 |
+| Money claimed by another staged line is shown and cannot be claimed again | GREEN | test 11 and bank test 20 |
+| A proposal is exact when it can be, "oldest first" when not, a choice when several fit, and never saved | GREEN | tests 12, 13 |
+| Unidentified, reject (reason required), ask a colleague (reminder only to someone who can open the line) | GREEN | tests 14, 15 |
+| Only bank officers decide; approvers and others can only look; the screen has no approve or post call | GREEN | tests 16, 17 |
+| **What the preview says is what posting does**, with approval and posting by two other people | GREEN | test 18 |
+| The officer who matched cannot approve the statement | GREEN | test 19 |
+| Home's bank task opens the screen on that line for officers only | GREEN | test 20 |
+| Whole screen in a real browser: suggestion vs confirmed, evidence note, proposal not saved, over-allocation stopped, nothing posted, unidentified / reject / ask / put aside, keyboard, roles, phone step flow, no overflow at 5 widths, axe in light and dark | GREEN | browser spec 08, and the screen is also in spec 05 |
+| Screen-reader pass, supervised test with the bank officers, foreign-currency allocation, 50k-line queue speed | NOT DONE | |
+
 ## EXI ONE upgrade (25-26 Oct 2026) - what each piece is proven by
 | Check | Status | Evidence |
 |---|---|---|

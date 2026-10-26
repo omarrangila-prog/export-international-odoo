@@ -58,7 +58,7 @@ class Session {
     return this.ctx.check(!dlg && !errs.length, label, dlg ? `dialog: ${dlg}` : errs.map(e => `${e.kind}: ${e.text}`).slice(0, 2).join(' | '));
   }
   async goto(p) { await this.page.goto(this.ctx.base + p); await this.page.waitForTimeout(900); }
-  async home() { await this.page.goto(this.ctx.base + '/odoo'); await this.page.waitForSelector('.ei-home', { timeout: 30000 }); await this.page.waitForTimeout(600); }
+  async home() { await this.page.goto(this.ctx.base + '/odoo'); await this.page.waitForSelector('.ei-home .ei-top-tools, .ei-home .ei-banner-bad', { timeout: 30000 }); await this.page.waitForTimeout(600); }
   // top bar -> (optional) dropdown item, by visible text, like a person would
   async menu(top, item) {
     const p = this.page;

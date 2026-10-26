@@ -8,7 +8,7 @@ access_ei_bank_import_line_officer,ei.bank.import.line officer,ei.bank.import.li
 access_ei_bank_import_line_approver,ei.bank.import.line approver,ei.bank.import.line,group_ei_bank_approver,ru,
 access_ei_bank_import_line_poster,ei.bank.import.line poster,ei.bank.import.line,group_ei_bank_poster,ru,
 access_ei_bank_allocation_auditor,ei.bank.allocation auditor,ei.bank.allocation,ei_legacy_master.group_ei_auditor,r,
-access_ei_bank_allocation_officer,ei.bank.allocation officer,ei.bank.allocation,group_ei_bank_officer,cru,
+access_ei_bank_allocation_officer,ei.bank.allocation officer,ei.bank.allocation,group_ei_bank_officer,crud,
 access_ei_bank_allocation_approver,ei.bank.allocation approver,ei.bank.allocation,group_ei_bank_approver,ru,
 access_ei_bank_allocation_poster,ei.bank.allocation poster,ei.bank.allocation,group_ei_bank_poster,ru,
 access_ei_bank_balance_check_auditor,ei.bank.balance.check auditor,ei.bank.balance.check,ei_legacy_master.group_ei_auditor,r,

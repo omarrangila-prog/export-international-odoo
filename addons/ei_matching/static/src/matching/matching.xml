@@ -1,0 +1,356 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="ei_matching.Matching">
+        <div t-att-class="'o_action ei-mt ei-mt-step-' + this.state.step">
+
+            <header class="ei-mt-head">
+                <div class="ei-mt-headtext">
+                    <h1 class="ei-mt-title">Match bank payments</h1>
+                    <p class="ei-mt-sub">Say who paid, then which invoices it settles. Nothing reaches the books from this screen.</p>
+                </div>
+                <div class="ei-mt-tools">
+                    <label for="ei-mt-q" class="visually-hidden">Search bank lines</label>
+                    <input id="ei-mt-q" class="ei-mt-input" type="search" autocomplete="off" placeholder="Search words, party or amount"
+                           t-att-value="this.state.q" t-on-input="(ev) => this.onSearch(ev)"/>
+                    <t t-if="this.state.queue and this.state.queue.journals.length > 1">
+                        <label for="ei-mt-journal" class="visually-hidden">Bank account</label>
+                        <select id="ei-mt-journal" class="ei-mt-input" t-on-change="(ev) => this.onJournal(ev)">
+                            <option value="" t-att-selected="!this.state.journal">All bank accounts</option>
+                            <option t-foreach="this.state.queue.journals" t-as="j" t-key="j.id" t-att-value="j.id" t-att-selected="this.journalOn(j)" t-out="j.name"/>
+                        </select>
+                    </t>
+                    <button type="button" class="ei-mt-iconbtn" t-on-click="() => this.onRefresh()" aria-label="Refresh the list" title="Refresh">
+                        <svg class="ei-mt-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.icon('refresh')"/></svg>
+                    </button>
+                </div>
+            </header>
+
+            <p t-if="this.state.error" class="ei-mt-banner is-bad" role="alert">The list could not be loaded. Nothing was changed. Try Refresh.</p>
+            <div t-if="this.state.loading" class="ei-mt-loading" role="status"><span class="ei-mt-spin"/> Loading the bank lines...</div>
+
+            <t t-if="this.state.queue">
+                <div class="ei-mt-tabs" role="tablist" aria-label="Which bank lines">
+                    <button t-foreach="this.state.queue.tabs" t-as="t" t-key="t.key" type="button" role="tab"
+                            t-att-aria-selected="(!this.state.deferred and this.state.tab === t.key) ? 'true' : 'false'"
+                            t-att-class="'ei-mt-tab' + ((!this.state.deferred and this.state.tab === t.key) ? ' is-on' : '')"
+                            t-on-click="() => this.setTab(t.key)">
+                        <span t-out="t.label"/> <span class="ei-mt-count" t-out="t.count"/>
+                    </button>
+                    <button t-if="this.state.queue.deferred or this.state.deferred" type="button"
+                            t-att-class="'ei-mt-tab is-aside' + (this.state.deferred ? ' is-on' : '')" t-att-aria-pressed="this.state.deferred ? 'true' : 'false'"
+                            t-on-click="() => this.toggleDeferred()">
+                        Put aside <span class="ei-mt-count" t-out="this.state.queue.deferred"/>
+                    </button>
+                </div>
+
+                <div class="ei-mt-cols">
+
+                    <!-- ============ column 1: the queue ============ -->
+                    <section class="ei-mt-col ei-mt-queue" aria-label="Bank lines" tabindex="0">
+                        <p t-if="!this.items.length" class="ei-mt-empty" t-out="this.emptyText"/>
+                        <ul t-else="" class="ei-mt-list">
+                            <li t-foreach="this.items" t-as="it" t-key="it.id">
+                                <button type="button" t-att-id="'ei-mt-row-' + it.id"
+                                        t-att-class="'ei-mt-row' + (it.id === this.state.selected ? ' is-selected' : '')"
+                                        t-att-aria-current="it.id === this.state.selected ? 'true' : 'false'"
+                                        t-on-click="() => this.select(it.id, { step: 'decide' })">
+                                    <span class="ei-mt-row-top">
+                                        <span class="ei-mt-date" t-out="it.date_text"/>
+                                        <span t-att-class="'ei-mt-amt ' + (it.inbound ? 'is-in' : 'is-out')">
+                                            <svg class="ei-mt-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.icon(it.inbound ? 'in' : 'out')"/></svg>
+                                            <span class="visually-hidden" t-out="it.direction + ' '"/><span t-out="it.amount_text"/>
+                                        </span>
+                                    </span>
+                                    <span class="ei-mt-narr" t-out="it.narration or '(no description)'"/>
+                                    <span class="ei-mt-row-bottom">
+                                        <span t-if="it.party" class="ei-mt-chip is-ok">Confirmed: <t t-out="it.party"/></span>
+                                        <span t-elif="it.suggested" class="ei-mt-chip is-info">Suggested: <t t-out="it.suggested"/> <t t-out="it.suggested_pct"/>%</span>
+                                        <span t-else="" class="ei-mt-chip">No suggestion</span>
+                                        <span t-if="it.twin" class="ei-mt-chip is-warn">Same amount nearby</span>
+                                        <span t-if="it.state === 'verified'" class="ei-mt-chip">Left: <t t-out="it.remaining_text"/></span>
+                                        <span t-if="it.age_days > 2" class="ei-mt-age"><t t-out="it.age_days"/> days old</span>
+                                    </span>
+                                </button>
+                            </li>
+                        </ul>
+                        <p t-if="this.state.queue.total > this.items.length" class="ei-mt-more">Showing <t t-out="this.items.length"/> of <t t-out="this.state.queue.total"/>. Search or work through these first.</p>
+                        <p class="ei-mt-keys">Up and Down choose a line. / searches.</p>
+                    </section>
+
+                    <!-- ============ column 2: the decision ============ -->
+                    <section class="ei-mt-col ei-mt-decide" aria-label="Decision" tabindex="0">
+                        <button type="button" class="ei-mt-back" t-on-click="() => this.back()">
+                            <svg class="ei-mt-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg> Back to the list
+                        </button>
+
+                        <div t-if="!this.state.selected and !this.state.detailLoading" class="ei-mt-card ei-mt-placeholder">
+                            <h2>Choose a bank line</h2>
+                            <p>The line, the evidence and what would happen in the books appear here.</p>
+                        </div>
+                        <div t-elif="this.state.detailError" class="ei-mt-banner is-bad" role="alert">This line could not be opened. Nothing was changed.</div>
+                        <div t-elif="!this.d" class="ei-mt-loading" role="status"><span class="ei-mt-spin"/> Opening the line...</div>
+
+                        <t t-elif="this.d">
+                            <!-- the line -->
+                            <article class="ei-mt-card ei-mt-line">
+                                <div class="ei-mt-line-top">
+                                    <span t-att-class="'ei-mt-dir ' + (this.d.line.inbound ? 'is-in' : 'is-out')">
+                                        <svg class="ei-mt-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.icon(this.d.line.inbound ? 'in' : 'out')"/></svg>
+                                        <t t-out="this.d.line.direction"/>
+                                    </span>
+                                    <span class="ei-mt-chip" t-out="this.d.line.state_label"/>
+                                </div>
+                                <h2 class="ei-mt-bigamt" t-out="this.d.line.amount_text"/>
+                                <p class="ei-mt-bignarr" t-out="this.d.line.narration or '(no description)'"/>
+                                <p class="ei-mt-meta">
+                                    <span t-out="this.d.line.date_text"/> <span aria-hidden="true">·</span>
+                                    <span t-if="this.d.line.ref"><t t-out="this.d.line.ref"/> <span aria-hidden="true">·</span></span>
+                                    <span t-out="this.d.line.journal"/>
+                                </p>
+                                <p class="ei-mt-links">
+                                    <button type="button" class="ei-mt-link" t-on-click="() => this.openLine()">Open the bank line</button>
+                                    <button type="button" class="ei-mt-link" t-on-click="() => this.openStatement()">Open the statement</button>
+                                </p>
+                            </article>
+
+                            <p t-if="this.leftTheList and this.state.saved" class="ei-mt-banner is-ok" role="status">
+                                Saved. This line needs nothing more from you, so it has left the list. Its effect is below.
+                                <button type="button" class="ei-mt-link" t-on-click="() => this.nextPayment()">Go to the next payment</button>
+                            </p>
+                            <p t-if="this.d.locked" class="ei-mt-banner is-warn" role="status" t-out="this.d.locked_text"/>
+                            <p t-if="!this.canReview" class="ei-mt-banner is-info" role="status">You can look at everything here, but only bank officers can decide.</p>
+
+                            <!-- a repeat of another line -->
+                            <article t-if="this.isDuplicate" class="ei-mt-card">
+                                <h3 class="ei-mt-h3">This looks like a repeat</h3>
+                                <t t-if="this.d.duplicate_of">
+                                    <p>The same line is already in <b t-out="this.d.duplicate_of.statement"/>:</p>
+                                    <p class="ei-mt-quote"><t t-out="this.d.duplicate_of.date_text"/> · <t t-out="this.d.duplicate_of.amount_text"/> · <t t-out="this.d.duplicate_of.narration"/> <span class="ei-mt-chip" t-out="this.d.duplicate_of.state_label"/></p>
+                                </t>
+                                <p>A repeat is left out of the books once you reject it. If you think it is really a second payment, ask a colleague to check the bank before rejecting.</p>
+                            </article>
+
+                            <!-- step 1: who paid -->
+                            <article t-else="" class="ei-mt-card">
+                                <h3 class="ei-mt-h3"><span class="ei-mt-step">1</span> <t t-out="this.d.question"/></h3>
+
+                                <div t-if="this.d.party and !this.state.changeParty" class="ei-mt-confirmed">
+                                    <p class="ei-mt-confirmed-name"><svg class="ei-mt-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.icon('check')"/></svg>
+                                        <span class="ei-mt-tag is-ok">Confirmed</span> <b t-out="this.d.party.name"/></p>
+                                    <p class="ei-mt-muted">Confirmed by <t t-out="this.d.party.by"/>.<t t-if="this.d.party.note"> Evidence: <t t-out="this.d.party.note"/></t></p>
+                                    <p class="ei-mt-actions">
+                                        <button type="button" class="ei-mt-btn is-quiet" t-on-click="() => this.openParty(this.d.party.partner_id)">See everything about this party</button>
+                                        <button t-if="this.d.can.confirm" type="button" class="ei-mt-btn is-quiet" t-on-click="() => this.startChange()">Change the party</button>
+                                    </p>
+                                </div>
+
+                                <t t-if="this.showPartyPicker">
+                                    <div t-if="this.d.suggestion" class="ei-mt-suggest">
+                                        <p class="ei-mt-suggest-top"><span class="ei-mt-tag is-info">Suggestion, not confirmed</span>
+                                            <b t-if="this.d.suggestion.name" t-out="this.d.suggestion.name"/>
+                                            <span t-if="this.d.suggestion.name" class="ei-mt-muted"><t t-out="this.d.suggestion.pct"/>% sure</span></p>
+                                        <p t-if="this.d.suggestion.why" class="ei-mt-muted" t-out="this.d.suggestion.why"/>
+                                        <p t-if="this.d.suggestion.note" class="ei-mt-muted" t-out="this.d.suggestion.note"/>
+                                        <p t-if="this.d.suggestion.partner_id and this.d.can.confirm and !(this.state.pick and this.state.pick.partner_id === this.d.suggestion.partner_id)" class="ei-mt-actions">
+                                            <button type="button" class="ei-mt-btn" t-on-click="() => this.pick(this.d.suggestion.partner_id, this.d.suggestion.name)">Use this party</button>
+                                        </p>
+                                    </div>
+                                    <div t-if="this.d.options.length and this.d.can.confirm" class="ei-mt-options">
+                                        <span class="ei-mt-muted">Names found in the bank text:</span>
+                                        <button t-foreach="this.d.options" t-as="o" t-key="o.partner_id" type="button" class="ei-mt-chip-btn" t-on-click="() => this.pick(o.partner_id, o.name)">
+                                            <t t-out="o.name"/> <span class="ei-mt-muted" t-out="o.approved ? '(approved name)' : '(not approved)'"/>
+                                        </button>
+                                    </div>
+                                    <div t-if="this.d.can.confirm" class="ei-mt-find">
+                                        <label for="ei-mt-party" class="ei-mt-label">Someone else? Find the party</label>
+                                        <input id="ei-mt-party" class="ei-mt-input is-wide" type="search" autocomplete="off" placeholder="Name, nickname or old code"
+                                               t-att-value="this.state.partyTerm" t-on-input="(ev) => this.onPartyInput(ev)"/>
+                                        <ul t-if="this.state.partyOpen" class="ei-mt-results" aria-label="Matching parties">
+                                            <li t-foreach="this.state.partyResults" t-as="r" t-key="r.partner_id">
+                                                <button type="button" class="ei-mt-result" t-on-click="() => this.pick(r.partner_id, r.name)">
+                                                    <b t-out="r.name"/> <span class="ei-mt-muted" t-out="r.sub"/>
+                                                </button>
+                                            </li>
+                                            <li t-if="!this.state.partyResults.length" class="ei-mt-none">No party found. Try part of the name or the old code.</li>
+                                        </ul>
+                                    </div>
+                                    <div t-if="this.state.pick" class="ei-mt-pick">
+                                        <p><b t-out="this.state.pick.name"/> <span class="ei-mt-muted">is chosen but not saved yet.</span></p>
+                                        <label for="ei-mt-note" class="ei-mt-label"><t t-if="this.needsNote">How do you know? (required)</t><t t-else="">Note (optional)</t></label>
+                                        <textarea id="ei-mt-note" class="ei-mt-input is-wide" rows="2" placeholder="For example: payment slip checked, or the bank confirmed by phone"
+                                                  t-att-value="this.state.note" t-on-input="(ev) => this.onNote(ev)"/>
+                                        <p class="ei-mt-actions">
+                                            <button type="button" class="ei-mt-btn" t-att-disabled="this.state.busy" t-on-click="() => this.confirmParty()" t-out="this.confirmLabel"/>
+                                            <button type="button" class="ei-mt-btn is-quiet" t-on-click="() => this.cancelPick()">Cancel</button>
+                                        </p>
+                                    </div>
+                                    <p t-if="this.state.changeParty and !this.state.pick" class="ei-mt-actions"><button type="button" class="ei-mt-btn is-quiet" t-on-click="() => this.cancelPick()">Keep <t t-out="this.d.party.name"/></button></p>
+                                </t>
+                            </article>
+
+                            <!-- step 2: which invoices -->
+                            <article t-if="this.showItems or (this.verified and this.d.allocations.length)" class="ei-mt-card">
+                                <h3 class="ei-mt-h3"><span class="ei-mt-step">2</span> Which invoices does it settle?</h3>
+                                <p t-if="this.d.preview_party" class="ei-mt-banner is-info">A preview of the open items of <b t-out="this.d.suggestion ? this.d.suggestion.name : ''"/>. Confirm the party above to allocate.</p>
+                                <t t-if="this.verified">
+                                    <div class="ei-mt-sum" role="status">
+                                        <span>Payment <b t-out="this.d.line.amount_text"/></span>
+                                        <span>Allocated <b t-out="this.money(this.typed)"/></span>
+                                        <span t-att-class="this.left &lt; 0 ? 'is-bad' : ''">Not allocated <b t-out="this.money(this.left)"/></span>
+                                    </div>
+                                    <p t-if="this.state.proposal" class="ei-mt-banner is-info"><b>Suggestion, not saved.</b> <t t-out="this.state.proposal.why"/> Change anything you like, then save.</p>
+                                </t>
+                                <p t-if="this.d.foreign_items" class="ei-mt-muted"><t t-out="this.d.foreign_items"/> open item(s) are in another currency. Allocating those is not supported yet, so they are not listed.</p>
+                                <ul class="ei-mt-items">
+                                    <li t-foreach="this.d.open_items" t-as="it" t-key="it.invoice_id" class="ei-mt-item">
+                                        <div class="ei-mt-item-main">
+                                            <p class="ei-mt-item-name"><button type="button" class="ei-mt-link" t-on-click="() => this.openInvoice(it.invoice_id)" t-out="it.name"/>
+                                                <span class="ei-mt-muted" t-out="it.kind"/>
+                                                <span t-if="it.exact" class="ei-mt-chip is-ok">Same amount as the payment</span>
+                                                <span t-if="it.overdue_days" class="ei-mt-chip is-warn"><t t-out="it.overdue_days"/> days overdue</span></p>
+                                            <p class="ei-mt-muted">Dated <t t-out="it.date_text"/><t t-if="it.due_text"> · due <t t-out="it.due_text"/></t> · total <t t-out="it.total_text"/> · open <b t-out="it.residual_text"/></p>
+                                            <p t-if="it.claimed" class="ei-mt-muted is-warn">Another bank line already claims <t t-out="it.claimed_text"/> of it, so <t t-out="it.available_text"/> is free.</p>
+                                        </div>
+                                        <div t-if="this.verified" class="ei-mt-item-amt">
+                                            <label t-att-for="'ei-mt-amt-' + it.invoice_id" class="visually-hidden">Amount to allocate to <t t-out="it.name"/></label>
+                                            <input t-att-id="'ei-mt-amt-' + it.invoice_id" class="ei-mt-input is-amt" inputmode="decimal" autocomplete="off" placeholder="0"
+                                                   t-att-disabled="!this.d.can.allocate" t-att-aria-invalid="this.rowProblem(it) ? 'true' : 'false'"
+                                                   t-att-value="this.state.draft[it.invoice_id] || ''" t-on-input="(ev) => this.setAmount(it.invoice_id, ev)"/>
+                                            <button t-if="this.d.can.allocate" type="button" class="ei-mt-btn is-quiet is-small" t-on-click="() => this.fill(it)">Fill</button>
+                                            <p t-if="this.rowProblem(it)" class="ei-mt-problem" role="alert" t-out="this.rowProblem(it)"/>
+                                        </div>
+                                    </li>
+                                </ul>
+                                <p t-if="this.verified and this.draftProblem" class="ei-mt-problem" role="alert" t-out="this.draftProblem"/>
+                                <p t-if="this.verified and this.d.can.allocate" class="ei-mt-actions">
+                                    <button type="button" class="ei-mt-btn" t-att-disabled="!this.canSave" t-on-click="() => this.saveAllocations()">Save allocation</button>
+                                    <button type="button" class="ei-mt-btn is-quiet" t-att-disabled="this.state.busy" t-on-click="() => this.askProposal()">Suggest invoices</button>
+                                    <button type="button" class="ei-mt-btn is-quiet" t-on-click="() => this.clearDraft()">Clear</button>
+                                </p>
+                            </article>
+                            <article t-elif="this.verified" class="ei-mt-card">
+                                <h3 class="ei-mt-h3"><span class="ei-mt-step">2</span> Which invoices does it settle?</h3>
+                                <p>This party has no open invoice that this payment could settle. If that is right, leave it: the whole amount stays on the bank suspense account until someone allocates it. Nothing is guessed.</p>
+                            </article>
+
+                            <!-- other decisions -->
+                            <article t-if="this.canReview" class="ei-mt-card ei-mt-others">
+                                <h3 class="ei-mt-h3">Not sure?</h3>
+                                <p class="ei-mt-actions">
+                                    <button type="button" class="ei-mt-btn is-quiet" t-if="this.d.can.ask" t-on-click="() => this.openDialog('ask')">Ask a colleague for evidence</button>
+                                    <button type="button" class="ei-mt-btn is-quiet" t-if="this.d.can.unidentified and this.d.line.state !== 'unidentified'" t-on-click="() => this.openDialog('unidentified')">Nobody knows who paid</button>
+                                    <button type="button" class="ei-mt-btn is-quiet" t-if="this.d.can.reject" t-on-click="() => this.openDialog('reject')">Reject this line</button>
+                                    <span t-if="this.d.can.defer and !this.d.can.deferred" class="ei-mt-defer">
+                                        <button type="button" class="ei-mt-btn is-quiet" aria-haspopup="menu" t-att-aria-expanded="this.state.deferMenu ? 'true' : 'false'" t-on-click="() => this.toggleDeferMenu()">Put it aside</button>
+                                        <span t-if="this.state.deferMenu" class="ei-mt-menu" role="menu">
+                                            <button t-foreach="this.deferChoices" t-as="c" t-key="c[0]" type="button" role="menuitem" t-on-click="() => this.defer(c[0])" t-out="c[1]"/>
+                                        </span>
+                                    </span>
+                                    <button type="button" class="ei-mt-btn is-quiet" t-if="this.d.can.deferred" t-on-click="() => this.undefer()">Put it back on my list</button>
+                                </p>
+                                <p class="ei-mt-muted">Putting a line aside only hides it from your list for a while. It does not change the line.</p>
+                            </article>
+
+                            <p class="ei-mt-toevidence"><button type="button" class="ei-mt-btn is-quiet" t-on-click="() => this.showStep('evidence')">See the evidence and what posting would do</button></p>
+                        </t>
+                    </section>
+
+                    <!-- ============ column 3: evidence and effect ============ -->
+                    <aside class="ei-mt-col ei-mt-evidence" aria-label="Evidence and effect" tabindex="0">
+                        <button type="button" class="ei-mt-back" t-on-click="() => this.showStep('decide')">
+                            <svg class="ei-mt-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg> Back to the decision
+                        </button>
+                        <div t-if="!this.d" class="ei-mt-card ei-mt-placeholder"><h2>Evidence</h2><p>What the bank said, warnings and the effect of posting show here.</p></div>
+                        <t t-else="">
+                            <article t-if="this.d.twins.length" class="ei-mt-card is-warn">
+                                <h3 class="ei-mt-h3">Another line has the same amount</h3>
+                                <p>Check that this is a different payment and not the same one seen twice. Two customers can pay the same amount on the same day.</p>
+                                <ul class="ei-mt-twins">
+                                    <li t-foreach="this.d.twins" t-as="w" t-key="w.id">
+                                        <button type="button" class="ei-mt-link" t-on-click="() => this.openTwin(w.id)"><t t-out="w.date_text"/> · <t t-out="w.amount_text"/> · <t t-out="w.narration"/></button>
+                                        <span class="ei-mt-chip" t-out="w.state_label"/>
+                                        <span t-if="w.same_statement" class="ei-mt-muted">same statement</span>
+                                    </li>
+                                </ul>
+                            </article>
+
+                            <article class="ei-mt-card">
+                                <h3 class="ei-mt-h3">What the bank said</h3>
+                                <dl class="ei-mt-dl">
+                                    <t t-foreach="this.d.evidence" t-as="e" t-key="e_index"><dt t-out="e[0]"/><dd t-out="e[1]"/></t>
+                                </dl>
+                                <p class="ei-mt-muted">Statement <b t-out="this.d.batch.name"/> (<t t-out="this.d.batch.state_label"/>), imported by <t t-out="this.d.batch.imported_by"/> on <t t-out="this.d.batch.imported_at"/>.</p>
+                            </article>
+
+                            <article t-if="this.d.recent.length" class="ei-mt-card">
+                                <h3 class="ei-mt-h3">Earlier payments in the books</h3>
+                                <p class="ei-mt-muted">From <t t-out="this.d.party ? this.d.party.name : (this.d.suggestion and this.d.suggestion.name)"/>. Does the bank text look the same?</p>
+                                <ul class="ei-mt-recent">
+                                    <li t-foreach="this.d.recent" t-as="r" t-key="r_index"><span t-out="r.date_text"/> · <b t-out="r.amount_text"/> · <span t-out="r.narration"/></li>
+                                </ul>
+                            </article>
+
+                            <article class="ei-mt-card">
+                                <h3 class="ei-mt-h3">What posting would do <span class="ei-mt-tag is-info">Preview</span></h3>
+                                <p class="ei-mt-muted">Worked out from what is saved on this line. Nothing is posted from this screen.</p>
+                                <table class="ei-mt-impact">
+                                    <caption class="visually-hidden">Effect on the books if this line is posted as saved</caption>
+                                    <thead><tr><th scope="col">Account</th><th scope="col">Side</th><th scope="col" class="is-num">Amount</th></tr></thead>
+                                    <tbody>
+                                        <tr t-foreach="this.d.impact" t-as="r" t-key="r_index" t-att-class="'is-' + r.kind">
+                                            <td><span t-out="r.account"/><br/><span class="ei-mt-muted" t-out="r.plain"/></td>
+                                            <td t-out="r.side"/>
+                                            <td class="is-num" t-out="r.amount_text"/>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <ol class="ei-mt-after"><li t-foreach="this.d.after" t-as="a" t-key="a_index" t-out="a"/></ol>
+                            </article>
+
+                            <article t-if="this.d.history.length" class="ei-mt-card">
+                                <h3 class="ei-mt-h3">History of this line</h3>
+                                <ul class="ei-mt-history">
+                                    <li t-foreach="this.d.history" t-as="h" t-key="h_index"><span class="ei-mt-muted"><t t-out="h.when"/> · <t t-out="h.who"/></span><br/><span t-out="h.text"/></li>
+                                </ul>
+                            </article>
+                        </t>
+                    </aside>
+                </div>
+
+                <nav class="ei-mt-steps" aria-label="Screen section">
+                    <button type="button" t-att-aria-current="this.state.step === 'queue' ? 'true' : 'false'" t-on-click="() => this.showStep('queue')">List</button>
+                    <button type="button" t-att-aria-current="this.state.step === 'decide' ? 'true' : 'false'" t-on-click="() => this.showStep('decide')">Decide</button>
+                    <button type="button" t-att-aria-current="this.state.step === 'evidence' ? 'true' : 'false'" t-on-click="() => this.showStep('evidence')">Evidence</button>
+                </nav>
+            </t>
+
+            <!-- a question that needs a typed answer -->
+            <div t-if="this.state.dialog" class="ei-mt-overlay" t-on-mousedown.self="() => this.closeDialog()">
+                <div class="ei-mt-dialog" role="dialog" aria-modal="true" aria-labelledby="ei-mt-dlg-title" t-on-keydown="(ev) => this.onDialogKey(ev)">
+                    <h2 id="ei-mt-dlg-title" class="ei-mt-dlg-title" t-out="this.dialogTitle"/>
+                    <p t-out="this.dialogHelp"/>
+                    <t t-if="this.state.dialog.kind === 'ask'">
+                        <label for="ei-mt-dlg-user" class="ei-mt-label">Ask (optional)</label>
+                        <select id="ei-mt-dlg-user" class="ei-mt-input is-wide" t-on-change="(ev) => this.onDialogUser(ev)">
+                            <option value="">Only write it on the line</option>
+                            <option t-foreach="this.d.people" t-as="u" t-key="u.id" t-att-value="u.id" t-out="u.name"/>
+                        </select>
+                    </t>
+                    <t t-if="this.state.dialog.kind !== 'changeParty'">
+                        <label for="ei-mt-dlg-text" class="ei-mt-label" t-out="this.dialogLabel"/>
+                        <textarea id="ei-mt-dlg-text" class="ei-mt-input is-wide" rows="3" autofocus="autofocus"
+                                  t-att-value="this.state.dialog.text" t-on-input="(ev) => this.onDialogText(ev)"/>
+                    </t>
+                    <div class="ei-mt-dlg-actions">
+                        <button type="button" class="ei-mt-btn is-quiet" t-on-click="() => this.closeDialog()">Cancel</button>
+                        <button type="button" t-att-class="'ei-mt-btn' + (this.state.dialog.kind === 'reject' ? ' is-danger' : '')" t-att-disabled="this.state.busy" t-on-click="() => this.submitDialog()" t-out="this.dialogCta"/>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ei-mt-toast-region" aria-live="polite">
+                <p t-if="this.state.toast" t-att-class="'ei-mt-toast is-' + this.state.toast.kind" t-out="this.state.toast.text"/>
+            </div>
+        </div>
+    </t>
+</templates>

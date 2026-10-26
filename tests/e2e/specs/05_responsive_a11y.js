@@ -3,9 +3,10 @@
 const { VIEWPORTS } = require('../lib');
 
 const SCREENS = [
-  { key: 'Home', url: '/odoo', wait: '.ei-home .ei-top', own: '.ei-home' },
-  { key: 'Contracts (cards)', url: '/odoo/action-ei_contract_da.ei_contract_action', wait: '.o_kanban_view, .o_list_view' },
-  { key: 'Bank payments to check (list)', url: '/odoo/action-ei_bank_operations.ei_bank_line_action', wait: '.o_list_view' },
+  { key: 'Home', url: '/odoo', wait: '.ei-home .ei-top', own: '.ei-home', dark: true },
+  { key: 'Contracts (cards)', url: '/odoo/action-ei_contract_da.ei_contract_action', wait: '.o_kanban_view, .o_list_view', dark: true },
+  { key: 'Bank payments to check (list)', url: '/odoo/action-ei_bank_operations.ei_bank_line_action', wait: '.o_list_view', dark: true },
+  { key: 'Match bank payments', url: '/odoo/action-ei_matching.action_ei_matching', wait: '.ei-mt .ei-mt-cols', own: '.ei-mt', dark: true },
   { key: 'Parent statements (cards)', url: '/odoo/action-ei_parent_reconciliation.ei_parent_statement_action', wait: '.o_kanban_view, .o_list_view' },
   { key: 'Cash vouchers (cards)', url: '/odoo/action-ei_cashbook.ei_cash_voucher_action', wait: '.o_kanban_view, .o_list_view' },
 ];
@@ -19,7 +20,7 @@ module.exports = {
       const s = await new Session(ctx, browser, 'admin', 'admin', [1440, 900], { cookies, timeout: 20000 }).start();
       const p = s.page;
       ctx.check(!(await s.cssErrors()).length, `${scheme}: every stylesheet bundle compiles (no "css error")`, (await s.cssErrors()).join(' | '));
-      const screens = scheme === 'dark' ? SCREENS.slice(0, 3) : SCREENS;
+      const screens = scheme === 'dark' ? SCREENS.filter(sc => sc.dark) : SCREENS;
       for (const sc of screens) {
         for (const [w, h] of VIEWPORTS) {
           if (scheme === 'dark' && ![375, 1024, 1920].includes(w)) continue;
