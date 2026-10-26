@@ -4,7 +4,7 @@
         <field name="name">ei.bank.import.kanban.easy</field>
         <field name="model">ei.bank.import</field>
         <field name="arch" type="xml">
-            <kanban class="ei-kanban" default_order="id desc" create="1" sample="0">
+            <kanban class="ei-kanban" default_order="id desc" sample="0">
                 <field name="currency_id"/><field name="state"/>
                 <templates><t t-name="card"><div t-attf-class="ei-card-body ei-s-#{record.state.raw_value}">
                     <div class="ei-card-title"><field name="journal_id"/></div>
@@ -25,7 +25,7 @@
         <field name="name">ei.cash.voucher.kanban.easy</field>
         <field name="model">ei.cash.voucher</field>
         <field name="arch" type="xml">
-            <kanban class="ei-kanban" default_order="date desc, id desc" create="1" sample="0">
+            <kanban class="ei-kanban" default_order="date desc, id desc" sample="0">
                 <field name="currency_id"/><field name="state"/>
                 <templates><t t-name="card"><div t-attf-class="ei-card-body ei-s-#{record.state.raw_value}">
                     <div class="ei-card-title"><field name="description"/></div>
@@ -44,7 +44,7 @@
         <field name="name">ei.contract.kanban.easy</field>
         <field name="model">ei.contract</field>
         <field name="arch" type="xml">
-            <kanban class="ei-kanban" default_order="date desc, id desc" create="1" sample="0">
+            <kanban class="ei-kanban" default_order="date desc, id desc" sample="0">
                 <field name="state"/>
                 <templates><t t-name="card"><div t-attf-class="ei-card-body ei-s-#{record.state.raw_value}">
                     <div class="ei-card-title"><field name="parent_partner_id"/></div>
@@ -63,7 +63,7 @@
         <field name="name">ei.da.kanban.easy</field>
         <field name="model">ei.da</field>
         <field name="arch" type="xml">
-            <kanban class="ei-kanban" default_order="date desc, id desc" create="1" sample="0">
+            <kanban class="ei-kanban" default_order="date desc, id desc" sample="0">
                 <field name="state"/>
                 <templates><t t-name="card"><div t-attf-class="ei-card-body ei-s-#{record.state.raw_value}">
                     <div class="ei-card-title">DA <field name="name"/></div>
@@ -84,7 +84,7 @@
         <field name="name">ei.daily.order.kanban.easy</field>
         <field name="model">ei.daily.order</field>
         <field name="arch" type="xml">
-            <kanban class="ei-kanban" default_order="date desc, id desc" create="1" sample="0">
+            <kanban class="ei-kanban" default_order="date desc, id desc" sample="0">
                 <field name="state"/>
                 <templates><t t-name="card"><div t-attf-class="ei-card-body ei-s-#{record.state.raw_value}">
                     <div class="ei-card-title"><field name="parent_partner_id"/></div>
@@ -104,7 +104,7 @@
         <field name="name">ei.lifting.kanban.easy</field>
         <field name="model">ei.lifting</field>
         <field name="arch" type="xml">
-            <kanban class="ei-kanban" default_order="date desc, id desc" create="1" sample="0">
+            <kanban class="ei-kanban" default_order="date desc, id desc" sample="0">
                 <field name="state"/>
                 <templates><t t-name="card"><div t-attf-class="ei-card-body ei-s-#{record.state.raw_value}">
                     <div class="ei-card-title"><field name="customer_id"/></div>
@@ -125,7 +125,7 @@
         <field name="name">ei.supplier.intake.kanban.easy</field>
         <field name="model">ei.supplier.intake</field>
         <field name="arch" type="xml">
-            <kanban class="ei-kanban" default_order="id desc" create="1" sample="0">
+            <kanban class="ei-kanban" default_order="id desc" sample="0">
                 <field name="currency_id"/><field name="state"/>
                 <templates><t t-name="card"><div t-attf-class="ei-card-body ei-s-#{record.state.raw_value}">
                     <div class="ei-card-title"><field name="partner_id"/></div>
@@ -145,7 +145,7 @@
         <field name="name">ei.parent.statement.kanban.easy</field>
         <field name="model">ei.parent.statement</field>
         <field name="arch" type="xml">
-            <kanban class="ei-kanban" default_order="date_to desc, id desc" create="1" sample="0">
+            <kanban class="ei-kanban" default_order="date_to desc, id desc" sample="0">
                 <field name="state"/>
                 <templates><t t-name="card"><div t-attf-class="ei-card-body ei-s-#{record.state.raw_value}">
                     <div class="ei-card-title"><field name="partner_id"/></div>
