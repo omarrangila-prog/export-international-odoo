@@ -1,0 +1,3 @@
+id,name,model_id,group_id/id,operation,domain
+access_ei_assistant_log_management,ei.assistant.log management,ei.assistant.log,ei_management_dashboard.group_ei_management,r,
+access_ei_assistant_log_auditor,ei.assistant.log auditor,ei.assistant.log,ei_legacy_master.group_ei_auditor,r,

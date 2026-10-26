@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_ei_assistant" model="ir.actions.client">
+        <field name="name">Ask</field>
+        <field name="tag">ei_assistant</field>
+    </record>
+
+    <!-- What people asked: for management and the auditor, to see what the assistant cannot answer yet -->
+    <record id="ei_assistant_log_list" model="ir.ui.view">
+        <field name="name">ei.assistant.log.list</field>
+        <field name="model">ei.assistant.log</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0" delete="0" default_order="id desc">
+                <field name="create_date" string="When"/>
+                <field name="user_id"/>
+                <field name="question"/>
+                <field name="outcome" widget="badge"/>
+                <field name="intent" optional="hide"/>
+            </list>
+        </field>
+    </record>
+    <record id="ei_assistant_log_search" model="ir.ui.view">
+        <field name="name">ei.assistant.log.search</field>
+        <field name="model">ei.assistant.log</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="question"/><field name="user_id"/>
+                <filter name="unknown" string="Not understood" domain="[('outcome', '=', 'unknown')]"/>
+                <filter name="refused" string="Asked to change something" domain="[('outcome', '=', 'refused')]"/>
+                <filter name="denied" string="Not allowed for the role" domain="[('outcome', '=', 'denied')]"/>
+                <group><filter name="by_outcome" string="Outcome" context="{'group_by': 'outcome'}"/><filter name="by_user" string="Person" context="{'group_by': 'user_id'}"/></group>
+            </search>
+        </field>
+    </record>
+    <record id="ei_assistant_log_action" model="ir.actions.act_window">
+        <field name="name">Questions asked of the assistant</field>
+        <field name="res_model">ei.assistant.log</field>
+        <field name="view_mode">list</field>
+        <field name="context">{'search_default_unknown': 1}</field>
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">Nobody has asked the assistant a question yet.</p><p>Questions it could not understand show here first, so you can see what people really need.</p></field>
+    </record>
+    <menuitem id="menu_ei_assistant_log" name="Assistant questions" parent="ei_legacy_master.menu_ei_master" action="ei_assistant_log_action" sequence="95"
+              groups="ei_management_dashboard.group_ei_management,ei_legacy_master.group_ei_auditor"/>
+</odoo>

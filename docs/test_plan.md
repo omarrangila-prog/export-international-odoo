@@ -73,6 +73,24 @@ Not done: performance/load test, penetration/security review, UAT with the clien
 | Whole screen in a real browser: suggestion vs confirmed, evidence note, proposal not saved, over-allocation stopped, nothing posted, unidentified / reject / ask / put aside, keyboard, roles, phone step flow, no overflow at 5 widths, axe in light and dark | GREEN | browser spec 08, and the screen is also in spec 05 |
 | Screen-reader pass, supervised test with the bank officers, foreign-currency allocation, 50k-line queue speed | NOT DONE | |
 
+## Ask, the read-only assistant (ei_assistant, 26 Oct 2026)
+| Check | Status | Evidence |
+|---|---|---|
+| 50 phrasings go to the right question type; a request to DO something is refused while a question ABOUT it is answered | GREEN | `ei_assistant` tests a01, a02 |
+| Money answers equal the management dashboard (customers owe us, overdue, we owe suppliers) and the Party 360 figures | GREEN | tests a03, a04, a06 |
+| Money only for finance, management and the auditor; an operator's party page hides the ledger and says so | GREEN | test a05 |
+| Two parties fit: it asks which; a document number and an old code are matched exactly, never by similarity; unknown words and non-English text say so | GREEN | tests a07-a10 |
+| Left to lift equals the journey (10 requested, 4 lifted, 6 left); bank counts equal the matching screen; "what is waiting for me" is My Work | GREEN | tests a11-a13 |
+| Key figures and alerts are the ones on Home | GREEN | test a14 |
+| **It only reads**: a request to change something is refused and no business record, bank line, allocation, reminder or snooze changed after dozens of questions as four roles | GREEN | test a15 |
+| Every question offered to a role works for that role; a role with no access is offered nothing | GREEN | test a16 |
+| Every answer has a title, an as-of time, "how worked out" and (for data answers) sources | GREEN | test a17 |
+| Every source opens; a made-up source, a domain, an unlisted model or an unlisted action is refused; an operator cannot open an invoice from a source | GREEN | tests a18, a19 |
+| The log shows what was asked and the outcome, to management only; long questions are cut | GREEN | test a20 |
+| A user with no role is told so; the module contains no call to anything outside the server | GREEN | tests a21, a22 |
+| Whole screen in a real browser: top-bar button, answers equal the books, sources open, choosing between parties, refusals change nothing, log, operator never sees money, phone/tablet/desktop layout, axe in light and dark | GREEN | browser spec 09, and the screen is also in spec 05 |
+| A language model, Urdu and Roman-Urdu questions, follow-up questions, supervised user test | NOT DONE | needs decisions: `docs/open_decisions.md` 20-22 |
+
 ## EXI ONE upgrade (25-26 Oct 2026) - what each piece is proven by
 | Check | Status | Evidence |
 |---|---|---|

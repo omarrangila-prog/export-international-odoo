@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="ei_assistant.AskButton">
+        <button type="button" class="ei-ask-btn" t-on-click="() => this.open()" aria-label="Ask a question" title="Ask a question">
+            <svg class="ei-ask-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+            <span class="ei-ask-btn-label">Ask</span>
+        </button>
+    </t>
+
+    <t t-name="ei_assistant.Assistant">
+        <div class="o_action ei-ask">
+            <header class="ei-ask-head">
+                <div>
+                    <h1 class="ei-ask-title">Ask</h1>
+                    <p class="ei-ask-sub">Ask in plain words. I look things up in your own records and show where each answer comes from. I cannot change anything and I do not guess.</p>
+                </div>
+                <button t-if="this.state.messages.length" type="button" class="ei-ask-btn2 is-quiet" t-on-click="() => this.clear()">Start again</button>
+            </header>
+
+            <section id="ei-ask-log" class="ei-ask-log" role="log" aria-live="polite" aria-label="Conversation" tabindex="0">
+                <div t-if="!this.state.messages.length" class="ei-ask-welcome">
+                    <h2>Try one of these</h2>
+                    <div class="ei-ask-chips">
+                        <button t-foreach="this.state.starters" t-as="s" t-key="s_index" type="button" class="ei-ask-chip" t-on-click="() => this.ask(s)" t-out="s"/>
+                    </div>
+                    <p class="ei-ask-muted">You can also type a customer or supplier name, a document number (for example a contract or delivery advice number) or an old code. Your questions are recorded for the managers so they can see what this assistant cannot answer yet.</p>
+                </div>
+
+                <t t-foreach="this.state.messages" t-as="m" t-key="m.id">
+                    <p t-if="m.who === 'me'" class="ei-ask-me"><span class="visually-hidden">You asked: </span><t t-out="m.text"/></p>
+
+                    <article t-elif="m.error" class="ei-ask-bot is-bad" role="alert"><p t-out="m.error"/></article>
+
+                    <article t-else="" t-att-class="'ei-ask-bot' + (m.reply.kind === 'unknown' ? ' is-unknown' : '') + ((m.reply.kind === 'denied' or m.reply.kind === 'refused') ? ' is-denied' : '')">
+                        <h2 class="ei-ask-answer-title" t-out="m.reply.title"/>
+                        <t t-foreach="m.reply.blocks" t-as="b" t-key="b_index">
+                            <p t-if="b.type === 'text'" class="ei-ask-text" t-out="b.text"/>
+
+                            <div t-elif="b.type === 'figures'" class="ei-ask-figures">
+                                <t t-foreach="b.items" t-as="f" t-key="f_index">
+                                    <button t-if="f.src !== undefined and f.src !== null" type="button" t-att-class="'ei-ask-figure is-' + f.tone" t-on-click="() => this.openSource(m, f.src)">
+                                        <span class="ei-ask-figure-label" t-out="f.label"/><span class="ei-ask-figure-value" t-out="f.value"/><span t-if="f.note" class="ei-ask-figure-note" t-out="f.note"/>
+                                    </button>
+                                    <div t-else="" t-att-class="'ei-ask-figure is-' + f.tone">
+                                        <span class="ei-ask-figure-label" t-out="f.label"/><span class="ei-ask-figure-value" t-out="f.value"/><span t-if="f.note" class="ei-ask-figure-note" t-out="f.note"/>
+                                    </div>
+                                </t>
+                            </div>
+
+                            <div t-elif="b.type === 'table'" class="ei-ask-tablewrap">
+                                <table class="ei-ask-table">
+                                    <thead><tr><th t-foreach="b.columns" t-as="c" t-key="c_index" scope="col" t-att-class="c_index > 0 ? 'is-col' : ''" t-out="c"/></tr></thead>
+                                    <tbody>
+                                        <tr t-foreach="b.rows" t-as="r" t-key="r_index">
+                                            <t t-foreach="r.cells" t-as="cell" t-key="cell_index">
+                                                <td t-att-class="this.isNumber(cell) and cell_index > 0 ? 'is-num' : ''">
+                                                    <button t-if="cell_index === 0 and r.src !== undefined and r.src !== null" type="button" class="ei-ask-link" t-on-click="() => this.openSource(m, r.src)" t-out="cell"/>
+                                                    <t t-else="" t-out="cell"/>
+                                                </td>
+                                            </t>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <p t-if="b.more" class="ei-ask-muted" t-out="b.more"/>
+                            </div>
+
+                            <div t-elif="b.type === 'list'" class="ei-ask-listwrap">
+                                <h3 t-if="b.title" class="ei-ask-h3" t-out="b.title"/>
+                                <ul class="ei-ask-list">
+                                    <li t-foreach="b.items" t-as="it" t-key="it_index">
+                                        <button t-if="it.src !== undefined and it.src !== null" type="button" class="ei-ask-link" t-on-click="() => this.openSource(m, it.src)" t-out="it.text"/>
+                                        <span t-else="" class="ei-ask-itemtext" t-out="it.text"/>
+                                        <button t-if="it.src2 !== undefined and it.src2 !== null" type="button" class="ei-ask-link is-second" t-on-click="() => this.openSource(m, it.src2)">Open the party</button>
+                                        <span t-if="it.sub" class="ei-ask-muted" t-out="it.sub"/>
+                                    </li>
+                                </ul>
+                            </div>
+                        </t>
+
+                        <div t-if="m.reply.options.length" class="ei-ask-options">
+                            <t t-foreach="m.reply.options" t-as="o" t-key="o_index">
+                                <button t-if="o.party_id" type="button" class="ei-ask-option" t-on-click="() => this.pickParty(o)"><b t-out="o.label"/><span class="ei-ask-muted" t-out="o.sub"/></button>
+                                <button t-else="" type="button" class="ei-ask-option" t-on-click="() => this.openSource(m, o.src)"><b t-out="o.label"/><span class="ei-ask-muted" t-out="o.sub"/></button>
+                            </t>
+                        </div>
+
+                        <p t-if="m.openError" class="ei-ask-problem" role="alert" t-out="m.openError"/>
+
+                        <div t-if="m.reply.suggestions.length" class="ei-ask-suggest">
+                            <span class="ei-ask-muted">Questions that work:</span>
+                            <button t-foreach="m.reply.suggestions" t-as="s" t-key="s_index" type="button" class="ei-ask-chip" t-on-click="() => this.ask(s)" t-out="s"/>
+                        </div>
+
+                        <footer class="ei-ask-foot">
+                            <div t-if="m.reply.sources.length" class="ei-ask-sources">
+                                <span class="ei-ask-muted">Where this comes from:</span>
+                                <button t-foreach="m.reply.sources" t-as="s" t-key="s_index" type="button" class="ei-ask-source" t-on-click="() => this.openSource(m, s_index)" t-out="s.label"/>
+                            </div>
+                            <details class="ei-ask-how">
+                                <summary>How this was worked out</summary>
+                                <p t-out="m.reply.how"/>
+                            </details>
+                            <p class="ei-ask-asof">As of <t t-out="m.reply.as_of"/></p>
+                        </footer>
+                    </article>
+                </t>
+                <p t-if="this.state.busy" class="ei-ask-busy" role="status"><span class="ei-ask-spin"/> Looking it up...</p>
+            </section>
+
+            <form class="ei-ask-form" t-on-submit.prevent="() => this.onSubmit()">
+                <label for="ei-ask-q" class="visually-hidden">Your question</label>
+                <input id="ei-ask-q" class="ei-ask-input" type="text" autocomplete="off" maxlength="300" placeholder="Ask, for example: Who owes us money?"
+                       t-att-value="this.state.input" t-on-input="(ev) => this.onInput(ev)"/>
+                <button type="submit" class="ei-ask-btn2" t-att-disabled="this.state.busy">Ask</button>
+            </form>
+        </div>
+    </t>
+</templates>

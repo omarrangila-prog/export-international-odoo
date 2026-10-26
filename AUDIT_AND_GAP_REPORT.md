@@ -84,7 +84,7 @@ Status words: **BUILT** = code + test exists and was run. **PARTIAL** = some of 
 | O7 | P2 | Dark theme is done for Home, Party 360 and the main Odoo screens (lists, forms, kanban, dialogs, chatter); rarely used Odoo screens keep Odoo's default and are not checked. No density setting. Ctrl+K now searches records and old codes. |
 | O8 | P2 | `action_open_queue` has no button (dead code) and the old Detailed report shows approval counts as plain text; the new Home makes every queue openable. Remove the dead method when the old report is retired. |
 | O9 | P1 | **Urdu text is not translated** (Odoo ships none). Right-to-left layout is built and tested (Arabic stands in). Plan, glossary draft and string export: `docs/urdu_plan.md`, `docs/i18n/ei_ui.pot`. |
-| O10 | P1 | **AI copilot, automation recipes A01-A24 beyond the ones already built, and the page-by-page redesign of every other screen are not started.** This increment is the Home, My Work, search, Party 360 and the platform fixes. |
+| O10 | P1 | **Automation recipes beyond A17, A18, A19, A24 and the page-by-page redesign of every other screen are not started.** The assistant (S19) is a read-only rule-based first version, not a language model. |
 
 ## 5. Security review (what was checked)
 * Group model is least-privilege: `group_ei_user` is implied by every role; auditor is read-all and is not implied by operational roles. Maker-checker enforced in the ORM and covered by tests in every module.
@@ -113,7 +113,7 @@ Status words: **BUILT** = code + test exists and was run. **PARTIAL** = some of 
 | S16 Document Intelligence | NOT BUILT (attachments only) |
 | S17 Approvals Control Room | PARTIAL: Home alerts include approvals waiting too long (days are a setting); approvals queues; approval is still not bound to a snapshot hash |
 | S18 Reports Builder | PARTIAL: one PDF summary; no saved report templates |
-| S19 AI Assistant | NOT BUILT |
+| **S19 AI Assistant** | **BUILT as a read-only, rule-based assistant (`ei_assistant`, "Ask" in the top bar).** It is NOT a language model: it recognises a fixed list of question types and answers each from real records, so it cannot invent anything and sends nothing outside the server. Understands: what is waiting for me, is anything wrong, key figures, who owes us / what is overdue / what we owe (finance, management, auditor only), how much is left to lift (all, or one delivery advice or party), bank payments to check, bank balances, a party, a document number, an old code (exact text). Every answer lists its sources (each opens the record) and how it was worked out. A request to approve, post, pay, send or delete is refused. Questions are logged for management. Not built: a language model behind a provider flag (needs a data-protection decision), Urdu or Roman-Urdu questions, follow-up questions that refer to the previous answer, explaining a figure that is not on Home or Party 360 |
 | S20 Integration/System Health | PARTIAL: administrators get real system checks on Home (PDF engine, outgoing mail, summary job, staff accounts, connections); no job/queue health or retry console |
 
 ## 7. Gap against the 24 automations (A01-A24)

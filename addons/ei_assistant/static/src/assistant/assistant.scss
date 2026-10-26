@@ -1,0 +1,94 @@
+// Ask. Only the shared --ei-* tokens are used, so light, dark and right-to-left follow the theme.
+.ei-ask {
+    display: flex; flex-direction: column; height: 100%; min-height: 0; background: var(--ei-bg); color: var(--ei-text); font-size: 15px;
+    max-width: 960px; width: 100%; margin: 0 auto; padding: 0 20px;
+    button { font-family: inherit; text-align: start; }
+    button:focus-visible, input:focus-visible, summary:focus-visible, .ei-ask-log:focus-visible { outline: 3px solid var(--ei-focus); outline-offset: 2px; }
+    p { margin: 0 0 8px; }
+    .ei-ask-muted { color: var(--ei-muted); font-size: 13.5px; }
+
+    .ei-ask-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 8px 24px; padding: 16px 0 8px; }
+    .ei-ask-title { font-size: 24px; font-weight: 800; color: var(--ei-ink); margin: 0; }
+    .ei-ask-sub { margin: 2px 0 0; color: var(--ei-muted); max-width: 70ch; }
+
+    .ei-ask-log { flex: 1; min-height: 0; overflow-y: auto; padding: 8px 2px 16px; display: flex; flex-direction: column; gap: 14px; }
+    .ei-ask-welcome { background: var(--ei-card); border: 1px solid var(--ei-line); border-radius: var(--ei-radius); box-shadow: var(--ei-shadow); padding: 18px 20px;
+        h2 { font-size: 17px; font-weight: 800; color: var(--ei-ink); margin: 0 0 10px; }
+    }
+    .ei-ask-chips, .ei-ask-suggest { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 10px; }
+    .ei-ask-chip { border: 1px solid var(--ei-primary-line); background: var(--ei-card); color: var(--ei-primary); border-radius: 999px; padding: 7px 14px; font-weight: 700; cursor: pointer; min-height: 36px; &:hover { background: var(--ei-primary-soft); } }
+
+    .ei-ask-me { align-self: flex-end; max-width: 80%; background: var(--ei-primary); color: var(--ei-on-primary); border-radius: 16px 16px 4px 16px; padding: 9px 14px; font-weight: 600; margin: 0; overflow-wrap: anywhere; }
+    .ei-ask-bot { align-self: stretch; background: var(--ei-card); border: 1px solid var(--ei-line); border-radius: 16px 16px 16px 4px; box-shadow: var(--ei-shadow); padding: 16px 18px;
+        &.is-unknown { border-color: var(--ei-warn-line); }
+        &.is-denied { border-color: var(--ei-info-line); background: var(--ei-info-soft); }
+        &.is-bad { border-color: var(--ei-bad-line); background: var(--ei-bad-soft); color: var(--ei-bad); }
+    }
+    .ei-ask-answer-title { font-size: 18px; font-weight: 800; color: var(--ei-ink); margin: 0 0 8px; }
+    .ei-ask-h3 { font-size: 14px; font-weight: 800; color: var(--ei-muted); text-transform: uppercase; letter-spacing: .4px; margin: 10px 0 4px; }
+    .ei-ask-text { overflow-wrap: anywhere; }
+
+    .ei-ask-figures { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; margin: 6px 0 12px; }
+    .ei-ask-figure { display: flex; flex-direction: column; gap: 2px; border: 1px solid var(--ei-line); background: var(--ei-surface-2); border-radius: 12px; padding: 10px 12px; color: var(--ei-text);
+        &.is-ok { border-color: var(--ei-ok-line); background: var(--ei-ok-soft); }
+        &.is-warning { border-color: var(--ei-warn-line); background: var(--ei-warn-soft); }
+        &.is-danger { border-color: var(--ei-bad-line); background: var(--ei-bad-soft); }
+        &.is-info { border-color: var(--ei-info-line); background: var(--ei-info-soft); }
+    }
+    button.ei-ask-figure { cursor: pointer; &:hover { box-shadow: var(--ei-shadow-hover); } }
+    .ei-ask-figure-label { font-weight: 700; color: var(--ei-text); }
+    .ei-ask-figure-value { font-size: 22px; font-weight: 800; color: var(--ei-ink); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+    .ei-ask-figure-note { font-size: 13px; color: var(--ei-muted); }
+
+    .ei-ask-tablewrap { overflow-x: auto; margin: 6px 0 10px; }
+    .ei-ask-table { width: 100%; border-collapse: collapse;
+        th { text-align: start; color: var(--ei-muted); font-size: 12.5px; font-weight: 700; padding: 6px 10px; border-bottom: 1px solid var(--ei-line-strong); white-space: nowrap; }
+        td { padding: 8px 10px; border-bottom: 1px solid var(--ei-line); vertical-align: top; overflow-wrap: anywhere; }
+        .is-num { text-align: end; font-variant-numeric: tabular-nums; white-space: nowrap; font-weight: 600; }
+        th.is-col:last-child { text-align: end; }
+    }
+    .ei-ask-link { border: 0; background: transparent; color: var(--ei-primary); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; padding: 0; cursor: pointer; font-size: inherit; text-align: start;
+        &.is-second { margin-inline-start: 12px; font-weight: 600; }
+    }
+    .ei-ask-list { list-style: none; margin: 0; padding: 0; li { padding: 6px 0; border-top: 1px solid var(--ei-line); &:first-child { border-top: 0; } display: flex; flex-wrap: wrap; gap: 2px 10px; align-items: baseline; } }
+    .ei-ask-itemtext { font-weight: 600; color: var(--ei-ink); }
+
+    .ei-ask-options { display: flex; flex-direction: column; gap: 8px; margin: 8px 0; }
+    .ei-ask-option { border: 1px solid var(--ei-primary-line); background: var(--ei-card); color: var(--ei-text); border-radius: 12px; padding: 10px 14px; cursor: pointer; display: flex; flex-direction: column; gap: 2px; &:hover { background: var(--ei-primary-soft); } }
+    .ei-ask-problem { color: var(--ei-bad); font-weight: 600; }
+
+    .ei-ask-foot { margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--ei-line-strong); }
+    .ei-ask-sources { display: flex; flex-wrap: wrap; gap: 6px 8px; align-items: center; margin-bottom: 8px; }
+    .ei-ask-source { border: 1px solid var(--ei-line); background: var(--ei-surface-2); color: var(--ei-primary); border-radius: 8px; padding: 3px 10px; font-weight: 600; font-size: 13px; cursor: pointer; max-width: 100%; overflow-wrap: anywhere; &:hover { background: var(--ei-primary-soft); } }
+    .ei-ask-how { margin-bottom: 4px; summary { cursor: pointer; font-weight: 700; color: var(--ei-text); } p { margin: 6px 0 0; color: var(--ei-muted); } }
+    .ei-ask-asof { margin: 6px 0 0; color: var(--ei-muted); font-size: 12.5px; }
+    .ei-ask-busy { color: var(--ei-muted); }
+    .ei-ask-spin { display: inline-block; width: 16px; height: 16px; border: 3px solid var(--ei-line-strong); border-top-color: var(--ei-primary); border-radius: 50%; animation: ei-ask-rot .8s linear infinite; vertical-align: -3px; margin-inline-end: 8px; }
+    @keyframes ei-ask-rot { to { transform: rotate(360deg); } }
+    @media (prefers-reduced-motion: reduce) { .ei-ask-spin { animation: none; } }
+
+    .ei-ask-form { display: flex; gap: 8px; padding: 10px 0 18px; border-top: 1px solid var(--ei-line); background: var(--ei-bg); }
+    .ei-ask-input { flex: 1; height: 46px; border-radius: 12px; border: 1px solid var(--ei-line-strong); background: var(--ei-card); color: var(--ei-text); padding: 0 14px; font-size: 16px; font-family: inherit; min-width: 0; }
+    .ei-ask-btn2 { border: 1px solid var(--ei-primary); background: var(--ei-primary); color: var(--ei-on-primary); border-radius: 12px; font-weight: 700; padding: 0 22px; min-height: 46px; cursor: pointer;
+        &:hover:not(:disabled) { background: var(--ei-primary-hover); }
+        &:disabled { opacity: .5; cursor: not-allowed; }
+        &.is-quiet { background: var(--ei-card); color: var(--ei-primary); border-color: var(--ei-primary-line); min-height: 38px; padding: 0 14px; }
+    }
+    @media (max-width: 599.98px) {
+        padding: 0 12px;
+        .ei-ask-title { font-size: 21px; }
+        .ei-ask-sub { font-size: 14px; }
+        .ei-ask-me { max-width: 92%; }
+        .ei-ask-figures { grid-template-columns: 1fr 1fr; }
+        .ei-ask-figure-value { font-size: 18px; }
+    }
+}
+
+// the button in the top bar
+.ei-ask-btn { display: inline-flex; align-items: center; gap: 6px; border: 0; background: transparent; color: #F1F5F9;   // the top bar is dark in light and dark mode
+    font-weight: 700; padding: 0 12px; height: 100%; min-height: 40px; cursor: pointer; font-family: inherit;
+    &:hover { background: rgba(255, 255, 255, .12); }
+    &:focus-visible { outline: 3px solid var(--ei-focus, #86b7fe); outline-offset: -3px; }
+    .ei-ask-btn-icon { width: 20px; height: 20px; flex: none; }
+    @media (max-width: 767.98px) { .ei-ask-btn-label { display: none; } padding: 0 10px; }
+}

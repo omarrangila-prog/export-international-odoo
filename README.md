@@ -1,6 +1,6 @@
 # Export International - Odoo (Odoovations)
 
-Fourteen installable Odoo 20.0 addons that replace the client's paper/FoxPro/Excel daily routines with one audited system.
+Fifteen installable Odoo 20.0 addons that replace the client's paper/FoxPro/Excel daily routines with one audited system.
 Audit and gap report: `AUDIT_AND_GAP_REPORT.md`. Status and honest limits: `docs/release_status.md`. Test evidence: `docs/test_results.md`. Open decisions: `docs/open_decisions.md`.
 
 | Addon | Purpose |
@@ -18,6 +18,7 @@ Audit and gap report: `AUDIT_AND_GAP_REPORT.md`. Status and honest limits: `docs
 | ei_party360 | Party 360: one page per customer/supplier - exact old codes, material chain, money, bank evidence, timeline; every figure explains itself and opens its records |
 | ei_automation | Business-owned reminders (A17 supplier invoice missing, A18 approved material not lifted, A19 overdue customer, A24 anomalies): every rule ships off, preview shows what it would do, the only effect is an internal reminder to a colleague, full run log |
 | ei_matching | Match bank payments: one screen with the queue, the decision (who paid, which invoices) and the evidence and effect; suggestions stay suggestions until a bank officer confirms; nothing is approved or posted from it |
+| ei_assistant | Ask: a read-only, rule-based assistant (not a language model) in the top bar. Answers from your own records with sources and "how worked out"; refuses to change anything; questions logged for management |
 | ei_ui_theme | Home command centre (figures, alerts, My Work with assign/snooze/escalate, pipeline, charts, grouped launcher) per role, universal search + Ctrl+K, light and dark themes, plain-language labels, card views, next-step banners, menus |
 
 Open the staging site: see `docs/deployment_runbook.md` section 2 (admin/admin, demo.<role>/demo). Screenshots: `docs/ui/final/`.
