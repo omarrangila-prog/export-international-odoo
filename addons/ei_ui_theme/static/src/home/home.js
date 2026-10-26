@@ -183,6 +183,7 @@ export class EiHome extends Component {
     onStep(s) { return this.call("open_step", [s.key]); }
     onTask(t) { return this.call("open_task", [t.model, t.res_id], "ei.work"); }
     onActivity(a) { return this.call("open", [a.model, a.res_id], "ei.search"); }
+    onReminders() { return this.action.doAction("mail.mail_activity_action_my"); }
     onRefresh() { return this.load(); }
     setFilter(key) {
         this.state.filter = key;

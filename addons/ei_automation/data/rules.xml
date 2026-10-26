@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- Every rule ships OFF and with PROPOSED numbers. The business switches them on. -->
+    <record id="rule_missing_supplier_invoice" model="ei.rule">
+        <field name="key">missing_supplier_invoice</field><field name="company_id" ref="base.main_company"/>
+        <field name="days">3</field><field name="repeat_days">3</field><field name="enabled" eval="False"/>
+    </record>
+    <record id="rule_lifting_waiting" model="ei.rule">
+        <field name="key">lifting_waiting</field><field name="company_id" ref="base.main_company"/>
+        <field name="days">5</field><field name="repeat_days">3</field><field name="enabled" eval="False"/>
+    </record>
+    <record id="rule_overdue_collection" model="ei.rule">
+        <field name="key">overdue_collection</field><field name="company_id" ref="base.main_company"/>
+        <field name="days">7</field><field name="repeat_days">7</field><field name="enabled" eval="False"/>
+    </record>
+    <record id="rule_critical_anomaly" model="ei.rule">
+        <field name="key">critical_anomaly</field><field name="company_id" ref="base.main_company"/>
+        <field name="days">1</field><field name="repeat_days">1</field><field name="enabled" eval="False"/>
+    </record>
+</odoo>

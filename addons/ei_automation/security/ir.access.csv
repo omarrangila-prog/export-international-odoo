@@ -1,0 +1,10 @@
+id,name,model_id,group_id/id,operation,domain
+access_ei_rule_management,ei.rule management,ei.rule,ei_management_dashboard.group_ei_management,crud,
+access_ei_rule_auditor,ei.rule auditor,ei.rule,ei_legacy_master.group_ei_auditor,r,
+access_ei_rule_run_read_management,ei.rule.run management,ei.rule.run,ei_management_dashboard.group_ei_management,r,
+access_ei_rule_run_auditor,ei.rule.run auditor,ei.rule.run,ei_legacy_master.group_ei_auditor,r,
+access_ei_rule_finding_management,ei.rule.finding management,ei.rule.finding,ei_management_dashboard.group_ei_management,r,
+access_ei_rule_finding_auditor,ei.rule.finding auditor,ei.rule.finding,ei_legacy_master.group_ei_auditor,r,
+rule_ei_rule_company,Automation rule: own companies,ei.rule,,crud,"[('company_id', 'in', company_ids)]"
+rule_ei_rule_run_company,Automation run: own companies,ei.rule.run,,crud,"[('company_id', 'in', company_ids)]"
+rule_ei_rule_finding_company,Automation finding: own companies,ei.rule.finding,,crud,"[('company_id', 'in', company_ids)]"

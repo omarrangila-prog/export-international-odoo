@@ -65,6 +65,7 @@
 
     // ---------- pills, chips, buttons, banners
     .ei-pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 12.5px; font-weight: 600; white-space: nowrap; border: 1px solid transparent; .ei-svg { font-size: 13px; } }
+    button.ei-pill { cursor: pointer; font-family: inherit; }
     .ei-pill-warning { background: var(--ei-warn-soft); color: var(--ei-warn); border-color: var(--ei-warn-line); }
     .ei-pill-info { background: var(--ei-info-soft); color: var(--ei-info); border-color: var(--ei-info-line); }
     .ei-pill-bad { background: var(--ei-bad-soft); color: var(--ei-bad); border-color: var(--ei-bad-line); }

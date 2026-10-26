@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Safe to leave active: every rule is OFF until a manager switches it on, and a switched-off rule is skipped. -->
+    <record id="cron_ei_rules" model="ir.cron">
+        <field name="name">Export International: run automation rules</field>
+        <field name="model_id" ref="model_ei_rule"/>
+        <field name="state">code</field>
+        <field name="code">model.cron_run_all()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="active" eval="True"/>
+    </record>
+</odoo>
