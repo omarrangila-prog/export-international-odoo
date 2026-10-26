@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- The page head: our icon in the browser tab, the app manifest on the sign-in page too, a viewport that reaches under a phone's notch
+         (the page pads itself with the safe-area insets) and does NOT forbid pinch zoom, which Odoo's own head does. -->
+    <template id="layout_icon" inherit_id="web.layout" name="Export International icon">
+        <xpath expr="//link[@rel='shortcut icon']" position="attributes">
+            <attribute name="type">image/png</attribute>
+            <attribute name="t-att-href">x_icon or '/ei_app_shell/static/img/ei-favicon-64.png'</attribute>
+        </xpath>
+    </template>
+
+    <template id="frontend_head" inherit_id="web.frontend_layout" name="Export International sign-in head">
+        <xpath expr="//head/meta[@name='viewport']" position="attributes">
+            <attribute name="content">width=device-width, initial-scale=1, viewport-fit=cover</attribute>
+        </xpath>
+        <xpath expr="//head/meta[@name='viewport']" position="after">
+            <meta name="theme-color" content="#F4F6FA"/>
+            <link rel="manifest" href="/web/manifest.webmanifest"/>
+            <link rel="apple-touch-icon" href="/ei_app_shell/static/img/ei-icon-180.png"/>
+            <meta name="mobile-web-app-capable" content="yes"/>
+            <meta name="apple-mobile-web-app-capable" content="yes"/>
+            <meta name="apple-mobile-web-app-title" content="Export Intl"/>
+        </xpath>
+    </template>
+
+    <template id="webclient_head" inherit_id="web.webclient_bootstrap" name="Export International application head">
+        <xpath expr="//meta[@name='viewport']" position="attributes">
+            <attribute name="content">width=device-width, initial-scale=1, viewport-fit=cover</attribute>
+        </xpath>
+        <xpath expr="//meta[@name='theme-color']" position="attributes">
+            <attribute name="content">#F4F6FA</attribute>
+        </xpath>
+        <xpath expr="//link[@rel='apple-touch-icon']" position="attributes">
+            <attribute name="href">/ei_app_shell/static/img/ei-icon-180.png</attribute>
+        </xpath>
+        <xpath expr="//link[@rel='apple-touch-icon']" position="after">
+            <meta name="mobile-web-app-capable" content="yes"/>
+            <meta name="apple-mobile-web-app-capable" content="yes"/>
+            <meta name="apple-mobile-web-app-title" content="Export Intl"/>
+            <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+        </xpath>
+    </template>
+</odoo>

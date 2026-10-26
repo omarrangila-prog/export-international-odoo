@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- the name an installed copy of the app shows under its icon -->
+    <function model="ir.config_parameter" name="set_str" eval="('web.web_app_name', 'Export International')"/>
+</odoo>

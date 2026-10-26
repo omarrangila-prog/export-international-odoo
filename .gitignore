@@ -2,3 +2,6 @@ __pycache__/
 *.pyc
 migration/source/
 migration/validation_reports/
+
+# screenshots show the client's real code list when built from it: generate them locally, never publish
+docs/**/*.png

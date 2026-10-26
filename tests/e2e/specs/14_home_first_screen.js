@@ -11,7 +11,11 @@ async function measure(p) {
     const firstEl = [...document.querySelectorAll(first)].find((e) => e.offsetParent);
     const values = [...document.querySelectorAll('.ei-sum-value')].map((e) => ({ text: e.textContent.trim(), fits: e.scrollWidth <= e.clientWidth + 1, oneLine: e.getBoundingClientRect().height < parseFloat(getComputedStyle(e).fontSize) * 1.6 }));
     const cta = firstEl && firstEl.querySelector('.ei-alert-cta');
+    const nav = document.querySelector('.ei-bn');
+    const strip = document.querySelector('.ei-sum-grid'), tiles = [...document.querySelectorAll('.ei-sum')];
     return {
+      navTop: nav ? Math.round(nav.getBoundingClientRect().top) : window.innerHeight,
+      swipes: !!strip && strip.scrollWidth > strip.clientWidth + 1, peek: tiles.length > 1 && tiles[1].getBoundingClientRect().left < window.innerWidth - 12,
       sum: sumEl && rect(sumEl), first: firstEl && rect(firstEl), cta: cta && rect(cta), values,
       folds: [...document.querySelectorAll('.ei-foldbar')].map((e) => e.getAttribute('aria-expanded')),
       overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
@@ -50,8 +54,10 @@ module.exports = {
       m = s.mark();
       await s.home();
       r = await measure(s.page);
-      ctx.check(!!r.first && r.first.bottom <= 844, `${label}: on a phone the first alert or decision, with its next step, is inside the first screen`, JSON.stringify(r.first));
-      ctx.check(!r.cta || r.cta.bottom <= 844, `${label}: its next-step button is not cut off`, JSON.stringify(r.cta));
+      ctx.check(r.navTop < 844 && r.navTop >= 744, `${label}: the phone has its bottom bar`, String(r.navTop));
+      ctx.check(!!r.first && r.first.bottom <= r.navTop, `${label}: on a phone the first alert or decision, with its next step, is inside the first screen (above the bottom bar)`, JSON.stringify(r.first) + ' bar at ' + r.navTop);
+      ctx.check(!r.cta || r.cta.bottom <= r.navTop, `${label}: its next-step button is not cut off`, JSON.stringify(r.cta));
+      ctx.check(r.swipes && r.peek, `${label}: the figures are a swipe strip and the next one peeks out`, JSON.stringify({ swipes: r.swipes, peek: r.peek }));
       ctx.check(r.values.every((v) => v.fits && v.oneLine), `${label}: phone figures sit on one line`, JSON.stringify(r.values.filter((v) => !v.fits || !v.oneLine)));
       ctx.check(r.overflow <= 0, `${label}: no sideways scroll on a phone`, String(r.overflow));
       ctx.check(r.folds.length >= 3 && r.folds.every((x) => x === 'false') && !r.heroShown, `${label}: secondary sections start folded (${r.folds.length} bars)`, JSON.stringify(r.folds));

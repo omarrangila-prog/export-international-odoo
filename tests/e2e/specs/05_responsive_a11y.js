@@ -1,4 +1,4 @@
-// Six widths x key screens x light/dark: no horizontal overflow, nothing clipped, no console/server errors, and
+// Nine device sizes (small phone to desktop, a phone on its side) x key screens x light/dark: no horizontal overflow, nothing clipped, no console/server errors, and
 // automated accessibility (axe, WCAG 2 A/AA) with zero serious or critical findings on our own screens.
 const { VIEWPORTS } = require('../lib');
 
@@ -15,7 +15,7 @@ const SCREENS = [
 ];
 
 module.exports = {
-  name: '05 responsive layout and accessibility (6 widths, light + dark)',
+  name: '05 responsive layout and accessibility (9 device sizes, light + dark)',
   async run(ctx, browser) {
     const { Session } = require('../lib');
     for (const scheme of ['light', 'dark']) {

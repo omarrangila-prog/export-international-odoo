@@ -4,7 +4,8 @@ const { chromium } = require('playwright');
 const fs = require('fs');
 const path = require('path');
 
-const VIEWPORTS = [[375, 812], [390, 844], [768, 1024], [1024, 768], [1440, 900], [1920, 1080]];
+// small phone, phone, big phone, a phone on its side (short and wide), tablet upright and on its side, laptop, desktop
+const VIEWPORTS = [[320, 640], [375, 812], [390, 844], [412, 915], [844, 390], [768, 1024], [1024, 768], [1440, 900], [1920, 1080]];
 const AXE = (() => { try { return fs.readFileSync(require.resolve('axe-core/axe.min.js'), 'utf8'); } catch { return null; } })();
 
 class Ctx {

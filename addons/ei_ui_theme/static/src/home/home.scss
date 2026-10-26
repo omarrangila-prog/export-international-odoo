@@ -383,13 +383,15 @@
     @media (max-width: 640px) {
         .ei-home-inner { padding: 0 14px 72px; }
         .ei-top { padding-top: 14px; }
-        .ei-sum-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; } .ei-sum { padding: 12px 12px 10px; }
+        // five figures are a swipe strip on a phone (one and a bit visible: the next one peeks out), so the first alert is on the first screen
+        .ei-sum-grid { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; margin-inline: -14px; padding: 2px 14px 6px; scroll-padding-inline: 14px; -webkit-overflow-scrolling: touch; &::-webkit-scrollbar { display: none; } }
+        .ei-sum { flex: 0 0 auto; width: 70vw; max-width: 280px; scroll-snap-align: start; padding: 12px 14px 10px; }
         .ei-dalerts .ei-alert { display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; align-items: start; gap: 6px 12px; .ei-alert-cta { grid-column: 2 / -1; justify-self: start; } }
-        .ei-decide .ei-hcard { padding-inline: 14px; } .ei-dalerts, .ei-dtasks { margin-inline: -6px; } .ei-sum:nth-child(5):last-child { grid-column: 1 / -1; } .ei-sum-tag { display: none; }
+        .ei-decide .ei-hcard { padding-inline: 14px; } .ei-dalerts, .ei-dtasks { margin-inline: -6px; }
         .ei-top-bar { margin-top: 0; } .ei-top-sub { margin-top: 2px; }
         .ei-section { margin-top: 18px; } .ei-summary { margin-top: 10px; } .ei-top { gap: 6px 24px; } .ei-sub-company, .ei-role-user { display: none; }          // on a phone the avatar says who, the line says which view and which day
         .ei-top-mini { gap: 6px; .ei-iconbtn { width: 34px; height: 34px; } } .ei-top-tools { gap: 6px; }
-        .ei-sum-sub { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; } .ei-sum-sub { font-size: 12px; } .ei-sum:nth-child(5):last-child .ei-sum-value { font-size: 20px; }
+        .ei-sum-sub { font-size: 12px; }
         .ei-top-title { font-size: 34px; } .ei-top-lead { font-size: 14.5px; } .ei-title-btn { width: 36px; height: 36px; }
         .ei-hcard { padding: 16px 16px 14px; }
         .ei-bignum { font-size: 30px; }
@@ -405,6 +407,11 @@
         .ei-datepill { height: 36px; padding-inline: 12px; font-size: 13px; .ei-svg { display: none; } } .ei-datepill:not(.is-static) { padding-inline-end: 30px; }
         .ei-period { flex-wrap: nowrap; justify-content: flex-start; gap: 6px; } .ei-compare { font-size: 12px; white-space: nowrap; }
         .ei-rtable th, .ei-rtable td { padding: 10px 8px; }
+    }
+    // ---------- a small phone (320 px): the title row and the period pills wrap instead of running off the screen
+    @media (max-width: 380px) {
+        .ei-top-title { font-size: 27px; } .ei-title-row { gap: 8px; flex-wrap: wrap; } .ei-newbtn { padding-inline: 12px; }
+        .ei-period { flex-wrap: wrap !important; }
     }
     @media (pointer: coarse) { .ei-btn, .ei-chip, .ei-iconbtn { min-height: 44px; min-width: 44px; } .ei-launch-item, .ei-alert, .ei-step { min-height: 48px; } }
     @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }

@@ -83,7 +83,7 @@
 
                     <!-- ===== summary: five figures, each says what it is made of ===== -->
                     <section t-if="sec === 'summary'" class="ei-section ei-summary" aria-label="Summary figures">
-                        <div class="ei-sum-grid">
+                        <div class="ei-sum-grid" role="region" aria-label="Summary figures" t-att-tabindex="this.state.phone ? 0 : false">
                             <button t-foreach="this.summaryTiles" t-as="t" t-key="t.key" t-att-class="'ei-sum ei-tone-' + t.tone" t-on-click="() => this.onSummary(t)" t-att-title="t.help || false"
                                     t-att-aria-label="t.label + ': ' + t.value + '. ' + t.tag + '. ' + t.sub + '. Open the records.'">
                                 <span class="ei-sum-top"><span class="ei-sum-label" t-out="t.label"/><span class="ei-sum-tag" t-out="t.tag"/></span>

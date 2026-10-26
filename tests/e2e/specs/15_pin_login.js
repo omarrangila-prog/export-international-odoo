@@ -53,6 +53,7 @@ module.exports = {
     const q = s.page;
     await q.locator('.o_user_menu').first().click();
     const item = q.getByRole('menuitem', { name: 'Sign-in PIN' });
+    await item.first().waitFor({ timeout: 8000 }).catch(() => {});
     ctx.check(await item.count() === 1, '2 the name menu offers "Sign-in PIN"');
     await item.click(); await q.waitForSelector('.modal .ei-pin-dialog');
     const dlg = q.locator('.modal .ei-pin-dialog');

@@ -1,0 +1,6 @@
+// undo / redo arrows next to the record's save controls
+.ei-undo { display: inline-flex; align-items: center; gap: 2px; margin-inline-end: 6px; align-self: flex-end; }
+.ei-undo-btn { appearance: none; border: 0; background: transparent; width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; color: var(--ei-text); cursor: pointer; transition: background .15s, color .15s;
+    &:hover:not(:disabled) { background: var(--ei-primary-soft); color: var(--ei-primary); }
+    &:disabled { opacity: .32; cursor: default; }
+    &:focus-visible { outline: 3px solid var(--ei-focus); outline-offset: 1px; } }

@@ -1,0 +1,21 @@
+// ---------------------------------------------------------------- workspace tabs (desktop and tablet; a phone lists them under "More")
+.ei-tabs { display: flex; align-items: flex-end; gap: 6px; margin: -4px 24px 0; padding: 0 4px; min-height: 36px; position: relative; z-index: 11; }
+.ei-tabs-scroll { list-style: none; margin: 0; padding: 0; display: flex; align-items: flex-end; gap: 2px; min-width: 0; overflow-x: auto; scrollbar-width: none; &::-webkit-scrollbar { display: none; } }
+.ei-tab { position: relative; flex: 0 1 auto; display: flex; align-items: center; min-width: 110px; max-width: 230px; height: 34px; padding: 0 6px 0 14px; border-radius: 12px 12px 0 0;
+    background: transparent; color: var(--ei-muted); font-size: 13px; font-weight: 600; transition: background .15s, color .15s;
+    &:hover { background: color-mix(in srgb, var(--ei-card) 60%, transparent); color: var(--ei-ink); }
+    &.is-on { background: var(--ei-card); color: var(--ei-ink); box-shadow: 0 -5px 16px rgba(29, 78, 216, .08), 0 0 0 1px var(--ei-line) inset; border-bottom: 0; }
+    &:not(.is-on):not(:hover)::after { content: ""; position: absolute; inset-inline-end: 0; top: 9px; bottom: 9px; width: 1px; background: var(--ei-line); }      // thin divider between resting tabs, like a browser
+}
+.ei-tab-link { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: inherit !important; text-decoration: none !important; line-height: 34px;
+    &:focus-visible { outline: 3px solid var(--ei-focus); outline-offset: -2px; border-radius: 8px; } }
+.ei-tab-x { flex: none; appearance: none; border: 0; background: transparent; width: 22px; height: 22px; margin-inline-start: 4px; border-radius: 50%; display: grid; place-items: center; color: var(--ei-muted); cursor: pointer; opacity: .7;
+    &:hover, &:focus-visible { background: var(--ei-surface-2); color: var(--ei-ink); opacity: 1; }
+    &:focus-visible { outline: 3px solid var(--ei-focus); } }
+.ei-tab.is-on .ei-tab-x { opacity: 1; }
+.ei-tab-new { flex: none; appearance: none; border: 0; background: transparent; width: 30px; height: 30px; margin-bottom: 2px; border-radius: 50%; display: grid; place-items: center; color: var(--ei-muted); cursor: pointer;
+    &:hover:not(:disabled) { background: var(--ei-card); color: var(--ei-primary); box-shadow: 0 1px 4px rgba(15, 27, 51, .1); }
+    &:disabled { opacity: .35; cursor: not-allowed; }
+    &:focus-visible { outline: 3px solid var(--ei-focus); } }
+// a phone on its side has no height to spare
+@media (max-height: 520px) { .ei-tabs { display: none; } }

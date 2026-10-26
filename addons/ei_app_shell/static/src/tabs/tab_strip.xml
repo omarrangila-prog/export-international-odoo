@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="ei_app_shell.TabStrip">
+        <nav t-if="this.show" class="ei-tabs" aria-label="Open pages">
+            <ul class="ei-tabs-scroll">
+                <li t-foreach="this.tabs.tabs" t-as="t" t-key="t.id" t-att-class="'ei-tab' + (t.id === this.tabs.activeId ? ' is-on' : '')">
+                    <a class="ei-tab-link" t-att-href="t.url" t-att-title="t.title" t-att-aria-current="t.id === this.tabs.activeId ? 'page' : false"
+                       t-on-auxclick="(ev) => this.onAux(ev, t)" t-on-keydown="(ev) => this.onKeydown(ev, t)" t-out="t.title || 'Page'"/>
+                    <button type="button" class="ei-tab-x" t-att-aria-label="'Close ' + (t.title || 'page')" t-att-title="'Close ' + (t.title || 'page')" t-on-click.stop.prevent="() => this.tabs.close(t.id)">
+                        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+                    </button>
+                </li>
+            </ul>
+            <button type="button" class="ei-tab-new" aria-label="Open a new page in a new tab" title="New tab" t-att-disabled="this.tabs.tabs.length >= this.tabs.maxTabs" t-on-click="() => this.tabs.add()">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+            </button>
+        </nav>
+    </t>
+
+    <t t-inherit="web.WebClient" t-inherit-mode="extension">
+        <xpath expr="//ActionContainer" position="before">
+            <EiTabStrip t-if="!this.state.fullscreen"/>
+        </xpath>
+    </t>
+</templates>

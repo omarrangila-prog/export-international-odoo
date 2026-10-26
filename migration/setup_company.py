@@ -1,10 +1,12 @@
 """Make the (single) company a Pakistan / PKR company and load the Pakistan chart of accounts.
 Run once on a NEW database, before any entry is posted:   odoo shell -d <db> ... < migration/setup_company.py"""
+import os
+
 co = env.company
 pk = env.ref('base.pk')
 pkr = env.ref('base.PKR')
 pkr.active = True
-co.write({'name': 'Export International (staging)', 'country_id': pk.id, 'currency_id': pkr.id})
+co.write({'name': os.environ.get('EI_COMPANY_NAME', 'Export International (staging)'), 'country_id': pk.id, 'currency_id': pkr.id})
 tmpl = env['account.chart.template']
 try:
     tmpl.try_loading('pk', co, install_demo=False)

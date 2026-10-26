@@ -1,0 +1,26 @@
+# nginx site for the live system. install_ubuntu.sh replaces @@DOMAIN@@ and then asks certbot to add the https part.
+upstream odoo { server 127.0.0.1:8069; }
+upstream odoochat { server 127.0.0.1:8072; }
+map $http_upgrade $connection_upgrade { default upgrade; '' close; }
+
+server {
+    listen 80;
+    server_name @@DOMAIN@@;
+    client_max_body_size 64m;
+    proxy_read_timeout 720s;
+    proxy_connect_timeout 720s;
+    proxy_send_timeout 720s;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-Host $host;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Real-IP $remote_addr;
+    gzip on;
+    gzip_types text/css text/plain application/json application/javascript application/manifest+json image/svg+xml;
+
+    location /websocket { proxy_pass http://odoochat; proxy_set_header Upgrade $http_upgrade; proxy_set_header Connection $connection_upgrade; }
+    location / { proxy_redirect off; proxy_pass http://odoo; }
+    location ~* /web/static/ { proxy_cache_valid 200 60m; proxy_buffering on; expires 864000; proxy_pass http://odoo; }
+    # the service worker must never be cached for long, or an update would not reach installed copies
+    location = /web/service-worker.js { proxy_pass http://odoo; add_header Cache-Control "no-cache"; }
+}

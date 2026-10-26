@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="ei_app_shell.UndoRedo">
+        <div class="ei-undo" role="group" aria-label="Undo and redo">
+            <button type="button" class="ei-undo-btn" t-att-disabled="!this.canUndo" t-att-aria-label="this.undoTip" t-att-title="this.undoTip + ' (Ctrl+Z)'" t-on-click.stop="() => this.undo()">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.iconUndo"/></svg>
+            </button>
+            <button type="button" class="ei-undo-btn" t-att-disabled="!this.canRedo" t-att-aria-label="this.redoTip" t-att-title="this.redoTip + ' (Ctrl+Y)'" t-on-click.stop="() => this.redo()">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.iconRedo"/></svg>
+            </button>
+        </div>
+    </t>
+
+    <t t-inherit="web.FormView" t-inherit-mode="extension">
+        <xpath expr="//t[@t-set-slot='control-panel-status-indicator']/t" position="before">
+            <EiUndoRedo t-if="this.canEdit and !this.env.inDialog" model="this.model"/>
+        </xpath>
+    </t>
+</templates>
