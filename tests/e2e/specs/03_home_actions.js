@@ -12,7 +12,7 @@ module.exports = {
     await s.home();
     // ---------- structure
     const text = await p.innerText('.ei-home');
-    for (const h of ['AT A GLANCE', 'NEEDS ATTENTION', 'MY WORK TODAY', 'FROM CONTRACT TO PAYMENT', 'START SOMETHING']) ctx.check(text.toUpperCase().includes(h), `Home has the "${h.toLowerCase()}" section`);
+    for (const h of ['AT A GLANCE', 'NEEDS ATTENTION', 'MY WORK TODAY', 'FROM CONTRACT TO PAYMENT', 'MONEY AND MATERIAL']) ctx.check(text.toUpperCase().includes(h), `Home has the "${h.toLowerCase()}" section`);
     ctx.check(await p.locator('.ei-top input[type=search]').count() === 1 && await p.locator('.ei-top .ei-fresh').count() === 1, 'compact header has search and "Updated" time');
 
     // ---------- every figure, alert, pipeline stage and launcher button opens real records
@@ -31,7 +31,19 @@ module.exports = {
     await sweep('.ei-kpi', 'figure');
     await sweep('.ei-alert', 'alert');
     await sweep('.ei-stage', 'pipeline stage');
-    await sweep('.ei-launch-item', 'quick action');
+    {   // the starting points live in the header's New menu (a launcher at the foot of the page is gone for management roles)
+      const n = await s.rpc('ei.home', 'get_data', ['14d']).then(d => d.quick.reduce((t, g) => t + g.items.length, 0));
+      ctx.check(n > 0, `quick action: ${n} in the New menu`);
+      for (let i = 0; i < n; i++) {
+        const m = s.mark();
+        await p.locator('.ei-newbtn').click(); await p.waitForSelector('.ei-newitem');
+        const name = (await p.locator('.ei-newitem').nth(i).innerText()).split('\n')[0].slice(0, 50);
+        await p.locator('.ei-newitem').nth(i).click(); await p.waitForTimeout(1300);
+        const ok = await shown();
+        await s.clean(`quick action: "${name}" opens` + (ok ? '' : ' - nothing shown'), m);
+        await closeModal(); await back();
+      }
+    }
 
     // ---------- My Work: open
     {

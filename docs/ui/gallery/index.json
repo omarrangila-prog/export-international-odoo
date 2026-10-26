@@ -1,0 +1,1005 @@
+{
+ "entries": [
+  {
+   "file": "menu-01-export-international.png",
+   "what": "Menu \"Export International\": home \"Overview\"",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x2800 (whole page)",
+   "note": ""
+  },
+  {
+   "file": "menu-02-customers-and-suppliers.png",
+   "what": "Menu \"Customers & Suppliers\": page \"Party 360\"",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "menu-03-money-match-bank-payments.png",
+   "what": "Menu \"Money > Match bank payments\": page \"Match bank payments\"",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "menu-04-money-bank-payments-to-check.png",
+   "what": "Menu \"Money > Bank payments to check\": list \"Bank payments to check\", 1-3 / 3",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "menu-04-money-bank-payments-to-check-record.png",
+   "what": "The first record of \"Money > Bank payments to check\": 2026-10-26 420,000.00 RAAST FROM REHMAN TRADERS KHI",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x982 (whole page)",
+   "note": ""
+  },
+  {
+   "file": "menu-05-money-imported-statements.png",
+   "what": "Menu \"Money > Imported statements\": cards \"Imported bank statements\", 1-2 / 2",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "menu-05-money-imported-statements-record.png",
+   "what": "The first record of \"Money > Imported statements\": Bank statement, 26 Oct 2026 10:35",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x1746 (whole page)",
+   "note": ""
+  },
+  {
+   "file": "menu-05-money-imported-statements-new.png",
+   "what": "Making a new record in \"Money > Imported statements\" (nothing is saved): fields are visible boxes",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "menu-06-money-morning-bank-balance.png",
+   "what": "Menu \"Money > Morning bank balance\": list \"Morning bank balance\", 1-1 / 1",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "menu-07-money-end-of-day-bank-review.png",
+   "what": "Menu \"Money > End-of-day bank review\": list \"End-of-day bank review\"",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "menu-08-money-cash-vouchers.png",
+   "what": "Menu \"Money > Cash vouchers\": cards \"Cash Vouchers\", 1-3 / 3",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "menu-08-money-cash-vouchers-record.png",
+   "what": "The first record of \"Money > Cash vouchers\": CV/2026/00003",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "menu-08-money-cash-vouchers-new.png",
+   "what": "Making a new record in \"Money > Cash vouchers\" (nothing is saved): fields are visible boxes",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "menu-09-money-count-the-cash.png",
+   "what": "Menu \"Money > Count the cash\": list \"Count the cash\"",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "menu-10-orders-and-trucks-contracts.png",
+   "what": "Menu \"Orders & Trucks > Contracts\": cards \"Contracts\", 1-3 / 3",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "menu-10-orders-and-trucks-contracts-record.png",
+   "what": "The first record of \"Orders & Trucks > Contracts\": CT/2026/0003",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x1110 (whole page)",
+   "note": ""
+  },
+  {
+   "file": "menu-10-orders-and-trucks-contracts-new.png",
+   "what": "Making a new record in \"Orders & Trucks > Contracts\" (nothing is saved): fields are visible boxes",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "menu-11-orders-and-trucks-delivery-advices.png",
+   "what": "Menu \"Orders & Trucks > Delivery advices\": cards \"Delivery Advices\", 1-4 / 4",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "menu-11-orders-and-trucks-delivery-advices-record.png",
+   "what": "The first record of \"Orders & Trucks > Delivery advices\": DA-DEMO-6601",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "menu-11-orders-and-trucks-delivery-advices-new.png",
+   "what": "Making a new record in \"Orders & Trucks > Delivery advices\" (nothing is saved): fields are visible boxes",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "menu-12-orders-and-trucks-daily-orders.png",
+   "what": "Menu \"Orders & Trucks > Daily orders\": cards \"Daily Orders\", 1-1 / 1",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "menu-12-orders-and-trucks-daily-orders-record.png",
+   "what": "The first record of \"Orders & Trucks > Daily orders\": DOR/2026/00001",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "menu-12-orders-and-trucks-daily-orders-new.png",
+   "what": "Making a new record in \"Orders & Trucks > Daily orders\" (nothing is saved): fields are visible boxes",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "menu-13-orders-and-trucks-material-lifting-trucks.png",
+   "what": "Menu \"Orders & Trucks > Material lifting (trucks)\": cards \"Material lifting (trucks)\", 1-11 / 11",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "menu-13-orders-and-trucks-material-lifting-trucks-record.png",
+   "what": "The first record of \"Orders & Trucks > Material lifting (trucks)\": LFT/2026/00003",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x1120 (whole page)",
+   "note": ""
+  },
+  {
+   "file": "menu-13-orders-and-trucks-material-lifting-trucks-new.png",
+   "what": "Making a new record in \"Orders & Trucks > Material lifting (trucks)\" (nothing is saved): fields are visible boxes",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x1246 (whole page)",
+   "note": ""
+  },
+  {
+   "file": "menu-14-reports-report-catalog.png",
+   "what": "Menu \"Reports > Report catalog\": page \"Reports\"",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x2198 (whole page)",
+   "note": ""
+  },
+  {
+   "file": "menu-15-reports-aged-receivables.png",
+   "what": "Menu \"Reports > Aged receivables\": page \"Aged receivables\"",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "menu-16-reports-bank-book-against-bank-confirmation.png",
+   "what": "Menu \"Reports > Bank book against bank confirmation\": list \"Bank book against bank confirmation\", 1-2 / 2",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "menu-17-reports-bank-lines-not-yet-in-the-books.png",
+   "what": "Menu \"Reports > Bank lines not yet in the books\": page \"Bank lines not yet in the books\"",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "menu-18-reports-contracts-and-expected-spread.png",
+   "what": "Menu \"Reports > Contracts and expected spread\": page \"Contracts: ordered, promised, lifted, expected spread\"",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "menu-19-reports-material-lifting.png",
+   "what": "Menu \"Reports > Material lifting\": page \"Material lifting\"",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "menu-20-bills-and-invoices-supplier-invoices.png",
+   "what": "Menu \"Bills & Invoices > Supplier invoices\": cards \"Supplier invoices\", 1-2 / 2",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "menu-20-bills-and-invoices-supplier-invoices-record.png",
+   "what": "The first record of \"Bills & Invoices > Supplier invoices\": SIN/2026/00002",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x1213 (whole page)",
+   "note": ""
+  },
+  {
+   "file": "menu-20-bills-and-invoices-supplier-invoices-new.png",
+   "what": "Making a new record in \"Bills & Invoices > Supplier invoices\" (nothing is saved): fields are visible boxes",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "menu-21-bills-and-invoices-invoice-delivered-material.png",
+   "what": "Menu \"Bills & Invoices > Invoice delivered material\": list \"Delivered material to invoice\", 1-10 / 10",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "menu-21-bills-and-invoices-invoice-delivered-material-record.png",
+   "what": "The first record of \"Bills & Invoices > Invoice delivered material\": LFT/2026/00002",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x1103 (whole page)",
+   "note": ""
+  },
+  {
+   "file": "menu-22-bills-and-invoices-tax-authority-submissions.png",
+   "what": "Menu \"Bills & Invoices > Tax authority submissions\": list \"Compliance Submissions\"",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "menu-23-month-end-parent-statements.png",
+   "what": "Menu \"Month-end > Parent statements\": cards \"Parent Statements\", 1-1 / 1",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "menu-23-month-end-parent-statements-record.png",
+   "what": "The first record of \"Month-end > Parent statements\": PST/2026/0001",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x1005 (whole page)",
+   "note": ""
+  },
+  {
+   "file": "menu-23-month-end-parent-statements-new.png",
+   "what": "Making a new record in \"Month-end > Parent statements\" (nothing is saved): fields are visible boxes",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "menu-24-month-end-open-differences.png",
+   "what": "Menu \"Month-end > Open differences\": list \"Open differences\", 1-2 / 2",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "menu-24-month-end-open-differences-record.png",
+   "what": "The first record of \"Month-end > Open differences\": DEMO-SUP-9002",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x2427 (whole page)",
+   "note": ""
+  },
+  {
+   "file": "menu-25-approvals-contracts.png",
+   "what": "Menu \"Approvals > Contracts\": list \"Contracts to approve\", 1-1 / 1",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "menu-25-approvals-contracts-record.png",
+   "what": "The first record of \"Approvals > Contracts\": CT/2026/0002",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x1109 (whole page)",
+   "note": ""
+  },
+  {
+   "file": "menu-26-approvals-delivery-advices.png",
+   "what": "Menu \"Approvals > Delivery Advices\": list \"DAs to approve\", 1-1 / 1",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "menu-26-approvals-delivery-advices-record.png",
+   "what": "The first record of \"Approvals > Delivery Advices\": DA-DEMO-5503",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "menu-27-approvals-daily-orders.png",
+   "what": "Menu \"Approvals > Daily Orders\": list \"Daily orders to approve\"",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "menu-28-approvals-liftings.png",
+   "what": "Menu \"Approvals > Liftings\": list \"Liftings to verify\", 1-1 / 1",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "menu-28-approvals-liftings-record.png",
+   "what": "The first record of \"Approvals > Liftings\": LFT/2026/00003",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x1120 (whole page)",
+   "note": ""
+  },
+  {
+   "file": "menu-29-approvals-cash-vouchers.png",
+   "what": "Menu \"Approvals > Cash Vouchers\": list \"Cash vouchers to approve\", 1-1 / 1",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "menu-29-approvals-cash-vouchers-record.png",
+   "what": "The first record of \"Approvals > Cash Vouchers\": CV/2026/00002",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "menu-30-approvals-bank-imports.png",
+   "what": "Menu \"Approvals > Bank Imports\": list \"Bank statements to approve or post\", 1-1 / 1",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "menu-30-approvals-bank-imports-record.png",
+   "what": "The first record of \"Approvals > Bank Imports\": Bank statement, 26 Oct 2026 10:35",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x1211 (whole page)",
+   "note": ""
+  },
+  {
+   "file": "menu-31-approvals-supplier-invoices.png",
+   "what": "Menu \"Approvals > Supplier Invoices\": list \"Supplier invoices with a problem\", 1-1 / 1",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "menu-31-approvals-supplier-invoices-record.png",
+   "what": "The first record of \"Approvals > Supplier Invoices\": SIN/2026/00002",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x1213 (whole page)",
+   "note": ""
+  },
+  {
+   "file": "menu-32-approvals-parent-statements.png",
+   "what": "Menu \"Approvals > Parent Statements\": list \"Parent statements to sign off\"",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "menu-33-setup-old-codes-all-639.png",
+   "what": "Menu \"Setup > Old codes (all 639)\": list \"Old codes\", 1-80 / 639",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "menu-33-setup-old-codes-all-639-record.png",
+   "what": "The first record of \"Setup > Old codes (all 639)\": 5.01 SAFE",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x969 (whole page)",
+   "note": ""
+  },
+  {
+   "file": "menu-34-setup-codes-to-classify.png",
+   "what": "Menu \"Setup > Codes to classify\": list \"Codes to classify\", 1-6 / 6",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "menu-35-setup-automation-rules.png",
+   "what": "Menu \"Setup > Automation rules\": list \"Automation rules\", 1-4 / 4",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "menu-35-setup-automation-rules-record.png",
+   "what": "The first record of \"Setup > Automation rules\": Supplier invoice missing after an order was approved",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x1156 (whole page)",
+   "note": ""
+  },
+  {
+   "file": "menu-35-setup-automation-rules-record-tab2.png",
+   "what": "The same record, second tab \"History\"",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x1073 (whole page)",
+   "note": ""
+  },
+  {
+   "file": "menu-36-setup-import-history.png",
+   "what": "Menu \"Setup > Import history\": list \"Import history\", 1-1 / 1",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "menu-36-setup-import-history-record.png",
+   "what": "The first record of \"Setup > Import history\": IMP/20261026-103500",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x1165 (whole page)",
+   "note": ""
+  },
+  {
+   "file": "menu-37-setup-lc-register.png",
+   "what": "Menu \"Setup > LC register\": list \"LC Register\"",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "menu-38-setup-formula-register.png",
+   "what": "Menu \"Setup > Formula register\": list \"Formula Register\", 1-1 / 1",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "menu-38-setup-formula-register-record.png",
+   "what": "The first record of \"Setup > Formula register\": Mill rate = basic rate less deduction % (PDF example)",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x995 (whole page)",
+   "note": ""
+  },
+  {
+   "file": "menu-38-setup-formula-register-record-tab2.png",
+   "what": "The same record, second tab \"Signed tests\"",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x995 (whole page)",
+   "note": ""
+  },
+  {
+   "file": "menu-39-setup-party-name-aliases.png",
+   "what": "Menu \"Setup > Party name aliases\": list \"Party name aliases\", 1-5 / 5",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "menu-40-setup-cash-categories.png",
+   "what": "Menu \"Setup > Cash categories\": list \"Cash Categories\", 1-1 / 1",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "menu-41-setup-assistant-questions.png",
+   "what": "Menu \"Setup > Assistant questions\": list \"Questions asked of the assistant\"",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "menu-42-setup-connections-to-other-systems.png",
+   "what": "Menu \"Setup > Connections to other systems\": list \"Connections to other systems\", 1-4 / 4",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "menu-42-setup-connections-to-other-systems-record.png",
+   "what": "The first record of \"Setup > Connections to other systems\": Bank statement feed (API)",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "menu-43-setup-detailed-report.png",
+   "what": "Menu \"Setup > Detailed report\": record \"Dashboard\", 1 / 1",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x1999 (whole page)",
+   "note": ""
+  },
+  {
+   "file": "menu-44-money-import-a-bank-statement.png",
+   "what": "Menu \"Money > Import a bank statement\": dialog \"Import bank statement\"",
+   "user": "admin",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "menu-45-month-end-import-parent-statement.png",
+   "what": "Menu \"Month-end > Import parent statement\": dialog \"Import parent statement\"",
+   "user": "admin",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "menu-46-setup-import-old-codes.png",
+   "what": "Menu \"Setup > Import old codes\": dialog \"Import legacy codes\"",
+   "user": "admin",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "home-executive.png",
+   "what": "Home (the \"Overview\") as executive: what this role may see, nothing more",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x3514 (whole page)",
+   "note": ""
+  },
+  {
+   "file": "home-finance-manager.png",
+   "what": "Home (the \"Overview\") as finance manager: what this role may see, nothing more",
+   "user": "demo.finance",
+   "scheme": "light",
+   "size": "1440x2822 (whole page)",
+   "note": ""
+  },
+  {
+   "file": "home-accountant.png",
+   "what": "Home (the \"Overview\") as accountant: what this role may see, nothing more",
+   "user": "demo.accountant",
+   "scheme": "light",
+   "size": "1440x3433 (whole page)",
+   "note": ""
+  },
+  {
+   "file": "home-contract-desk.png",
+   "what": "Home (the \"Overview\") as contract desk: what this role may see, nothing more",
+   "user": "demo.contractapprover",
+   "scheme": "light",
+   "size": "1440x3117 (whole page)",
+   "note": ""
+  },
+  {
+   "file": "home-data-entry-bank.png",
+   "what": "Home (the \"Overview\") as data entry (bank): what this role may see, nothing more",
+   "user": "demo.bank",
+   "scheme": "light",
+   "size": "1440x2825 (whole page)",
+   "note": ""
+  },
+  {
+   "file": "home-data-entry-cash.png",
+   "what": "Home (the \"Overview\") as data entry (cash): what this role may see, nothing more",
+   "user": "demo.cash",
+   "scheme": "light",
+   "size": "1440x1268 (whole page)",
+   "note": ""
+  },
+  {
+   "file": "home-logistics.png",
+   "what": "Home (the \"Overview\") as logistics: what this role may see, nothing more",
+   "user": "demo.dispatch",
+   "scheme": "light",
+   "size": "1440x2963 (whole page)",
+   "note": ""
+  },
+  {
+   "file": "home-system-administrator.png",
+   "what": "Home (the \"Overview\") as system administrator: what this role may see, nothing more",
+   "user": "demo.sysadmin",
+   "scheme": "light",
+   "size": "1440x1088 (whole page)",
+   "note": ""
+  },
+  {
+   "file": "dark-home-executive.png",
+   "what": "Home (executive), dark theme",
+   "user": "demo.ceo",
+   "scheme": "dark",
+   "size": "1440x3514 (whole page)",
+   "note": ""
+  },
+  {
+   "file": "dark-list.png",
+   "what": "A list (Export International > Setup > Old codes (all 639)), dark theme",
+   "user": "demo.ceo",
+   "scheme": "dark",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "dark-cards.png",
+   "what": "Cards (Export International > Orders & Trucks > Contracts), dark theme",
+   "user": "demo.ceo",
+   "scheme": "dark",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "dark-record.png",
+   "what": "A contract record, dark theme",
+   "user": "demo.ceo",
+   "scheme": "dark",
+   "size": "1440x1110 (whole page)",
+   "note": ""
+  },
+  {
+   "file": "dark-dialog.png",
+   "what": "A dialog, dark theme",
+   "user": "demo.ceo",
+   "scheme": "dark",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "dark-ask.png",
+   "what": "Ask, dark theme",
+   "user": "demo.ceo",
+   "scheme": "dark",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "dark-party360.png",
+   "what": "Party 360, dark theme",
+   "user": "demo.ceo",
+   "scheme": "dark",
+   "size": "1440x2588 (whole page)",
+   "note": ""
+  },
+  {
+   "file": "phone-home.png",
+   "what": "Home on a phone (390px wide): one column, the same cards",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "390x7000 (whole page)",
+   "note": ""
+  },
+  {
+   "file": "phone-list.png",
+   "what": "A list on a phone",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "390x844",
+   "note": ""
+  },
+  {
+   "file": "phone-cards.png",
+   "what": "Cards on a phone",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "390x844",
+   "note": ""
+  },
+  {
+   "file": "phone-record.png",
+   "what": "A record on a phone",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "390x1829 (whole page)",
+   "note": ""
+  },
+  {
+   "file": "phone-ask.png",
+   "what": "Ask on a phone",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "390x844",
+   "note": ""
+  },
+  {
+   "file": "phone-party360.png",
+   "what": "Party 360 on a phone (compact)",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "390x3299 (whole page)",
+   "note": ""
+  },
+  {
+   "file": "login.png",
+   "what": "The sign-in page (Odoo's own, not restyled yet)",
+   "user": "-",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "state-home-pipeline-tooltip.png",
+   "what": "Home: pointing at a step of the contract-to-payment pipeline shows exactly what that step counts",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "state-home-last-30-days.png",
+   "what": "Home: the period set to \"Last 30 days\"; every card and its comparison re-read from the server",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "state-home-chart-hover.png",
+   "what": "Home: hovering the Invoiced chart shows that day and its figure",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "state-home-table-view.png",
+   "what": "Home: \"Show as table\" gives every chart a table with the same numbers",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "state-home-search-results.png",
+   "what": "Home: the universal search (also Ctrl+K) finds customers, contracts, invoices and bank references in one list",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "state-home-work-menu.png",
+   "what": "Home: a task in \"What is stuck across the company\" with its menu (put aside, assign, escalate)",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "state-menu-money.png",
+   "what": "Top bar: the Money menu opened (menus keep the plain labels)",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "state-menu-user.png",
+   "what": "Top bar: the person menu",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "state-list-filters.png",
+   "what": "A list with its filter / group / favourites panel open",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "state-list-search-typing.png",
+   "what": "A list while typing in the search field",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "ask-welcome.png",
+   "what": "Ask (read-only assistant): the welcome with suggested questions",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "ask-answer.png",
+   "what": "Ask: an answer with its figures, the sources it came from and how it was worked out",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "match-queue.png",
+   "what": "Match bank payments: the queue of bank lines (four tabs) before one is chosen",
+   "user": "demo.bank",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "match-line-chosen.png",
+   "what": "Match bank payments: three columns - the line, the decision (who paid, which invoices) and the evidence with the effect on the books",
+   "user": "demo.bank",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "party360-empty.png",
+   "what": "Customers & Suppliers (Party 360): the empty state tells what to type",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "party360-party.png",
+   "what": "Party 360 for one customer: every figure with its basis, the open items, the documents and the history on one page",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x2588 (whole page)",
+   "note": ""
+  },
+  {
+   "file": "party360-explain.png",
+   "what": "Party 360: \"How is this worked out?\" opened on a figure",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x2719 (whole page)",
+   "note": ""
+  },
+  {
+   "file": "state-dialog-bank-import.png",
+   "what": "A dialog (Import bank statement): rounded card, visible fields, Import and Cancel buttons",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "state-pick-list.png",
+   "what": "A new contract with the \"Parent company\" pick-list open (type to search)",
+   "user": "admin",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "reports-catalog.png",
+   "what": "Reports: the catalog of every report asked for, with what it answers, how it is worked out and whether it is delivered, partly there, blocked or not built (a reason is given for each that is not ready)",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x3000 (whole page)",
+   "note": ""
+  },
+  {
+   "file": "reports-ar-chart.png",
+   "what": "Aged receivables as a chart (how much is owed, by how late), with the table and list one click away",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "reports-ar-pivot.png",
+   "what": "Aged receivables as a pivot: customer by how-late band; totals equal the Home figure",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "reports-ar-list.png",
+   "what": "Aged receivables as a list (\"view rows\"): one row per open invoice, a row opens the invoice behind it",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "reports-ar-actions.png",
+   "what": "The report list with rows selected and the Actions menu open (Export is here for the roles allowed to export)",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "state-cards-hover.png",
+   "what": "Cards: the card under the pointer rises a little",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  }
+ ],
+ "problems": []
+}

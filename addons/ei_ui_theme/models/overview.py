@@ -128,15 +128,25 @@ class EiHomeOverview(models.AbstractModel):
         env = self.env
         if dash is None or not self._finance_ok():
             return None
+        today = fields.Date.context_today(self)
         L = env['account.move.line'].sudo()
         rows = L._read_group(dash._dom_lines('ar'), groupby=['partner_id'], aggregates=['amount_residual:sum', '__count'],
                              order='amount_residual:sum desc', limit=TOP_N)
         total = dash.ar_open
         if not rows or total <= 0:
             return None
-        return {'title': _("Who owes us most"), 'total_text': self._fmt(total),
-                'rows': [{'partner_id': p.id, 'name': p.name or _("(no party on the entry)"), 'amount': round(a, 2), 'text': self._fmt(a), 'items': n,
-                          'pct': round(100 * a / total)} for p, a, n in rows if a > 0]}
+        late = {p.id: (amt, oldest) for p, amt, oldest in L._read_group(
+            dash._dom_lines('ar') + [('date_maturity', '<', today), ('partner_id', 'in', [r[0].id for r in rows])],
+            groupby=['partner_id'], aggregates=['amount_residual:sum', 'date_maturity:min'])}
+        out = []
+        for rank, (p, a, n) in enumerate(rows, 1):
+            if a <= 0:
+                continue
+            over, first = late.get(p.id, (0.0, None))
+            out.append({'rank': rank, 'partner_id': p.id, 'name': p.name or _("(no party on the entry)"), 'amount': round(a, 2), 'text': self._fmt(a), 'items': n,
+                        'pct': round(100 * a / total), 'overdue': round(over, 2), 'overdue_text': self._fmt(over) if over > 0 else '',
+                        'oldest_days': (today - first).days if first and over > 0 else 0})
+        return {'title': _("Who owes us most"), 'total_text': self._fmt(total), 'rows': out}
 
     def _recent(self):
         env, today = self.env, fields.Date.context_today(self)
@@ -145,7 +155,7 @@ class EiHomeOverview(models.AbstractModel):
             rows = []
             for m in env['account.move'].search([('move_type', '=', 'out_invoice'), ('state', '=', 'posted')], order='invoice_date desc, id desc', limit=RECENT_N):
                 late = m.payment_state in ('not_paid', 'partial') and m.invoice_date_due and m.invoice_date_due < today
-                label = _("Overdue") if late else dict(m._fields['payment_state']._description_selection(env)).get(m.payment_state, m.payment_state)
+                label = _("Overdue %sd", (today - m.invoice_date_due).days) if late else dict(m._fields['payment_state']._description_selection(env)).get(m.payment_state, m.payment_state)
                 tone = 'bad' if late else 'ok' if m.payment_state in ('paid', 'in_payment') else 'warning'
                 rows.append({'model': 'account.move', 'res_id': m.id, 'name': m.name, 'date': fmt(m.invoice_date), 'party': m.partner_id.name or '',
                              'amount': format_amount(env, m.amount_total, m.currency_id), 'status': label, 'tone': tone, 'detail': fmt(m.invoice_date_due)})

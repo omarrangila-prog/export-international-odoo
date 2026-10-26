@@ -31,9 +31,10 @@
     --bs-tertiary-bg: var(--ei-surface-2); --bs-tertiary-color: var(--ei-muted); --bs-link-color: var(--ei-primary); --bs-link-hover-color: var(--ei-primary-hover);
 }
 body, .o_web_client, .o_action_manager, .o_content, .o_action { background: var(--ei-bg); color: var(--ei-text); }
-.o_control_panel, .o_control_panel_main { background: var(--ei-card) !important; color: var(--ei-text); border-color: var(--ei-line) !important; }
+.o_control_panel, .o_control_panel_main { background: transparent !important; color: var(--ei-text); border-color: transparent !important; }
 .o_control_panel .o_breadcrumb .active, .breadcrumb-item.active, .o_breadcrumb a { color: var(--ei-ink); }
-.o_searchview, .o_searchview_input, .o_searchview .o_searchview_facet { background: var(--ei-surface-2) !important; color: var(--ei-text); border-color: var(--ei-line) !important; }
+.o_searchview, .o_searchview_input { background: transparent !important; color: var(--ei-text); }
+.o_searchview .o_searchview_facet { background: var(--ei-primary-soft) !important; color: var(--ei-primary) !important; }
 .o_searchview .o_searchview_facet .o_facet_values { color: var(--ei-text); }
 .o_cp_buttons .btn, .o_pager button, .o_cp_switch_buttons .btn { background: var(--ei-surface-2); color: var(--ei-text); border-color: var(--ei-line-strong); }
 .dropdown-menu, .o-dropdown--menu, .modal-content, .popover, .o_popover, .o-autocomplete--dropdown-menu { background: var(--ei-card) !important; color: var(--ei-text); border-color: var(--ei-line) !important; }
@@ -42,11 +43,11 @@ body, .o_web_client, .o_action_manager, .o_content, .o_action { background: var(
 .modal-header, .modal-footer { border-color: var(--ei-line) !important; background: var(--ei-card); }
 // lists
 .o_list_view .o_list_renderer, .o_list_view .o_list_table { background: var(--ei-card); color: var(--ei-text); }
-.o_list_view thead th, .o_list_view .o_list_table thead th { background: var(--ei-surface-2) !important; color: var(--ei-muted) !important; border-color: var(--ei-line) !important; }
+.o_list_view thead th, .o_list_view .o_list_table thead th { background: var(--ei-card) !important; color: var(--ei-muted) !important; border-color: var(--ei-line) !important; }
 .o_list_view tbody td, .o_list_view .o_data_row td { background: var(--ei-card); color: var(--ei-text); border-color: var(--ei-line) !important; }
 .o_list_view .o_data_row td a, .o_list_view .o_data_cell { color: var(--ei-text); }
-.o_list_view tbody tr.o_data_row:hover td { background: var(--ei-primary-soft) !important; }
-.o_list_view tfoot td, .o_list_footer td { background: var(--ei-surface-2); color: var(--ei-text); }
+.o_list_view tbody tr.o_data_row:hover td { background: var(--ei-surface-2) !important; }
+.o_list_view tfoot td, .o_list_footer td { background: var(--ei-card) !important; color: var(--ei-text); }
 .o_list_view .o_group_header td { background: var(--ei-surface-2) !important; color: var(--ei-text); }
 // forms
 .o_form_view, .o_form_view .o_form_sheet_bg { background: var(--ei-bg); color: var(--ei-text); }
@@ -58,7 +59,7 @@ body, .o_web_client, .o_action_manager, .o_content, .o_action { background: var(
 .o_form_view .o_form_statusbar .o_statusbar_status .btn { background: var(--ei-surface-2); color: var(--ei-text); }
 .o_notebook .nav-link { color: var(--ei-muted); } .o_notebook .nav-link.active { background: var(--ei-card); color: var(--ei-ink); border-color: var(--ei-line); }
 // kanban and cards
-.o_kanban_view .o_kanban_record { background: var(--ei-card) !important; color: var(--ei-text); border-color: var(--ei-line) !important; }
+.o_kanban_view .o_kanban_record { background: var(--ei-card) !important; color: var(--ei-text); border-color: var(--h-edge) !important; }
 .o_kanban_view .o_kanban_renderer { background: transparent; }
 // badges, banners, help text
 .badge.text-bg-secondary, .badge.text-bg-light { background: var(--ei-surface-2) !important; color: var(--ei-muted) !important; }
@@ -81,7 +82,7 @@ ol.breadcrumb, .breadcrumb { background: transparent !important; }
 .o_form_view .o_form_label, .o_form_view .o_td_label label { color: var(--ei-muted) !important; opacity: 1; }
 
 // ---- Home cards: the same shapes, shadows and glow stepped for a dark surface
-.ei-home {
+:root, .ei-home {
     --h-shadow: 0 1px 2px rgba(0, 0, 0, .40), 0 12px 32px rgba(0, 0, 0, .35);
     --h-shadow-hover: 0 2px 4px rgba(0, 0, 0, .45), 0 16px 40px rgba(0, 0, 0, .50);
     --h-edge: rgba(255, 255, 255, .07);

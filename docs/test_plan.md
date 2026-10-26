@@ -119,3 +119,15 @@ Not done: performance/load test, penetration/security review, UAT with the clien
 | Keyboard: `/` search, menu and dialog focus, Escape, Tab trap | GREEN | browser spec 03 |
 | Home cost does not grow per task | GREEN | `test_home_v2.test_44` |
 | Dark theme on rarely used Odoo screens, supervised screen-reader pass, staff usability test, 50k-line performance | NOT DONE | |
+
+## Review round and Reports (26 Oct 2026)
+| Check | Status | Evidence |
+|---|---|---|
+| The pipeline steps each define what they count; no step count is joined to another | GREEN | `test_overview` o11, spec 10 section 11 |
+| Negative cash is an exception; one place per figure; book vs bank wording; stale confirmation is an alert with a next step | GREEN | `test_overview` o12, o15, spec 10 section 12 |
+| Who owes most splits overdue from outstanding; material parts add up to what was ordered | GREEN | `test_overview` o13, o14 |
+| Report totals equal the dashboard figures (receivables and ageing bands, book balance and freshness, unmatched bank money, spread, lifted) | GREEN | `ei_reports` tests r01-r06, spec 12 |
+| Money reports refused to roles without finance (server side); lifting open to operations; export limited to figures roles | GREEN | `ei_reports` r07, r10, spec 12 section 5 |
+| The catalog never offers a button that leads nowhere; blocked and not-built reports say why | GREEN | `ei_reports` r08, spec 12 |
+| The export downloads a real spreadsheet | GREEN | spec 12 section 2 |
+| The activity panel hides, remembers the choice and comes back | GREEN | spec 11 section 3 |

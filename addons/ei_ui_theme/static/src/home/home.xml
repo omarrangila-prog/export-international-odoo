@@ -28,6 +28,17 @@
                                 <button class="ei-iconbtn ei-title-btn" t-on-click="() => this.onRefresh()" aria-label="Refresh this page" title="Refresh">
                                     <svg t-att-class="this.state.loading ? 'ei-svg ei-rot' : 'ei-svg'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.icon('refresh')"/></svg>
                                 </button>
+                                <div t-if="d.quick.length" class="ei-newwrap">
+                                    <button class="ei-btn ei-btn-primary ei-newbtn" t-on-click="() => this.toggleNew()" aria-haspopup="menu" t-att-aria-expanded="this.state.newMenu ? 'true' : 'false'">
+                                        <svg class="ei-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>New
+                                    </button>
+                                    <div t-if="this.state.newMenu" class="ei-newmenu" role="menu" aria-label="Start something">
+                                        <t t-foreach="d.quick" t-as="g" t-key="g.key">
+                                            <p class="ei-newgroup" t-out="g.label"/>
+                                            <button t-foreach="g.items" t-as="q" t-key="q.key" class="ei-newitem" role="menuitem" t-on-click="() => this.onQuick(q)" t-att-title="q.hint"><span t-out="q.label"/><small t-out="q.hint"/></button>
+                                        </t>
+                                    </div>
+                                </div>
                             </div>
                             <p class="ei-top-lead">Your business at a glance: money, material and bank in one place.</p>
                             <p class="ei-top-sub">
@@ -75,34 +86,22 @@
                                     <span class="ei-hico ei-hico-s1"><svg class="ei-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.icon('layers')"/></svg></span>
                                     <div class="ei-hcard-id"><h3 class="ei-hcard-title">From contract to payment</h3><p class="ei-hcard-sub">What is open at each step, and what is waiting for a person</p></div>
                                 </header>
-                                <t t-set="pipe" t-value="this.pipeChart"/>
-                                <div class="ei-pipe" t-att-style="'--n:' + pipe.cols.length">
-                                    <ol class="ei-pbars">
-                                        <li t-foreach="pipe.cols" t-as="s" t-key="s.key">
-                                            <button t-att-class="'ei-stage ei-pcol ei-tone-' + s.tone" t-on-click="() => this.onStage(s)" t-att-aria-label="s.label + ': ' + s.main + '. ' + s.sub + '. Open the records.'"
-                                                    t-on-mouseenter="() => this.state.pipeTip = s_index" t-on-mouseleave="() => this.state.pipeTip = null" t-on-focus="() => this.state.pipeTip = s_index" t-on-blur="() => this.state.pipeTip = null">
-                                                <span class="ei-stage-label" t-out="s.label"/>
-                                                <span class="ei-stage-count ei-num" t-out="s.count"/>
-                                                <span class="ei-stage-main" t-out="this.stageWord(s)"/>
-                                                <span class="ei-stage-sub"><svg t-if="s.waiting" class="ei-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.icon('dots')"/></svg><svg t-else="" class="ei-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.icon('check')"/></svg><span t-out="s.sub"/></span>
-                                            </button>
-                                        </li>
-                                    </ol>
-                                    <div class="ei-pplot-axis" aria-hidden="true"><span t-foreach="pipe.ticks" t-as="t" t-key="t_index" t-out="t"/></div>
-                                    <div class="ei-pplot" aria-hidden="true">
-                                        <svg class="ei-pplot-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
-                                            <defs><linearGradient id="ei-g-pipe" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--ei-s1)" stop-opacity=".22"/><stop offset="1" stop-color="var(--ei-s1)" stop-opacity="0"/></linearGradient></defs>
-                                            <path t-att-d="pipe.area" fill="url(#ei-g-pipe)"/>
-                                            <path t-att-d="pipe.line" fill="none" stroke="var(--ei-s1)" stroke-opacity=".55" stroke-width="1.5" stroke-dasharray="4 4" vector-effect="non-scaling-stroke"/>
-                                        </svg>
-                                        <div t-foreach="pipe.cols" t-as="s" t-key="s.key" t-att-class="'ei-pcolbar' + (this.state.pipeTip === s_index ? ' is-on' : '')" t-on-click="() => this.onStage(s)" t-on-mouseenter="() => this.state.pipeTip = s_index" t-on-mouseleave="() => this.state.pipeTip = null">
-                                            <span class="ei-pbar" t-att-style="'height:' + s.h + '%'"/>
-                                        </div>
-                                        <div t-if="this.state.pipeTip !== null and pipe.cols[this.state.pipeTip]" class="ei-ptip" t-att-style="'inset-inline-start:' + pipe.cols[this.state.pipeTip].x + '%; bottom: calc(' + pipe.cols[this.state.pipeTip].h + '% + 10px)'">
-                                            <b t-out="pipe.cols[this.state.pipeTip].label"/><span class="ei-num"><t t-out="pipe.cols[this.state.pipeTip].count"/> <t t-out="this.stageWord(pipe.cols[this.state.pipeTip])"/></span><span t-out="pipe.cols[this.state.pipeTip].sub"/>
-                                        </div>
-                                    </div>
-                                </div>
+                                <ol class="ei-stages">
+                                    <li t-foreach="this.stages" t-as="s" t-key="s.key">
+                                        <button t-att-class="'ei-stage ei-pcol ei-tone-' + s.tone" t-on-click="() => this.onStage(s)" t-att-aria-label="this.stageTip(s) + ' Open the records.'"
+                                                t-on-mouseenter="() => this.state.pipeTip = s_index" t-on-mouseleave="() => this.state.pipeTip = null" t-on-focus="() => this.state.pipeTip = s_index" t-on-blur="() => this.state.pipeTip = null">
+                                            <span class="ei-stage-label" t-out="s.label"/>
+                                            <span class="ei-stage-count ei-num" t-out="s.count"/>
+                                            <span class="ei-stage-main" t-out="this.stageWord(s)"/>
+                                            <span t-if="s.total" class="ei-stage-split" aria-hidden="true"><span class="is-done" t-att-style="'flex:' + s.donePct + ' 1 0'"/><span t-if="s.waitPct" class="is-wait" t-att-style="'flex:' + s.waitPct + ' 1 0'"/></span>
+                                            <span class="ei-stage-sub"><svg t-if="s.waiting" class="ei-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.icon('dots')"/></svg><svg t-else="" class="ei-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.icon('check')"/></svg><span t-out="s.sub"/></span>
+                                        </button>
+                                    </li>
+                                </ol>
+                                <p class="ei-stage-def" aria-live="polite">
+                                    <t t-if="this.state.pipeTip !== null and this.stages[this.state.pipeTip]"><b t-out="this.stages[this.state.pipeTip].label"/>: <t t-out="this.stages[this.state.pipeTip].definition"/> <span t-out="this.stages[this.state.pipeTip].waiting_def"/></t>
+                                    <t t-else="">Each step counts its own kind of record, so the steps are not one series. Point at a step to see exactly what it counts; the bar inside it splits what is done from what waits for a person.</t>
+                                </p>
                                 <form t-if="d.ask" class="ei-askbar" role="search" aria-label="Ask a question" t-on-submit.prevent="() => this.onAsk()">
                                     <p class="ei-askbar-title"><svg class="ei-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.icon('sparkle')"/></svg>What would you like to know?</p>
                                     <div class="ei-askbar-row">
@@ -119,6 +118,7 @@
                                 <header class="ei-hcard-head">
                                     <span class="ei-hico ei-hico-s1"><svg class="ei-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.icon('in')"/></svg></span>
                                     <div class="ei-hcard-id"><h3 class="ei-hcard-title">Customers owe us</h3><p class="ei-hcard-sub">By how late. Posted in the books.</p></div>
+                                    <button class="ei-btnpill ei-ar-report" t-on-click="() => this.onAgeRow(null)">Report<svg class="ei-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.icon('arrowright')"/></svg></button>
                                     <button class="ei-iconbtn ei-tablebtn" t-on-click="() => this.state.tables.aging = !this.state.tables.aging" t-att-aria-pressed="this.state.tables.aging ? 'true' : 'false'" t-att-aria-label="this.state.tables.aging ? 'Show chart' : 'Show as table'" t-att-title="this.state.tables.aging ? 'Show chart' : 'Show as table'"><svg class="ei-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.icon('list')"/></svg></button>
                                 </header>
                                 <t t-set="ag" t-value="this.agingHero"/>
@@ -133,12 +133,14 @@
                                 <div t-elif="this.state.tables.aging" class="ei-table-wrap"><table class="ei-table"><caption class="visually-hidden">Receivables by how late they are</caption><thead><tr><th scope="col">How late</th><th scope="col" class="ei-r">Amount</th></tr></thead>
                                     <tbody><tr t-foreach="ag.rows" t-as="r" t-key="r.label"><th scope="row" t-out="r.label"/><td class="ei-r ei-num" t-out="r.text"/></tr></tbody></table></div>
                                 <ul t-else="" class="ei-agerows">
-                                    <li t-foreach="ag.rows" t-as="r" t-key="r.label">
-                                        <span t-att-class="'ei-ageico ei-step-' + r.step" aria-hidden="true"><svg class="ei-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path t-att-d="this.icon(this.ageIcons[r.step])"/></svg></span>
-                                        <span class="ei-agelabel" t-out="r.label"/>
-                                        <span class="ei-ageval ei-num" t-out="r.text"/>
-                                        <span class="ei-agepct ei-num"><t t-out="r.pct"/>%</span>
-                                        <span class="ei-agetrack" aria-hidden="true"><span t-att-class="'ei-agefill ei-step-' + r.step" t-att-style="'width:' + r.w + '%'"/></span>
+                                    <li t-foreach="ag.rows" t-as="r" t-key="r.label" t-att-class="r.value ? '' : 'is-zero'">
+                                        <button class="ei-agerow" t-on-click="() => this.onAgeRow(r)" t-att-aria-label="r.label + ': ' + r.text + ', ' + r.pct + ' percent. Open these items in the receivables report.'">
+                                            <span t-att-class="'ei-ageico ei-step-' + r.step" aria-hidden="true"><svg class="ei-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path t-att-d="this.icon(this.ageIcons[r.step])"/></svg></span>
+                                            <span class="ei-agelabel" t-out="r.label"/>
+                                            <span class="ei-ageval ei-num" t-out="r.text"/>
+                                            <span class="ei-agepct ei-num"><t t-out="r.pct"/>%</span>
+                                            <span class="ei-agetrack" aria-hidden="true"><span t-att-class="'ei-agefill ei-step-' + r.step" t-att-style="'width:' + r.w + '%'"/></span>
+                                        </button>
                                     </li>
                                 </ul>
                             </article>
@@ -147,15 +149,15 @@
                                     <span class="ei-hico ei-hico-s3"><svg class="ei-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.icon('truck')"/></svg></span>
                                     <div class="ei-hcard-id"><h3 class="ei-hcard-title" t-out="d.charts.material.title"/></div>
                                 </header>
-                                <div class="ei-meter" role="img" t-att-aria-label="d.charts.material.lifted + ' MTL lifted, ' + d.charts.material.allocated + ' MTL promised, ' + d.charts.material.ordered + ' MTL on contracts'">
-                                    <div class="ei-meter-alloc" t-att-style="'width:' + d.charts.material.pct_alloc + '%'"/><div class="ei-meter-lift" t-att-style="'width:' + d.charts.material.pct_lift + '%'"/>
+                                <div class="ei-meter" role="img" t-att-aria-label="d.charts.material.lifted + ' MTL lifted, ' + d.charts.material.promised_open + ' MTL promised and not yet lifted, ' + d.charts.material.left + ' MTL not yet promised, of ' + d.charts.material.ordered + ' MTL on contracts'">
+                                    <div class="ei-meter-lift" t-att-style="'width:' + d.charts.material.pct_lift + '%'"/><div class="ei-meter-alloc" t-att-style="'width:' + d.charts.material.pct_open + '%'"/>
                                 </div>
                                 <ul class="ei-meter-legend">
-                                    <li><i class="ei-sw ei-s1"/><b class="ei-num" t-out="d.charts.material.lifted"/> MTL truly lifted</li>
-                                    <li><i class="ei-sw ei-sw-alloc"/><b class="ei-num" t-out="d.charts.material.allocated"/> MTL promised on delivery advices</li>
-                                    <li><i class="ei-sw ei-sw-free"/><b class="ei-num" t-out="d.charts.material.left"/> MTL still free</li>
+                                    <li><i class="ei-sw ei-s1"/><b class="ei-num" t-out="d.charts.material.lifted"/> MTL lifted <span class="ei-note">(verified truck loadings)</span></li>
+                                    <li><i class="ei-sw ei-sw-alloc"/><b class="ei-num" t-out="d.charts.material.promised_open"/> MTL promised, not yet lifted <span class="ei-note">(approved delivery advices minus lifted)</span></li>
+                                    <li><i class="ei-sw ei-sw-free"/><b class="ei-num" t-out="d.charts.material.left"/> MTL not yet promised</li>
                                 </ul>
-                                <p class="ei-chart-sum">Out of <b class="ei-num" t-out="d.charts.material.ordered"/> MTL on active contracts.</p>
+                                <p class="ei-chart-sum">The three add up to <b class="ei-num" t-out="d.charts.material.ordered"/> MTL on active contracts. Lifted is part of what was promised.</p>
                             </article>
                         </div>
                         <form t-if="d.ask and !d.pipeline.length" class="ei-askbar" role="search" aria-label="Ask a question" t-on-submit.prevent="() => this.onAsk()">
@@ -216,13 +218,14 @@
                                     <h3 class="ei-hcard-title">Bank balances</h3>
                                     <button class="ei-iconbtn ei-flow-open" t-on-click="() => this.onKpi({key: 'bank'})" aria-label="Open the bank confirmations" title="Open the records"><svg class="ei-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.icon('arrowright')"/></svg></button>
                                 </header>
-                                <div class="ei-bignum-row"><span class="ei-bignum ei-num" t-out="d.banks_total"/></div>
-                                <p class="ei-hcard-sub">What the books say, and whether the bank confirmed it</p>
+                                <div class="ei-bignum-row"><span class="ei-bignum ei-num" t-out="d.banks_total"/><span class="ei-dchip">Book balance</span></div>
+                                <p class="ei-hcard-sub">What the ledger holds. It is bank-confirmed only when someone typed the bank's own balance and the two agree.</p>
                                 <ul class="ei-banklist">
                                     <li t-foreach="d.banks" t-as="b" t-key="b.name">
                                         <span class="ei-bank-name" t-out="b.name"/>
-                                        <span class="ei-bank-bal ei-num" t-out="b.balance"/>
+                                        <span class="ei-bank-bal ei-num"><small>Book</small> <t t-out="b.balance"/></span>
                                         <span t-att-class="'ei-statechip is-' + (b.tone === 'danger' ? 'bad' : b.tone)"><i class="ei-dot" aria-hidden="true"/><t t-out="b.text"/></span>
+                                        <button t-if="b.stale" class="ei-btn ei-btn-sm ei-bank-act" t-on-click="() => this.onKpi({key: 'bank'})">Confirm the balance</button>
                                     </li>
                                 </ul>
                             </article>
@@ -236,10 +239,12 @@
                                 <p class="ei-hcard-sub">Owed in total. Each row opens the party.</p>
                                 <ul class="ei-owelist">
                                     <li t-foreach="d.top_owing.rows" t-as="r" t-key="r.partner_id">
-                                        <button class="ei-owe" t-on-click="() => this.onOwing(r)" t-att-aria-label="r.name + ' owes ' + r.text + '. Open the party.'">
+                                        <button class="ei-owe" t-on-click="() => this.onOwing(r)" t-att-aria-label="r.name + ' owes ' + r.text + (r.overdue ? ', of which ' + r.overdue_text + ' is overdue' : '') + '. Open the party.'">
+                                            <span class="ei-rank ei-num" aria-hidden="true" t-out="r.rank"/>
                                             <span class="ei-avatar" aria-hidden="true" t-out="this.initials(r.name)"/>
-                                            <span class="ei-owe-main"><span class="ei-owe-name" t-out="r.name"/><span class="ei-owetrack" aria-hidden="true"><span class="ei-owefill" t-att-style="'width:' + r.pct + '%'"/></span></span>
-                                            <span class="ei-owe-val ei-num" t-out="r.text"/>
+                                            <span class="ei-owe-main"><span class="ei-owe-name" t-out="r.name"/><span class="ei-owetrack" aria-hidden="true"><span class="ei-owefill" t-att-style="'width:' + r.pct + '%'"/></span>
+                                                <span t-att-class="'ei-owe-sub' + (r.overdue ? ' is-late' : '')"><t t-if="r.overdue"><b class="ei-num" t-out="r.overdue_text"/> overdue, oldest <t t-out="r.oldest_days"/> days</t><t t-else="">Nothing overdue</t></span></span>
+                                            <span class="ei-owe-val ei-num"><t t-out="r.text"/><small>outstanding</small></span>
                                         </button>
                                     </li>
                                 </ul>
@@ -278,7 +283,7 @@
                     <section t-if="sec === 'kpis'" class="ei-section" aria-labelledby="ei-h-kpis">
                         <h2 class="ei-h2" id="ei-h-kpis">At a glance</h2>
                         <div class="ei-grid-kpi">
-                            <button t-foreach="this.kpiMain" t-as="k" t-key="k.key" t-att-class="'ei-kpi ei-tone-' + k.tone" t-on-click="() => this.onKpi(k)" t-att-aria-label="k.label + ': ' + k.value + '. ' + k.sub + '. Open the records.'">
+                            <button t-foreach="this.kpiMain" t-as="k" t-key="k.key" t-att-class="'ei-kpi ei-tone-' + k.tone" t-att-title="k.help || false" t-on-click="() => this.onKpi(k)" t-att-aria-label="k.label + ': ' + k.value + '. ' + k.sub + '. Open the records.'">
                                 <span class="ei-kpi-head"><span class="ei-kpi-ico"><svg class="ei-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.icon(k.icon)"/></svg></span><span class="ei-kpi-label" t-out="k.label"/></span>
                                 <span class="ei-kpi-value" t-out="k.value"/>
                                 <span class="ei-kpi-sub" t-out="k.sub"/>
@@ -286,7 +291,7 @@
                             </button>
                         </div>
                         <div t-if="this.kpiMore.length" class="ei-grid-kpi ei-grid-kpi-small">
-                            <button t-foreach="this.kpiMore" t-as="k" t-key="k.key" t-att-class="'ei-kpi ei-kpi-small ei-tone-' + k.tone" t-on-click="() => this.onKpi(k)" t-att-aria-label="k.label + ': ' + k.value + '. ' + k.sub + '. Open the records.'">
+                            <button t-foreach="this.kpiMore" t-as="k" t-key="k.key" t-att-class="'ei-kpi ei-kpi-small ei-tone-' + k.tone" t-att-title="k.help || false" t-on-click="() => this.onKpi(k)" t-att-aria-label="k.label + ': ' + k.value + '. ' + k.sub + '. Open the records.'">
                                 <span class="ei-kpi-head"><span class="ei-kpi-ico"><svg class="ei-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.icon(k.icon)"/></svg></span><span class="ei-kpi-label" t-out="k.label"/></span>
                                 <span class="ei-kpi-value" t-out="k.value"/>
                                 <span class="ei-kpi-sub" t-out="k.sub"/>
@@ -306,9 +311,10 @@
                             <li t-foreach="d.alerts" t-as="a" t-key="a.key">
                                 <button t-att-class="'ei-alert ei-sev-' + a.severity" t-on-click="() => this.onAlert(a)">
                                     <span class="ei-alert-ico"><svg class="ei-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.icon(a.severity === 'danger' ? 'alert' : 'flag')"/></svg></span>
-                                    <span class="ei-alert-text"><span class="ei-alert-label"><span class="visually-hidden" t-out="a.severity === 'danger' ? 'Problem: ' : 'Warning: '"/><span t-out="a.label"/></span><span class="ei-alert-detail" t-out="a.detail"/></span>
+                                    <span class="ei-alert-text"><span class="ei-alert-label"><span class="visually-hidden" t-out="a.severity === 'danger' ? 'Problem: ' : 'Warning: '"/><span t-out="a.label"/><span t-if="a.age" class="ei-alert-age" t-out="a.age"/></span><span class="ei-alert-detail" t-out="a.detail"/></span>
                                     <span class="ei-alert-count" t-out="a.count"/>
-                                    <svg class="ei-svg ei-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.icon('chevron')"/></svg>
+                                    <span t-if="a.cta" class="ei-alert-cta"><t t-out="a.cta"/><svg class="ei-svg ei-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.icon('chevron')"/></svg></span>
+                                    <svg t-else="" class="ei-svg ei-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.icon('chevron')"/></svg>
                                 </button>
                             </li>
                         </ul>
@@ -324,6 +330,7 @@
                             </div>
                         </div>
                         <p class="ei-rules" t-out="d.work.rules"/>
+                        <p class="ei-rules"><b>Needs my action</b>: steps your role may do. <b>Team queue</b>: waiting for someone else; you can open them but not act. <b>Assigned to me</b>: given to you, or reminders you hold.</p>
                         <div t-if="!this.tasks.length" class="ei-card ei-allclear" role="status">
                             <svg class="ei-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.icon('check')"/></svg>
                             <span t-if="this.state.filter === 'all'"><b>Nothing is waiting for you.</b> <t t-if="d.work.counts.others">The <t t-out="d.work.counts.others"/> items that need a second person are waiting for someone else, because you prepared them.</t></span>
@@ -375,15 +382,15 @@
                                 <span class="ei-hico ei-hico-s3"><svg class="ei-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.icon('truck')"/></svg></span>
                                 <h3 class="ei-hcard-title" id="ei-h-charts" t-out="d.charts.material.title"/>
                             </header>
-                            <div class="ei-meter" role="img" t-att-aria-label="d.charts.material.lifted + ' MTL lifted, ' + d.charts.material.allocated + ' MTL promised, ' + d.charts.material.ordered + ' MTL on contracts'">
-                                <div class="ei-meter-alloc" t-att-style="'width:' + d.charts.material.pct_alloc + '%'"/><div class="ei-meter-lift" t-att-style="'width:' + d.charts.material.pct_lift + '%'"/>
+                            <div class="ei-meter" role="img" t-att-aria-label="d.charts.material.lifted + ' MTL lifted, ' + d.charts.material.promised_open + ' MTL promised and not yet lifted, ' + d.charts.material.left + ' MTL not yet promised, of ' + d.charts.material.ordered + ' MTL on contracts'">
+                                <div class="ei-meter-lift" t-att-style="'width:' + d.charts.material.pct_lift + '%'"/><div class="ei-meter-alloc" t-att-style="'width:' + d.charts.material.pct_open + '%'"/>
                             </div>
                             <ul class="ei-meter-legend">
-                                <li><i class="ei-sw ei-s1"/><b class="ei-num" t-out="d.charts.material.lifted"/> MTL truly lifted</li>
-                                <li><i class="ei-sw ei-sw-alloc"/><b class="ei-num" t-out="d.charts.material.allocated"/> MTL promised on delivery advices</li>
-                                <li><i class="ei-sw ei-sw-free"/><b class="ei-num" t-out="d.charts.material.left"/> MTL still free</li>
-                            </ul>
-                            <p class="ei-chart-sum">Out of <b class="ei-num" t-out="d.charts.material.ordered"/> MTL on active contracts.</p>
+                                    <li><i class="ei-sw ei-s1"/><b class="ei-num" t-out="d.charts.material.lifted"/> MTL lifted <span class="ei-note">(verified truck loadings)</span></li>
+                                    <li><i class="ei-sw ei-sw-alloc"/><b class="ei-num" t-out="d.charts.material.promised_open"/> MTL promised, not yet lifted <span class="ei-note">(approved delivery advices minus lifted)</span></li>
+                                    <li><i class="ei-sw ei-sw-free"/><b class="ei-num" t-out="d.charts.material.left"/> MTL not yet promised</li>
+                                </ul>
+                                <p class="ei-chart-sum">The three add up to <b class="ei-num" t-out="d.charts.material.ordered"/> MTL on active contracts. Lifted is part of what was promised.</p>
                         </article>
                     </section>
 
@@ -391,11 +398,21 @@
                     <section t-if="sec === 'activity'" class="ei-section" aria-labelledby="ei-h-act">
                         <h2 class="ei-h2" id="ei-h-act">What happened recently</h2>
                         <ul class="ei-card ei-feed">
-                            <li t-foreach="d.activity" t-as="a" t-key="a_index">
-                                <button class="ei-feed-item" t-on-click="() => this.onActivity(a)">
-                                    <span class="ei-feed-when ei-num" t-out="a.when"/>
-                                    <span class="ei-feed-main"><b t-out="a.what"/> <span t-out="a.text"/></span>
-                                    <span class="ei-feed-who" t-out="a.who"/>
+                            <li t-foreach="this.activityRows" t-as="g" t-key="g.key">
+                                <t t-if="g.many">
+                                    <button class="ei-feed-item ei-feed-group" t-on-click="() => this.toggleDigest(g)" t-att-aria-expanded="g.open ? 'true' : 'false'">
+                                        <span class="ei-feed-when ei-num" t-out="g.day"/>
+                                        <span class="ei-feed-main"><b><t t-out="g.items.length"/> records</b> <span t-out="g.text"/> <span class="ei-note">(<t t-out="g.open ? 'hide' : 'show'"/> the list)</span></span>
+                                        <span class="ei-feed-who" t-out="g.who"/>
+                                    </button>
+                                    <ul t-if="g.open" class="ei-feed-sub">
+                                        <li t-foreach="g.items" t-as="a" t-key="a_index"><button class="ei-feed-item" t-on-click="() => this.onActivity(a)"><span class="ei-feed-when ei-num" t-out="a.when"/><span class="ei-feed-main"><b t-out="a.what"/></span><span class="ei-feed-who"/></button></li>
+                                    </ul>
+                                </t>
+                                <button t-else="" class="ei-feed-item" t-on-click="() => this.onActivity(g.items[0])">
+                                    <span class="ei-feed-when ei-num" t-out="g.items[0].when"/>
+                                    <span class="ei-feed-main"><b t-out="g.items[0].what"/> <span t-out="g.text"/></span>
+                                    <span class="ei-feed-who" t-out="g.who"/>
                                 </button>
                             </li>
                         </ul>

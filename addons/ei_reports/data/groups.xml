@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Export (the "Export" action on a list and its spreadsheet) is limited to the people whose job is the figures. It only ever exports rows the
+         person may read, with the filters on screen. Open decision 23 in docs/open_decisions.md: who else may export. -->
+    <record id="ei_management_dashboard.group_ei_management" model="res.groups">
+        <field name="implied_ids" eval="[(4, ref('base.group_allow_export'))]"/>
+    </record>
+    <record id="ei_legacy_master.group_ei_auditor" model="res.groups">
+        <field name="implied_ids" eval="[(4, ref('base.group_allow_export'))]"/>
+    </record>
+    <record id="ei_bank_operations.group_ei_bank_approver" model="res.groups">
+        <field name="implied_ids" eval="[(4, ref('base.group_allow_export'))]"/>
+    </record>
+    <record id="ei_cashbook.group_ei_cash_approver" model="res.groups">
+        <field name="implied_ids" eval="[(4, ref('base.group_allow_export'))]"/>
+    </record>
+</odoo>

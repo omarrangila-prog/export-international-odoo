@@ -60,7 +60,7 @@ class TestEasyInterface(TransactionCase):
     def test_10_short_top_menu_in_plain_words(self):
         root = self.env.ref('ei_legacy_master.menu_ei_root')
         names = [m.name for m in self.env['ir.ui.menu'].search([('parent_id', '=', root.id)], order='sequence')]
-        self.assertEqual([n for n in names if n != 'Customers & Suppliers'], ['Home', 'Money', 'Orders & Trucks', 'Bills & Invoices', 'Month-end', 'Approvals', 'Setup'])
+        self.assertEqual([n for n in names if n != 'Customers & Suppliers'], ['Home', 'Money', 'Orders & Trucks', 'Reports', 'Bills & Invoices', 'Month-end', 'Approvals', 'Setup'])
         parent_of = lambda xid: self.env.ref(xid).parent_id.name
         self.assertEqual(parent_of('ei_cashbook.menu_ei_cash_vouchers'), 'Money')
         self.assertEqual(parent_of('ei_material_lifting.menu_ei_lifting'), 'Orders & Trucks')

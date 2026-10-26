@@ -64,6 +64,13 @@
     }
     .ei-compare { font-size: 13px; color: var(--ei-muted); b { color: var(--ei-text); font-weight: 600; } }
 
+    // ---------- "New" menu: every starting point, one click from the title (it replaces a launcher at the foot of the page)
+    .ei-newwrap { position: relative; margin-inline-start: 6px; }
+    .ei-newbtn { min-height: 40px; padding: 0 18px; border-radius: 999px; .ei-svg { font-size: 16px; } }
+    .ei-newmenu { position: absolute; z-index: 40; inset-inline-start: 0; top: 48px; width: 340px; max-height: unquote('min(70vh, 560px)'); overflow-y: auto; padding: 8px; background: var(--ei-card); border: 1px solid var(--h-edge); border-radius: 18px; box-shadow: var(--ei-shadow-pop); }
+    .ei-newgroup { margin: 10px 10px 4px; font-size: 11.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--ei-muted); &:first-child { margin-top: 4px; } }
+    .ei-newitem { display: flex; flex-direction: column; align-items: flex-start; width: 100%; padding: 8px 10px; border: 0; background: none; border-radius: 12px; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--ei-ink); small { font-weight: 500; font-size: 12.5px; color: var(--ei-muted); } &:hover, &:focus-visible { background: var(--ei-primary-soft); outline: none; } }
+
     // ---------- search
     .ei-search { position: relative; width: 100%; }
     .ei-search input[type=search] {
@@ -142,34 +149,26 @@
     .ei-hero-grid { display: grid; grid-template-columns: minmax(0, 1.85fr) minmax(0, 1fr); gap: 20px; align-items: stretch; }
     .ei-hero-grid > .ei-hcard:only-child { grid-column: 1 / -1; }
     .ei-hero-pipe { display: flex; flex-direction: column; }
-    // two rows on one set of columns: what each step holds (buttons), then the bars with a smooth area through their tops
-    .ei-pipe { display: grid; grid-template-columns: 38px repeat(var(--n, 8), minmax(0, 1fr)); margin: 4px 0 0; }
-    .ei-pbars { display: contents; list-style: none; margin: 0; padding: 0; }
-    .ei-pbars > li { display: contents; }
-    .ei-stage { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; width: 100%; height: 100%; padding: 8px 8px 10px; background: transparent; border: 1px solid transparent; border-radius: 14px; cursor: pointer; transition: background .15s;
-        &:hover { background: var(--ei-surface-2); }
+    // the pipeline: one card per step, each counting its OWN kind of record (never joined into a line). The small split bar is that step's
+    // own share of done against waiting for a person.
+    .ei-stages { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; list-style: none; margin: 6px 0 0; padding: 0; }
+    .ei-stages > li { display: block; }
+    .ei-stage { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; width: 100%; height: 100%; padding: 12px 12px 12px; background: var(--ei-surface-2); border: 1px solid transparent; border-radius: 16px; cursor: pointer; transition: background .15s, border-color .15s, transform .15s, box-shadow .15s;
+        &:hover { background: var(--ei-card); border-color: var(--ei-primary-line); box-shadow: var(--h-shadow); transform: translateY(-2px); }
+        &:focus-visible { background: var(--ei-card); border-color: var(--ei-primary); }
     }
-    .ei-pbars > li:first-child .ei-stage { grid-column: 2; }
-    .ei-stage-label { font-size: 12.5px; font-weight: 600; color: var(--ei-muted); line-height: 1.25; min-height: 2.5em; text-wrap: balance; }
-    .ei-stage-count { font-size: 30px; font-weight: 800; letter-spacing: -.03em; color: var(--ei-ink); line-height: 1.05; }
-    .ei-stage-main { font-size: 12.5px; font-weight: 500; color: var(--ei-muted); line-height: 1.3; min-height: 2.6em; text-wrap: balance; }
-    .ei-stage-sub { display: flex; align-items: flex-start; gap: 5px; margin-top: 2px; font-size: 12.5px; color: var(--ei-muted); line-height: 1.3; .ei-svg { margin-top: 2px; font-size: 12px; } }
+    .ei-stage-label { font-size: 13px; font-weight: 600; color: var(--ei-muted); line-height: 1.25; min-height: 2.5em; text-wrap: balance; }
+    .ei-stage-count { font-size: 32px; font-weight: 800; letter-spacing: -.03em; color: var(--ei-ink); line-height: 1.05; }
+    .ei-stage-main { font-size: 13px; font-weight: 500; color: var(--ei-text); line-height: 1.3; min-height: 2.6em; text-wrap: balance; }
+    .ei-stage-split { display: flex; gap: 3px; width: 100%; height: 8px; margin: 4px 0 2px;
+        > span { display: block; height: 100%; min-width: 6px; border-radius: 999px; } .is-done { background: var(--ei-s1); } .is-wait { background: var(--ei-warn); opacity: .85; } }
+    .ei-stage-sub { display: flex; align-items: flex-start; gap: 5px; margin-top: 2px; font-size: 13px; color: var(--ei-muted); line-height: 1.3; .ei-svg { margin-top: 2px; font-size: 12px; } }
     .ei-stage.ei-tone-warning .ei-stage-sub { color: var(--ei-warn); font-weight: 600; } .ei-stage.ei-tone-ok .ei-stage-sub .ei-svg { color: var(--ei-ok); }
-    .ei-pplot-axis { grid-row: 2; grid-column: 1; align-self: start; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; height: 144px; margin-top: 2px; padding-inline-end: 8px; font-size: 12px; color: var(--ei-muted); font-variant-numeric: tabular-nums; line-height: 1; }
-    .ei-pplot {
-        position: relative; grid-row: 2; grid-column: 2 / -1; display: grid; grid-template-columns: repeat(var(--n, 8), minmax(0, 1fr)); align-items: end; height: 132px; margin-top: 8px;
-        background: linear-gradient(var(--ei-line), var(--ei-line)) 0 0 / 100% 1px no-repeat, linear-gradient(var(--ei-line), var(--ei-line)) 0 50% / 100% 1px no-repeat, linear-gradient(var(--ei-line-strong), var(--ei-line-strong)) 0 100% / 100% 1px no-repeat;
-    }
-    .ei-pplot-svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
-    .ei-pcolbar { position: relative; z-index: 1; display: flex; align-items: flex-end; justify-content: center; height: 100%; cursor: pointer; }
-    .ei-pbar { display: block; width: 72%; max-width: 76px; border-radius: 14px 14px 3px 3px; background: linear-gradient(180deg, var(--ei-s1) 0%, var(--ei-s1-lite) 100%); transition: height .5s cubic-bezier(.2, .8, .2, 1), filter .15s; }
-    .ei-pcolbar.is-on .ei-pbar { filter: brightness(1.12) saturate(1.25); }
-    .ei-ptip { position: absolute; z-index: 5; transform: translateX(-50%); display: flex; flex-direction: column; gap: 2px; padding: 9px 13px; background: var(--ei-card); color: var(--ei-text); border: 1px solid var(--ei-line); border-radius: 12px; font-size: 12.5px; box-shadow: var(--ei-shadow-pop); pointer-events: none; white-space: nowrap;
-        b { color: var(--ei-ink); font-size: 13.5px; } }
+    .ei-stage-def { margin: 12px 2px 0; min-height: 3.2em; font-size: 13px; color: var(--ei-muted); line-height: 1.45; b { color: var(--ei-ink); } }
 
     // the question box sits at the foot of the pipeline card, like a prompt under a chart
     .ei-askbar { margin-top: auto; padding: 14px 14px 12px; border-radius: 18px; background: linear-gradient(135deg, var(--ei-s1-soft), var(--ei-surface-2)); border: 1px solid var(--ei-primary-line); }
-    .ei-hero-pipe > .ei-pipe + .ei-askbar { margin-top: 18px; }
+    .ei-hero-pipe > .ei-stage-def + .ei-askbar { margin-top: 12px; }
     .ei-askbar-title { display: flex; align-items: center; gap: 8px; margin: 0 0 10px; font-size: 14px; font-weight: 700; color: var(--ei-ink); .ei-svg { font-size: 17px; color: var(--ei-s1-ink); } }
     .ei-askbar-row { position: relative; display: flex; align-items: center; background: var(--ei-card); border: 1px solid var(--h-edge); border-radius: 14px; box-shadow: var(--h-shadow); padding: 4px 4px 4px 14px;
         input { flex: 1; min-width: 0; height: 40px; border: 0; background: transparent; color: var(--ei-text); font-size: 15px; padding: 0 10px; &:focus-visible { outline: none; } }
@@ -184,9 +183,11 @@
     .ei-tablebtn { width: 36px; height: 36px; box-shadow: none; font-size: 16px; &[aria-pressed="true"] { background: var(--ei-primary-soft); color: var(--ei-primary); } }
     .ei-agemeter { display: flex; gap: 3px; height: 14px; margin: 14px 0 4px; }
     .ei-agemeter > span { display: block; height: 100%; min-width: 4px; border-radius: 999px; background: var(--ei-seq-0); &.ei-step-1 { background: var(--ei-seq-1); } &.ei-step-2 { background: var(--ei-seq-2); } &.ei-step-3 { background: var(--ei-seq-3); } &.ei-step-4 { background: var(--ei-seq-4); } }
-    .ei-agerows { flex: 1; display: flex; flex-direction: column; justify-content: space-between; margin-top: 12px; }
-    .ei-agerows li { display: grid; grid-template-columns: 38px minmax(0, 1fr) auto 44px; grid-template-rows: auto auto; gap: 3px 12px; align-items: center; padding: 9px 0; font-size: 13.5px; }
-    .ei-agerows li + li { border-top: 1px solid var(--ei-line); }
+    .ei-agerows { flex: 1; display: flex; flex-direction: column; margin-top: 12px; }
+    .ei-agerows li { padding: 0; } .ei-agerows li + li { border-top: 1px solid var(--ei-line); }
+    .ei-agerow { width: 100%; border: 0; background: none; border-radius: 12px; cursor: pointer; transition: background .15s; &:hover { background: var(--ei-surface-2); } display: grid; grid-template-columns: 38px minmax(0, 1fr) auto 44px; grid-template-rows: auto auto; gap: 3px 12px; align-items: center; padding: 9px 0; font-size: 13.5px; }
+    .ei-agerows li.is-zero .ei-agerow { padding-block: 5px; .ei-agetrack { display: none; } .ei-ageico { width: 30px; height: 30px; font-size: 15px; grid-row: auto; } .ei-agelabel, .ei-ageval, .ei-agepct { color: var(--ei-muted); font-weight: 500; } }
+    .ei-ar-report { margin-inline-start: 0; }
     .ei-ageico { grid-row: 1 / span 2; display: inline-grid; place-items: center; width: 38px; height: 38px; border-radius: 12px; background: var(--ei-s1-soft); color: var(--ei-s1-ink); font-size: 18px;
         &.ei-step-2, &.ei-step-3 { background: var(--ei-s2-soft); color: var(--ei-s2-ink); } &.ei-step-4 { background: var(--ei-bad-soft); color: var(--ei-bad); } }
     .ei-agelabel { color: var(--ei-text); font-weight: 600; } .ei-ageval { font-weight: 700; color: var(--ei-ink); text-align: end; } .ei-agepct { color: var(--ei-muted); text-align: end; font-size: 12.5px; }
@@ -213,11 +214,16 @@
     .ei-flow-table { margin-top: auto; padding-top: 10px; align-self: flex-start; }
     .ei-flow .ei-table-wrap { max-height: 190px; margin-top: 10px; }
     .ei-banklist li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; align-items: center; padding: 10px 0; border-top: 1px solid var(--ei-line); font-size: 14px; &:first-child { margin-top: 10px; } }
+    .ei-bank-bal small { font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--ei-muted); margin-inline-end: 4px; }
+    .ei-bank-act { grid-column: 1 / -1; justify-self: start; min-height: 32px; }
     .ei-bank-name { font-weight: 600; color: var(--ei-ink); overflow-wrap: anywhere; } .ei-bank-bal { font-weight: 700; color: var(--ei-ink); text-align: end; }
     .ei-banklist .ei-statechip { grid-column: 1 / -1; justify-self: start; }
     .ei-owelist li + li { border-top: 1px solid var(--ei-line); }
     .ei-owelist { margin-top: 8px; }
     .ei-owe { display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 6px; border: 0; background: none; border-radius: 12px; cursor: pointer; transition: background .15s; &:hover { background: var(--ei-surface-2); } }
+    .ei-rank { width: 22px; text-align: center; font-size: 13px; font-weight: 800; color: var(--ei-muted); flex: none; }
+    .ei-owe-sub { font-size: 12.5px; color: var(--ei-muted); &.is-late { color: var(--ei-bad); b { font-weight: 700; } } }
+    .ei-owe-val { display: flex; flex-direction: column; align-items: flex-end; small { font-size: 11.5px; font-weight: 500; color: var(--ei-muted); } }
     .ei-avatar { display: inline-grid; place-items: center; width: 36px; height: 36px; border-radius: 12px; background: var(--ei-primary-soft); color: var(--ei-primary); font-size: 13px; font-weight: 800; flex: none; }
     .ei-owe-main { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 0; }
     .ei-owe-name { font-weight: 600; color: var(--ei-ink); font-size: 14px; overflow-wrap: anywhere; }
@@ -264,6 +270,10 @@
     .ei-alert-count { font-size: 20px; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--ei-warn); min-width: 28px; text-align: end; }
     .ei-sev-danger .ei-alert-count { color: var(--ei-bad); }
     .ei-go { color: var(--ei-faint); font-size: 16px; }
+    .ei-alert-age { margin-inline-start: 8px; font-size: 12.5px; font-weight: 600; color: var(--ei-muted); }
+    .ei-alert-cta { display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; border-radius: 999px; background: var(--ei-primary-soft); color: var(--ei-primary); font-size: 13px; font-weight: 700; white-space: nowrap; .ei-go { color: inherit; font-size: 14px; } }
+    .ei-alert:hover .ei-alert-cta { background: var(--ei-primary-line); }
+    .ei-note { font-size: 12px; font-weight: 500; color: var(--ei-muted); }
 
     // ---------- my work
     .ei-work-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; .ei-h2 { margin: 0; } margin-bottom: 8px; }
@@ -308,6 +318,8 @@
     .ei-feed li + li, .ei-steps li + li, .ei-checks li + li { border-top: 1px solid var(--ei-line); }
     .ei-feed-item { display: grid; grid-template-columns: 110px minmax(0, 1fr) auto; gap: 12px; width: 100%; padding: 12px 20px; border: 0; background: none; cursor: pointer; font-size: 13.5px; align-items: baseline; transition: background .15s; &:hover { background: var(--ei-surface-2); } }
     .ei-feed-when { color: var(--ei-muted); font-size: 12.5px; } .ei-feed-main { overflow-wrap: anywhere; } .ei-feed-who { color: var(--ei-muted); font-size: 12.5px; }
+    .ei-feed-group { font-weight: 500; }
+    .ei-feed-sub { list-style: none; margin: 0; padding: 0 0 6px 16px; background: var(--ei-surface-2); .ei-feed-item { padding-block: 8px; } li + li { border-top: 1px solid var(--ei-line); } }
     .ei-step { display: flex; width: 100%; align-items: center; gap: 14px; padding: 12px 20px; border: 0; background: none; cursor: pointer; transition: background .15s; &:hover { background: var(--ei-surface-2); } }
     .ei-step-mark { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; flex: none; font-size: 13px; &.is-done { background: var(--ei-ok); color: var(--ei-on-primary); } &.is-todo { border: 2px solid var(--ei-line-strong); color: var(--ei-faint); } }
     .ei-step-text { display: flex; flex-direction: column; flex: 1; min-width: 0; } .ei-step-label { font-weight: 600; font-size: 14px; color: var(--ei-ink); } .ei-step-hint { font-size: 12.5px; color: var(--ei-muted); }
@@ -336,13 +348,6 @@
     @media (max-width: 1199.98px) {
         .ei-hero-grid { grid-template-columns: 1fr; }
     }
-    @media (max-width: 960px) {
-        // the bars and their axis are a picture on top of numbers that stay: below this width the numbers carry the card
-        .ei-pipe { display: block; }
-        .ei-pbars { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px 4px; }
-        .ei-pbars > li { display: block; } .ei-pbars > li:first-child .ei-stage { grid-column: auto; }
-        .ei-pplot, .ei-pplot-axis { display: none; }
-    }
     @media (max-width: 1100px) {
         .ei-top { grid-template-columns: 1fr; }
         .ei-top-tools { align-items: flex-start; padding-top: 0; } .ei-period, .ei-top-mini { justify-content: flex-start; } .ei-fresh { text-align: start; }
@@ -357,7 +362,7 @@
         .ei-bignum { font-size: 30px; }
         .ei-grid-kpi, .ei-grid-kpi-small { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
         .ei-kpi { padding: 14px 12px; } .ei-kpi-value { font-size: 16.5px; } .ei-kpi-small .ei-kpi-value { font-size: 16px; }
-        .ei-pbars { grid-template-columns: 1fr 1fr; }
+        .ei-stages { grid-template-columns: 1fr 1fr; }
         .ei-flow-grid, .ei-launch { gap: 14px; }
         .ei-tasks > li { grid-template-columns: 1fr; .ei-task-state, .ei-task-act { grid-column: auto; grid-row: auto; } .ei-task-act { justify-content: flex-start; } }
         .ei-feed-item { grid-template-columns: 1fr; gap: 2px; }

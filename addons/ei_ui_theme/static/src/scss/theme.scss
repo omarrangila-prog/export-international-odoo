@@ -46,7 +46,7 @@ body, .o_web_client { background: var(--ei-bg); color: var(--ei-text); font-size
     border: 1px solid var(--ei-nav-edge) !important;
     box-shadow: 0 1px 2px rgba(15,27,51,.04), 0 10px 28px rgba(29,78,216,.08);
     position: relative; z-index: 12;
-    @media (min-width: 768px) { margin: 10px 20px 10px; border-radius: 22px; padding-inline-end: 12px; }
+    @media (min-width: 768px) { margin: 10px 24px 10px; border-radius: 22px; padding-inline-end: 12px; }
     .o_nav_entry, .o-dropdown.dropdown-toggle, .o_menu_brand {
         background: transparent !important;
         color: var(--ei-text) !important;
@@ -54,7 +54,7 @@ body, .o_web_client { background: var(--ei-bg); color: var(--ei-text); font-size
         font-weight: 600;
         border-radius: 999px;
         margin: 0 2px;
-        padding: 8px 15px !important;
+        padding: 8px 11px !important;
         transition: background .15s, color .15s;
         i, .oi { color: inherit; }
     }
@@ -76,6 +76,7 @@ body, .o_web_client { background: var(--ei-bg); color: var(--ei-text); font-size
     }
     .o_menu_systray .o-dropdown.dropdown-toggle { position: relative; }
     .o_menu_systray .o-mail-MessagingMenuInDropdown-counter { position: absolute; top: 0; inset-inline-end: -2px; min-width: 18px; height: 18px; padding: 0 4px; display: grid; place-items: center; font-size: 10px; line-height: 1; background: var(--ei-bad) !important; color: #fff !important; border: 2px solid var(--ei-nav-bg); border-radius: 999px; }
+    .o_switch_company_menu .oe_topbar_name { color: var(--ei-muted); font-weight: 600; font-size: 12.5px; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .oe_topbar_name { color: var(--ei-muted); font-weight: 600; }
     .o_user_menu { gap: 8px; align-items: center; padding-inline: 4px 12px !important; }
     .o_user_menu img, .o_user_menu foreignObject { border-radius: 50% !important; }
@@ -96,49 +97,6 @@ body, .o_web_client { background: var(--ei-bg); color: var(--ei-text); font-size
 .btn-secondary, .btn-light { background: var(--ei-card); border: 1px solid var(--ei-line-strong); color: var(--ei-text); }
 .btn-secondary:hover, .btn-light:hover { background: var(--ei-primary-soft); border-color: var(--ei-primary-line); color: var(--ei-primary); }
 .o_form_statusbar .o_statusbar_buttons .btn { min-height: 40px; }
-
-// ---------------------------------------------------------------- control panel
-.o_control_panel {
-    background: var(--ei-card) !important;
-    border-bottom: 1px solid var(--ei-line);
-    padding-top: 12px; padding-bottom: 8px;
-    .o_breadcrumb .active, .breadcrumb-item.active { font-size: 20px; font-weight: 700; color: var(--ei-ink); }
-    .o_searchview { border-radius: 12px; border: 1px solid var(--ei-line); background: var(--ei-surface-2); }
-}
-.o_cp_buttons .btn-primary { font-size: 15px; padding: 9px 20px; }
-
-// ---------------------------------------------------------------- lists
-.o_list_view .o_list_renderer { background: var(--ei-card); }
-.o_list_table {
-    thead th {
-        background: var(--ei-surface-2) !important; color: var(--ei-muted); font-size: 12px; font-weight: 700;
-        text-transform: uppercase; letter-spacing: .5px; border-bottom: 1px solid var(--ei-line) !important; padding: 12px 10px;
-    }
-    tbody tr.o_data_row td { padding: 14px 10px; border-color: #EEF2F7; vertical-align: middle; }
-    tbody tr.o_data_row:hover td { background: var(--ei-primary-soft) !important; cursor: pointer; }
-    tfoot td, .o_list_footer td { font-weight: 700; background: var(--ei-surface-2); }
-}
-
-// ---------------------------------------------------------------- forms
-.o_form_view .o_form_sheet_bg { background: var(--ei-bg); border: 0; }
-.o_form_view .o_form_sheet {
-    background: var(--ei-card); border-radius: var(--ei-radius); border: 1px solid var(--ei-line);
-    box-shadow: var(--ei-shadow); padding: 28px 32px; margin-top: 18px;
-}
-.o_form_view .o_form_label, .o_form_view .o_horizontal_separator {
-    color: var(--ei-muted); font-weight: 600;
-}
-.o_form_view .o_horizontal_separator {
-    text-transform: uppercase; font-size: 12px; letter-spacing: .6px; border-bottom: 1px solid var(--ei-line);
-    padding-bottom: 6px; margin: 26px 0 12px;
-}
-.o_form_view .o_input, .o_form_view .o_field_widget input, .o_form_view .o_field_widget textarea { font-size: 15px; }
-.o_form_view .oe_title h1 { font-weight: 800; color: var(--ei-ink); }
-.o_form_view .o_form_statusbar { background: transparent; border: 0; padding: 12px 0; }
-.o_form_view .o_statusbar_status .o_arrow_button {
-    font-weight: 600; font-size: 13px; padding: 9px 22px;
-    &.o_arrow_button_current { background: var(--ei-primary) !important; color: #fff !important; }
-}
 
 // ---------------------------------------------------------------- badges and row colours
 .o_field_badge .badge, .badge {
@@ -167,22 +125,7 @@ body, .o_web_client { background: var(--ei-bg); color: var(--ei-text); font-size
     &.ei-next-stop { background: var(--ei-bad-soft); color: var(--ei-bad); border-left-color: #DC2626; .ei-next-ico { background: #DC2626; &::before { content: '!'; font-style: normal; } } }
 }
 
-// ---------------------------------------------------------------- empty states
-.o_view_nocontent {
-    .o_nocontent_help { background: var(--ei-card); border-radius: var(--ei-radius); box-shadow: var(--ei-shadow);
-        padding: 36px 44px; max-width: 520px; border: 1px solid var(--ei-line); }
-    .o_view_nocontent_smiling_face, h2, .fw-bold { color: var(--ei-ink); }
-    p { font-size: 15px; color: var(--ei-muted); }
-}
-
-// ---------------------------------------------------------------- kanban cards
-.o_kanban_view .o_kanban_renderer { padding: 16px; gap: 14px; background: transparent; }
-.o_kanban_view .o_kanban_record {
-    border-radius: var(--ei-radius) !important; border: 1px solid var(--ei-line) !important;
-    box-shadow: var(--ei-shadow); background: var(--ei-card); padding: 0 !important; overflow: hidden;
-    transition: transform .12s, box-shadow .12s;
-    &:hover { transform: translateY(-2px); box-shadow: 0 6px 22px rgba(20,33,61,.14); }
-}
+// ---------------------------------------------------------------- kanban card bodies (the record frame itself is in screens.scss)
 .ei-card-body {
     padding: 16px 18px; border-left: 6px solid #CBD5E1; min-height: 150px;
     &.ei-s-draft, &.ei-s-new { border-left-color: #94A3B8; }
@@ -199,24 +142,10 @@ body, .o_web_client { background: var(--ei-bg); color: var(--ei-text); font-size
 // ---------------------------------------------------------------- chatter: calmer
 .o-mail-Chatter { background: transparent; }
 
-// ---------------------------------------------------------------- small screens
-@media (max-width: 767px) {
-    .o_form_view .o_form_sheet { padding: 18px 16px; margin-top: 8px; border-radius: 10px; }
-    .o_control_panel .o_breadcrumb .active { font-size: 18px; }
-    body, .o_web_client { font-size: 16px; }
-}
-
 // ---------------------------------------------------------------- polish
 .o_kanban_ghost { display: none !important; }
-.o_form_view .o_form_statusbar { padding-left: 4px; gap: 6px;
-    .o_statusbar_buttons { display: flex; gap: 8px; flex-wrap: wrap; padding: 0 12px 0 0; }
-}
-.o_form_view .o_form_statusbar .btn { min-height: 42px; padding: 9px 18px; }
-.o_form_view .o_form_sheet .o_list_renderer { border: 1px solid var(--ei-line); border-radius: 10px; overflow: hidden; }
-.o_form_view .o_form_sheet .o_list_table thead th { padding: 10px 8px; }
-.o_form_view .o_form_sheet .o_list_table tbody tr.o_data_row td { padding: 10px 8px; }
+.o_form_view .o_form_statusbar .o_statusbar_buttons { display: flex; gap: 8px; flex-wrap: wrap; padding: 0 12px 0 0; }
 .o_control_panel .o_cp_buttons .btn { min-width: 88px; }
-.o_switch_company_menu { color: #E8EDF7 !important; }
 
 // A status pill in a list must never be cut off ("Sugge..."): let it wrap onto a second line instead.
 .o_list_view .o_data_cell .o_field_badge, .o_list_view .o_data_cell .badge, .o_kanban_view .badge {

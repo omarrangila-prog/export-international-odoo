@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="ei_reports.Catalog">
+        <div class="o_action ei-rc">
+            <div class="ei-rc-inner">
+                <header class="ei-rc-head">
+                    <h1 class="ei-rc-title">Reports</h1>
+                    <p class="ei-rc-lead">Every report the business asked for: what it answers, how it is worked out, where the numbers come from, and whether it is ready. The figures are read from posted records and agree with Home.</p>
+                    <p class="ei-rc-sum" t-if="!this.state.loading">
+                        <span class="ei-rc-chip is-ok"><b t-out="this.counts.delivered"/> delivered</span>
+                        <span class="ei-rc-chip is-info"><b t-out="this.counts.partial"/> partly there</span>
+                        <span class="ei-rc-chip is-warn"><b t-out="this.counts.pending_source"/> blocked</span>
+                        <span class="ei-rc-chip is-muted"><b t-out="this.counts.not_built"/> not built yet</span>
+                    </p>
+                </header>
+
+                <t t-if="this.state.loading"><div class="ei-rc-skel" role="status" aria-label="Loading the reports"/></t>
+                <p t-elif="this.state.error" class="ei-rc-error" role="alert">The catalog could not be loaded. Nothing was changed. <button class="ei-rc-link" t-on-click="() => this.load()">Try again</button></p>
+                <t t-else="">
+                    <div class="ei-rc-tools">
+                        <label class="ei-rc-search"><span class="visually-hidden">Search the reports</span>
+                            <svg class="ei-rc-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M11 4a7 7 0 100 14 7 7 0 000-14M21 21l-4.5-4.5"/></svg>
+                            <input type="search" placeholder="Search reports, for example: overdue, bank, lifting" t-att-value="this.state.q" t-on-input="(ev) => this.onSearch(ev)"/>
+                        </label>
+                        <div class="ei-rc-seg" role="group" aria-label="Show">
+                            <button type="button" t-att-class="'ei-rc-pill' + (this.state.area === 'all' ? ' is-on' : '')" t-att-aria-pressed="this.state.area === 'all' ? 'true' : 'false'" t-on-click="() => this.setArea('all')">All</button>
+                            <button type="button" t-att-class="'ei-rc-pill' + (this.state.area === 'fav' ? ' is-on' : '')" t-att-aria-pressed="this.state.area === 'fav' ? 'true' : 'false'" t-on-click="() => this.setArea('fav')">Favourites</button>
+                            <button t-foreach="this.areas" t-as="a" t-key="a" type="button" t-att-class="'ei-rc-pill' + (this.state.area === a ? ' is-on' : '')" t-att-aria-pressed="this.state.area === a ? 'true' : 'false'" t-on-click="() => this.setArea(a)" t-out="a"/>
+                        </div>
+                        <label class="ei-rc-check"><input type="checkbox" t-att-checked="this.state.only === 'all'" t-on-change="(ev) => this.onOnly(ev)"/> Also show reports I cannot open or that are not built</label>
+                    </div>
+                    <p class="visually-hidden" role="status" aria-live="polite" t-out="this.state.note"/>
+
+                    <p t-if="!this.shown.length" class="ei-rc-empty">No report matches. Clear the search, or tick "Also show reports I cannot open or that are not built".</p>
+                    <section t-foreach="this.areas" t-as="area" t-key="area" t-if="this.group(area).length" class="ei-rc-area">
+                        <h2 class="ei-rc-h2" t-out="area"/>
+                        <div class="ei-rc-grid">
+                            <article t-foreach="this.group(area)" t-as="i" t-key="i.key" t-att-class="'ei-rc-card is-' + this.statusOf(i).tone">
+                                <header class="ei-rc-card-head">
+                                    <h3 class="ei-rc-card-title" t-out="i.title"/>
+                                    <button type="button" class="ei-rc-star" t-att-aria-pressed="i.favourite ? 'true' : 'false'" t-att-aria-label="(i.favourite ? 'Remove from favourites: ' : 'Add to favourites: ') + i.title" t-on-click="() => this.toggle(i)">
+                                        <svg viewBox="0 0 24 24" t-att-fill="i.favourite ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/></svg>
+                                    </button>
+                                </header>
+                                <p class="ei-rc-status"><span t-att-class="'ei-rc-chip is-' + this.statusOf(i).tone" t-out="this.statusOf(i).label"/></p>
+                                <p class="ei-rc-q" t-out="i.question"/>
+                                <details class="ei-rc-how"><summary>How it is worked out</summary><p t-out="i.definition"/><p class="ei-rc-src"><b>Source:</b> <t t-out="i.source"/></p></details>
+                                <p t-if="i.note" class="ei-rc-note" t-out="i.note"/>
+                                <footer class="ei-rc-foot">
+                                    <button t-if="i.can_open" type="button" class="ei-rc-open" t-on-click="() => this.open(i)">Open the report</button>
+                                    <span t-else="" class="ei-rc-unavail"><t t-if="i.action">You do not have access to this report.</t><t t-else="">Not available yet.</t></span>
+                                </footer>
+                            </article>
+                        </div>
+                    </section>
+                </t>
+            </div>
+        </div>
+    </t>
+</templates>

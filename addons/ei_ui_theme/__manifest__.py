@@ -20,9 +20,12 @@
         ],
         'web.assets_backend': [
             'ei_ui_theme/static/src/scss/theme.scss',
+            'ei_ui_theme/static/src/scss/screens.scss',
             'ei_ui_theme/static/src/home/home.scss',
             'ei_ui_theme/static/src/common/icons.js',
             'ei_ui_theme/static/src/nav/nav_current.js',
+            'ei_ui_theme/static/src/nav/chatter_toggle.js',
+            'ei_ui_theme/static/src/nav/chatter_toggle.xml',
             'ei_ui_theme/static/src/search/search_box.js',
             'ei_ui_theme/static/src/search/search_box.xml',
             'ei_ui_theme/static/src/search/command_provider.js',

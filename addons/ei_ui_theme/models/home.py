@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 from odoo import api, fields, models, _
 from odoo.exceptions import AccessError, UserError
 from odoo.tools import html2plaintext
-from odoo.tools.misc import format_amount
+from odoo.tools.misc import format_amount, format_date
 
 from .labels import LABELS
 from .work import WORK, OVERDUE_DEFAULT, OVERDUE_PARAM
@@ -104,15 +104,19 @@ PROFILE_KPIS = {
     'general': ['k_contracts', 'k_left'],
 }
 PROFILE_LAYOUT = {
-    'executive': ['hero', 'flows', 'recent', 'alerts', 'kpis', 'work', 'charts', 'activity', 'quick'],
-    'finance': ['hero', 'flows', 'recent', 'alerts', 'kpis', 'work', 'charts', 'quick', 'activity'],
-    'accountant': ['work', 'kpis', 'alerts', 'quick', 'hero', 'flows', 'charts', 'recent', 'activity'],
+    # the "New" menu in the header holds the starting points; the launcher section stays only where starting things IS the job
+    'executive': ['hero', 'flows', 'recent', 'alerts', 'kpis', 'work', 'charts', 'activity'],
+    'finance': ['hero', 'flows', 'recent', 'alerts', 'kpis', 'work', 'charts', 'activity'],
+    'accountant': ['work', 'kpis', 'alerts', 'hero', 'flows', 'charts', 'recent', 'activity'],
     'logistics': ['work', 'kpis', 'quick', 'hero', 'flows', 'alerts', 'recent', 'activity', 'charts'],
     'contract': ['work', 'kpis', 'quick', 'hero', 'flows', 'alerts', 'recent', 'activity', 'charts'],
     'data_entry': ['work', 'quick', 'kpis', 'alerts', 'hero', 'recent', 'activity', 'charts', 'flows'],
     'admin': ['system', 'alerts', 'quick', 'hero', 'activity', 'work', 'recent', 'charts', 'kpis', 'flows'],
     'general': ['work', 'kpis', 'quick', 'hero', 'alerts', 'flows', 'recent', 'activity', 'charts'],
 }
+
+
+BANK_STALE_RED_DAYS = 3        # a bank confirmation this old is urgent (red); older than today is already amber
 
 
 def _n(n, one, many):
@@ -237,11 +241,16 @@ class EiHome(models.AbstractModel):
             overdue = ledger_ar - dash.aging_current
             out['ar'] = dict(label=_("Customers owe us"), value=self._fmt(ledger_ar), icon='in', tone='warning' if overdue > 0 else 'neutral',
                              sub=(_("%s of it is overdue", self._fmt(overdue)) if overdue > 0 else _("Nothing is overdue")),
-                             basis=_("Posted in the books"))
+                             basis=_("Posted in the books"),
+                             help=_("Open receivable items of posted customer invoices, from the ledger. Overdue = past its due date."))
             out['ap'] = dict(label=_("We owe suppliers"), value=self._fmt(dash.ap_open), icon='out', tone='neutral',
-                             sub=_("Unpaid supplier bills"), basis=_("Posted in the books"))
-            out['cash'] = dict(label=_("Cash in hand"), value=self._fmt(dash.cash_position), icon='cash', tone='neutral',
-                               sub=_("Cash boxes, according to the books"), basis=_("Posted in the books"))
+                             sub=_("Unpaid supplier bills"), basis=_("Posted in the books"),
+                             help=_("Open payable items of posted supplier bills, from the ledger."))
+            cash = dash.cash_position
+            out['cash'] = dict(label=_("Cash in hand"), value=self._fmt(cash), icon='cash', tone='danger' if cash < 0 else 'neutral',
+                               sub=(_("Below zero: the books show more paid out of the cash boxes than was put in. Check the cash count.") if cash < 0
+                                    else _("Cash boxes, according to the books")), basis=_("Posted in the books"),
+                               help=_("Posted entries on the cash accounts. A negative figure is never normal: it means vouchers or receipts are missing or mis-dated."))
         if fin or bank_ok:
             journals = dash._bank_journals() if dash else env['account.journal']
             if journals:
@@ -251,21 +260,25 @@ class EiHome(models.AbstractModel):
                 tone = 'ok' if len(checked) == len(journals) else 'warning'
                 out['bank'] = dict(label=_("Bank balances"), value=self._fmt(total), icon='bank', tone=tone,
                                    sub=_("%(a)s of %(b)s banks confirmed with the bank today", a=len(checked), b=len(journals)),
-                                   basis=_("Books, checked against the bank"))
+                                   basis=_("Books, checked against the bank"),
+                                   help=_("The BOOK balance of the bank accounts. It is only bank-confirmed when someone has typed what the bank says and the two agree."))
         if self._can('ei.bank.import.line') and (bank_ok or fin):
             L = env['ei.bank.import.line']
             got = L.search([('state', '=', 'posted'), ('amount', '>', 0), ('date', '=', today)])
             out['collected'] = dict(label=_("Collected today"), value=self._fmt(sum(got.mapped('amount'))), icon='in',
                                     tone='ok' if got else 'neutral',
                                     sub=(_n(len(got), _("%s receipt posted"), _("%s receipts posted")) if got else _("No receipts posted yet today")),
-                                    basis=_("Bank-confirmed and posted"))
+                                    basis=_("Bank-confirmed and posted"),
+                                    help=_("Bank receipts dated today that a person matched and a second person posted."))
             pend = L.search([('state', 'in', ('new', 'proposed', 'verified', 'unidentified')), ('amount', '>', 0)])
             out['waiting'] = dict(label=_("Bank money to match"), value=self._fmt(sum(pend.mapped('amount'))), icon='alert',
                                   tone='warning' if pend else 'ok', sub=(_n(len(pend), _("%s payment needs a person to confirm the payer"), _("%s payments need a person to confirm the payer")) if pend else _("Nothing waiting")),
-                                  basis=_("Waiting for a person"))
+                                  basis=_("Waiting for a person"),
+                                  help=_("Incoming bank lines not yet matched to a party and posted. They are not in the books yet."))
         if fin:
             out['spread'] = dict(label=_("Expected gross spread"), value=self._fmt(dash.gross_spread), icon='chart', tone='neutral',
-                                 sub=_("On active contracts, before costs and taxes. Not profit."), basis=_("Provisional"))
+                                 sub=_("On active contracts, before costs and taxes. Not profit."), basis=_("Provisional"),
+                                 help=_("Ordered MTL x (sale rate - purchase rate), summed over active contract lines. Before commission, costs and taxes; provisional until the tax and commission basis is approved. Not net profit."))
         if self._can('ei.parent.statement.line'):
             diffs = env['ei.parent.statement.line'].search(TASK_BY_KEY['recon'][5])
             total = sum(abs(d.difference) for d in diffs)
@@ -313,9 +326,24 @@ class EiHome(models.AbstractModel):
         env, today = self.env, fields.Date.context_today(self)
         alerts = []
 
+        # what a person does next, in verb + object words, and how long the oldest item has waited
+        ctas = {'dup_payment': _("Review duplicates"), 'unidentified': _("Identify the payer"), 'intake_mismatch': _("Review the mismatch"),
+                'rate_diff': _("Check the rates"), 'missing_docs': _("Attach the paper"), 'overdue_approvals': _("Open the oldest"),
+                'recon': _("Resolve the differences"), 'bank_diff': _("Find the difference"), 'bank_stale': _("Confirm the balances")}
+
+        def oldest(model, dom):
+            first = env[model].search(dom, order='create_date asc', limit=1)
+            return _("oldest waiting %s days", (fields.Date.context_today(self) - first.create_date.date()).days) if first else ''
+        ages = {}
+        if self._can('ei.bank.import.line'):
+            ages['dup_payment'] = oldest('ei.bank.import.line', [('state', '=', 'duplicate')])
+            ages['unidentified'] = oldest('ei.bank.import.line', [('state', '=', 'unidentified')])
+        if self._can('ei.supplier.intake'):
+            ages['intake_mismatch'] = oldest('ei.supplier.intake', [('state', '=', 'mismatch')])
+
         def add(key, severity, label, count, detail, model=None, domain=None):
             if count:
-                alerts.append({'key': key, 'severity': severity, 'label': label, 'count': count, 'detail': detail})
+                alerts.append({'key': key, 'severity': severity, 'label': label, 'count': count, 'detail': detail, 'cta': ctas.get(key, ''), 'age': ages.get(key, '')})
         if self._can('ei.bank.import.line'):
             L = env['ei.bank.import.line']
             add('dup_payment', 'danger', _("Possible duplicate bank payments"), L.search_count([('state', '=', 'duplicate')]),
@@ -354,6 +382,13 @@ class EiHome(models.AbstractModel):
             n = env['ei.parent.statement.line'].search_count(TASK_BY_KEY['recon'][5])
             add('recon', 'warning', _("Open differences with parent companies"), n,
                 _("The parent company's ledger and ours disagree. They stay visible until someone resolves them."))
+        if self._finance_ok() or self._allowed('bank'):
+            stale = [b for b in self._banks() if b['stale']] if self._finance_ok() else []
+            if stale:
+                worst = max((b['age_days'] if b['age_days'] is not None else 999) for b in stale)
+                ages['bank_stale'] = _("never confirmed") if worst == 999 else _("oldest confirmation %s days ago", worst)
+                add('bank_stale', 'danger' if worst >= BANK_STALE_RED_DAYS else 'warning', _("Bank balances not confirmed with the bank today"), len(stale),
+                    _("The books show what our ledger holds; only the bank can confirm it. Until someone types the bank's own balance, the figure is a book balance."))
         if self._allowed('bank') and 'ei.bank.balance.check' in env:
             for_banks = env['ei.dashboard']._bank_journals() if self._allowed('bank') else env['account.journal']
             diff_checks = env['ei.bank.balance.check'].sudo().search([('date', '=', today), ('journal_id', 'in', for_banks.ids), ('state', '=', 'difference')])
@@ -416,6 +451,19 @@ class EiHome(models.AbstractModel):
                            'sub': _("to match") if m else _("Nothing waiting"), 'tone': 'warning' if m else 'ok', 'waiting': m})
         stage('recon', _("Reconciliation"), 'ei.parent.statement.line', TASK_BY_KEY['recon'][5], lambda n: _n(n, _("%s open difference"), _("%s open differences")),
               [('statement_id.state', '=', 'resolved')], lambda s: _("%s to sign off", s), 'scale')
+        # each step counts its own kind of record: the counts are NOT one series and must never be joined by a line
+        defs = {
+            'contract': (_("Contracts that are approved or active."), _("Waiting: reviewed, not yet approved.")),
+            'da': (_("Delivery advices that are approved."), _("Waiting: still under review.")),
+            'order': (_("Daily orders that are approved."), _("Waiting: still a draft.")),
+            'lifting': (_("Truck loadings that a reviewer verified."), _("Waiting: draft, not yet verified.")),
+            'supplier': (_("Supplier invoices that matched their delivery advice and were billed."), _("Waiting: draft, or a mismatch to resolve.")),
+            'invoice': (_("Verified truck loadings already invoiced to the customer."), _("Waiting: verified loadings not yet invoiced.")),
+            'payment': (_("Posted customer invoices that are not fully paid (bank payments for roles without finance)."), _("Waiting: incoming bank payments not yet matched to a party.")),
+            'recon': (_("Open differences between a parent company's ledger and ours."), _("Waiting: resolved statements that still need a sign-off.")),
+        }
+        for st in stages:
+            st['definition'], st['waiting_def'] = defs.get(st['key'], ('', ''))
         return stages
 
     def _charts(self, dash):
@@ -556,6 +604,8 @@ class EiHome(models.AbstractModel):
         return steps
 
     def _banks(self):
+        """One row per bank account: what the BOOKS say, and when the BANK last confirmed it. A confirmation that is not from today
+        is an action item (amber, red after BANK_STALE_RED_DAYS), never a quiet caption."""
         env = self.env
         if 'ei.dashboard' not in env or not env['ei.dashboard']._allowed('bank'):
             return []
@@ -564,15 +614,18 @@ class EiHome(models.AbstractModel):
         for j in env['account.journal'].sudo().search([('type', '=', 'bank'), ('company_id', 'in', env.companies.ids)]):
             chk = env['ei.bank.balance.check'].sudo().search([('journal_id', '=', j.id)], order='entered_at desc', limit=1)
             ledger = j._ei_ledger_balance(today)
+            age = (today - chk.date).days if chk else None
+            stale = not chk or chk.date != today
             if not chk:
                 tone, text = 'danger', _("Never confirmed with the bank")
             elif chk.date == today and chk.state in ('matched', 'explained'):
-                tone, text = 'ok', _("Confirmed with the bank today")
+                tone, text = 'ok', _("Bank-confirmed today")
             elif chk.date == today:
                 tone, text = 'danger', _("Bank and books differ by %s", self._fmt(chk.difference))
             else:
-                tone, text = 'warning', _("Last confirmed on %s", fields.Date.to_string(chk.date))
-            out.append({'name': j.name, 'balance': self._fmt(ledger), 'amount': ledger, 'tone': tone, 'text': text})
+                tone = 'danger' if age >= BANK_STALE_RED_DAYS else 'warning'
+                text = _("Not confirmed today: last bank confirmation %(n)s days ago (%(d)s)", n=age, d=format_date(env, chk.date, date_format='dd MMM'))
+            out.append({'name': j.name, 'balance': self._fmt(ledger), 'amount': ledger, 'tone': tone, 'text': text, 'stale': stale, 'age_days': age})
         return out
 
     def _material(self):
@@ -587,8 +640,12 @@ class EiHome(models.AbstractModel):
         if not ordered:
             return {'ordered': 0}
         alloc, lifted = sum(lines.mapped('allocated_mtl')), sum(lines.mapped('lifted_mtl'))
-        return {'ordered': round(ordered, 3), 'allocated': round(alloc, 3), 'lifted': round(lifted, 3),
-                'left': round(ordered - alloc, 3), 'pct_alloc': round(100 * alloc / ordered), 'pct_lift': round(100 * lifted / ordered)}
+        # three parts that ADD UP to what the contracts ordered: lifted (verified loadings), promised but not yet lifted (approved delivery
+        # advices minus lifted) and not yet promised. Lifted is part of what was promised, never an extra slice on top of it.
+        promised_open = max(alloc - lifted, 0.0)
+        return {'ordered': round(ordered, 3), 'allocated': round(alloc, 3), 'lifted': round(lifted, 3), 'promised_open': round(promised_open, 3),
+                'left': round(ordered - alloc, 3), 'pct_alloc': round(100 * alloc / ordered), 'pct_lift': round(100 * lifted / ordered),
+                'pct_open': round(100 * promised_open / ordered), 'pct_free': round(100 * max(ordered - alloc, 0.0) / ordered)}
 
     # ------------------------------------------------------------------ clicks (every figure opens the records behind it)
     @api.model
@@ -683,7 +740,7 @@ class EiHome(models.AbstractModel):
                     'domain': [('id', 'in', rid)], 'views': self._views_for(model), 'target': 'current'}
         if key == 'overdue_approvals':
             return self.env['ir.actions.act_window']._for_xml_id('ei_management_dashboard.ei_approval_contracts')
-        if key == 'bank_diff':
+        if key in ('bank_diff', 'bank_stale'):
             return self.env['ir.actions.act_window']._for_xml_id('ei_bank_operations.ei_balance_check_action')
         raise UserError(_("Unknown alert."))
 

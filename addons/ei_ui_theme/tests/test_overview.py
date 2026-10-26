@@ -139,7 +139,7 @@ class TestOverview(TestJourney):
         r = self.home(self.ceo)['recent']
         self.assertEqual(r['kind'], 'invoices')
         by = {x['name']: x for x in r['rows']}
-        self.assertEqual(by[self.cur_inv.name]['status'], 'Overdue')                         # unpaid and past its due date
+        self.assertEqual(by[self.cur_inv.name]['status'], 'Overdue 1d')                       # unpaid and one day past its due date
         self.assertEqual(by[self.cur_inv.name]['tone'], 'bad')
         self.assertEqual(by[self.small_inv.name]['tone'], 'warning')                         # unpaid, not yet due
         self.assertEqual(by[self.invoice.name]['tone'], 'ok')                                # the journey's invoice is paid
@@ -185,3 +185,61 @@ class TestOverview(TestJourney):
         self.assertTrue(self.home(self.ceo)['banks'])
         officer = self.home(self.officer)
         self.assertEqual((officer['banks'], officer['banks_total']), ([], ''))
+
+    # ------------------------------------------------------------------ o11-o15 the review round: honest pipeline, exceptions, book vs bank
+    def test_o11_every_pipeline_step_says_what_it_counts(self):
+        stages = self.home(self.ceo)['pipeline']
+        self.assertGreaterEqual(len(stages), 6)
+        for st in stages:                       # each step counts its OWN kind of record: the definition says which, in words
+            self.assertTrue(st['definition'] and st['waiting_def'], st['key'])
+            self.assertEqual(st['waiting'] > 0, st['tone'] == 'warning', st['key'])
+        self.assertEqual(len({st['key'] for st in stages}), len(stages))
+
+    def test_o12_negative_cash_is_an_exception_not_a_number(self):
+        def cash():
+            return next(k for k in self.home(self.ceo)['kpis'] if k['key'] == 'cash')
+        self.assertNotEqual(cash()['tone'], 'danger')
+        journal = self.env['account.journal'].create({'name': 'Ov Cash box', 'type': 'cash', 'code': 'OVC'})
+        expense = self.env['account.account'].search([('account_type', '=', 'expense')], limit=1)
+        move = self.env['account.move'].create({'journal_id': journal.id, 'date': self.today, 'line_ids': [
+            Command.create({'account_id': journal.default_account_id.id, 'credit': 1850.0}),
+            Command.create({'account_id': expense.id, 'debit': 1850.0})]})
+        move.action_post()
+        k = cash()
+        self.assertEqual(k['tone'], 'danger')
+        self.assertIn('1,850', k['value'])
+        self.assertIn('Below zero', k['sub'])
+        self.assertTrue(k['help'])                                   # and says what the figure is made of
+
+    def test_o13_who_owes_most_splits_overdue_from_outstanding(self):
+        rows = {r['partner_id']: r for r in self.home(self.ceo)['top_owing']['rows']}
+        rich, small = rows[self.rich.id], rows[self.small.id]
+        self.assertEqual((rich['overdue'], rich['oldest_days']), (300000.0, 1))      # only the invoice past its due date
+        self.assertEqual(rich['amount'], 400000.0)                                    # outstanding = overdue + not yet due
+        self.assertEqual((small['overdue'], small['overdue_text'], small['oldest_days']), (0.0, '', 0))
+        self.assertEqual([r['rank'] for r in self.home(self.ceo)['top_owing']['rows']], list(range(1, len(rows) + 1)))
+
+    def test_o14_material_parts_add_up_to_what_was_ordered(self):
+        mat = self.home(self.ceo)['charts'].get('material')
+        self.assertTrue(mat, 'the journey has an active contract')
+        self.assertLessEqual(mat['lifted'], mat['allocated'])                         # lifted is part of what was promised
+        self.assertAlmostEqual(mat['lifted'] + mat['promised_open'] + mat['left'], mat['ordered'], places=3)
+        self.assertAlmostEqual(mat['promised_open'], mat['allocated'] - mat['lifted'], places=3)
+
+    def test_o15_every_alert_names_its_next_step_and_stale_bank_data_is_one(self):
+        alerts = self.home(self.ceo)['alerts']
+        self.assertTrue(alerts)
+        for a in alerts:
+            self.assertTrue(a['cta'], a['key'])                                       # a verb + object, not just a count
+        keys = {a['key']: a for a in alerts}
+        banks = self.home(self.ceo)['banks']
+        stale = [b for b in banks if b['stale']]
+        self.assertTrue(stale and len(stale) < len(banks), 'the journey confirmed one bank today and never confirmed another')
+        self.assertEqual(keys['bank_stale']['count'], len(stale))                    # one alert, counting only the banks that are not confirmed today
+        self.assertEqual(keys['bank_stale']['severity'], 'danger')                   # one was never confirmed: red, not a quiet caption
+        for b in banks:
+            self.assertTrue(b['text'])
+            if not b['stale']:
+                self.assertIn(b['tone'], ('ok', 'danger'))                           # confirmed today: agrees, or differs (and says by how much)
+        self.assertNotIn('quick', self.home(self.ceo)['layout'])                      # starting points live in the header's New menu
+        self.assertIn('quick', self.home(self.dispatch)['layout'])

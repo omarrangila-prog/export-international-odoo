@@ -1,0 +1,178 @@
+// Standard screens (lists, forms, kanban, dialogs, menus) in the same language as the Overview: a soft page, white rounded cards that
+// float on a brand-tinted shadow instead of hard borders, generous spacing, round and pill controls, one calm motion. Only tokens are
+// used, so the dark theme (theme.dark.scss re-declares them) follows without a second copy.
+:root {
+    --h-r: 20px; --h-r-sm: 14px;
+    --h-shadow: 0 1px 2px rgba(15, 27, 51, .04), 0 12px 32px rgba(29, 78, 216, .07);
+    --h-shadow-hover: 0 2px 4px rgba(15, 27, 51, .06), 0 16px 40px rgba(29, 78, 216, .13);
+    --h-edge: rgba(15, 27, 51, .06);
+    --h-glow: radial-gradient(900px 420px at 6% -10%, rgba(42, 120, 214, .10), transparent 62%), radial-gradient(760px 380px at 100% 0%, rgba(27, 175, 122, .06), transparent 60%);
+    --ei-gutter: 24px;
+}
+@keyframes ei-page-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.o_web_client { background: var(--h-glow), var(--ei-bg); background-repeat: no-repeat; background-attachment: fixed; }
+.o_action_manager, .o_action:not(.ei-home) { background: transparent; }
+
+// ---------------------------------------------------------------- buttons: round, one lift, one ring
+.btn { border-radius: 12px; font-weight: 600; transition: background .15s, border-color .15s, color .15s, box-shadow .15s, transform .15s; }
+.btn:focus-visible, .form-control:focus-visible { outline: 3px solid var(--ei-focus); outline-offset: 2px; box-shadow: none; }
+.o_searchview input:focus-visible, .o_searchview .o_input:focus-visible, .o_searchview input:focus { outline: 0 !important; box-shadow: none !important; }
+.btn:active { transform: scale(.98); }
+.btn-primary { box-shadow: 0 6px 16px rgba(29, 78, 216, .22); &:hover { box-shadow: 0 8px 20px rgba(29, 78, 216, .30); transform: translateY(-1px); } &:active { transform: scale(.98); } }
+.btn-outline-primary { background: var(--ei-card); border-color: var(--ei-primary-line); color: var(--ei-primary); &:hover { background: var(--ei-primary-soft); border-color: var(--ei-primary-line); color: var(--ei-primary); } }
+.btn-secondary, .btn-outline-secondary { background: var(--ei-card); border: 1px solid var(--ei-line-strong); color: var(--ei-text); box-shadow: 0 1px 2px rgba(15, 27, 51, .05); &:hover { background: var(--ei-primary-soft); color: var(--ei-primary); } }
+.btn-light { background: var(--ei-card); border: 1px solid var(--h-edge); color: var(--ei-text); &:hover { background: var(--ei-primary-soft); color: var(--ei-primary); } }
+.btn-link { box-shadow: none; }
+
+// ---------------------------------------------------------------- the strip above every screen: title, search, pager
+.o_control_panel {
+    background: transparent !important; border: 0 !important; box-shadow: none !important;
+    padding: 16px var(--ei-gutter) 10px !important; gap: 14px !important;
+    .o_breadcrumb .active, .o_last_breadcrumb_item.active, .breadcrumb-item.active { font-size: 28px !important; font-weight: 800; letter-spacing: -.03em; color: var(--ei-ink); line-height: 1.15; }
+    .breadcrumb-item, .breadcrumb-item a { font-size: 13.5px; font-weight: 600; color: var(--ei-muted); }
+    .breadcrumb-item a:hover { color: var(--ei-primary); }
+    .o_control_panel_main_buttons .btn { min-height: 42px; padding: 0 20px; font-size: 14.5px; }
+    .o_breadcrumb, .o_breadcrumb *, .o_control_panel_breadcrumbs, .o_cp_action_menus, .o_cp_action_menus * { background-color: transparent !important; }
+    .o_cp_action_menus .btn, .o_cp_action_menus .dropdown-toggle { color: var(--ei-muted); border: 0; box-shadow: none; }
+    // the search field: one rounded card with its filters inside
+    .o_cp_searchview { box-shadow: var(--h-shadow); border-radius: 16px !important; background: var(--ei-card); border: 1px solid var(--h-edge); overflow: hidden; min-height: 44px;
+        &:focus-within { outline: none; border-color: var(--ei-primary); box-shadow: 0 0 0 4px var(--ei-primary-soft), var(--h-shadow); } }
+    .o_searchview { background: transparent !important; border: 0 !important; border-radius: 0 !important; box-shadow: none !important; padding-inline: 12px; }
+    .o_searchview_input { font-size: 14.5px; }
+    .o_searchview_facet { border-radius: 999px !important; background: var(--ei-primary-soft) !important; color: var(--ei-primary) !important; border: 0 !important; font-weight: 600; overflow: hidden; }
+    .o_searchview_dropdown_toggler { border: 0 !important; background: transparent !important; box-shadow: none !important; color: var(--ei-muted); border-radius: 0 !important; border-inline-start: 1px solid var(--ei-line) !important; &:hover { color: var(--ei-primary); } }
+    // pager and view switcher: round buttons
+    .o_pager .btn-group { gap: 6px; }
+    .o_pager .btn { width: 36px; height: 36px; padding: 0; display: inline-grid; place-items: center; border-radius: 50% !important; background: var(--ei-card); border: 1px solid var(--h-edge); box-shadow: var(--h-shadow); color: var(--ei-text); &:hover { background: var(--ei-primary-soft); color: var(--ei-primary); } &:disabled { opacity: .45; } }
+    .o_pager_counter { font-weight: 600; color: var(--ei-muted); }
+    .o_cp_switch_buttons { padding: 3px; gap: 2px; background: var(--ei-card); border: 1px solid var(--h-edge); border-radius: 14px; box-shadow: var(--h-shadow);
+        .btn { border: 0 !important; box-shadow: none !important; background: transparent; border-radius: 11px !important; width: 36px; height: 34px; padding: 0; display: inline-grid; place-items: center; color: var(--ei-muted); &.active { background: var(--ei-primary-soft); color: var(--ei-primary); } &:hover { color: var(--ei-primary); } } }
+}
+
+// Odoo draws a white disc behind a circle button; the tile below is the disc
+.o_btn_circle::before { background-color: transparent !important; }
+// the small buttons beside a record's title (actions, save, discard) are round tiles
+.o_control_panel .o_form_status_indicator_buttons .btn, .o_control_panel .o_cp_action_menus .btn { width: 32px; height: 32px; padding: 0 !important; display: inline-grid; place-items: center; border-radius: 50% !important; border: 1px solid var(--h-edge); box-shadow: none; background: var(--ei-card) !important; &:hover { background: var(--ei-primary-soft) !important; color: var(--ei-primary); } }
+
+// ---------------------------------------------------------------- lists: one white card, calm header, airy rows
+.o_list_view .o_content, .o_kanban_view .o_content, .o_pivot_view .o_content, .o_graph_view .o_content { padding: 4px var(--ei-gutter) var(--ei-gutter); }
+.o_list_view .o_list_renderer {
+    background: var(--ei-card); border: 1px solid var(--h-edge); border-radius: var(--h-r); box-shadow: var(--h-shadow); animation: ei-page-in .3s ease backwards;
+}
+.o_list_table {
+    --bs-table-bg: transparent;
+    thead th { background: var(--ei-card) !important; color: var(--ei-muted) !important; font-size: 12.5px !important; font-weight: 600 !important; text-transform: none !important; letter-spacing: 0 !important; padding: 14px 12px !important; border-bottom: 1px solid var(--ei-line) !important; white-space: nowrap; }
+    thead th.o_column_sortable:hover { color: var(--ei-primary) !important; }
+    tbody tr.o_data_row td { padding: 15px 12px !important; border-color: var(--ei-line) !important; vertical-align: middle; transition: background .12s; }
+    tbody tr.o_data_row:last-child td { border-bottom: 0 !important; }
+    tbody tr.o_data_row:hover td { background: var(--ei-surface-2) !important; }
+    tbody tr.o_data_row.o_data_row_selected td, tbody tr.o_data_row.table-active td { background: var(--ei-primary-soft) !important; }
+    tfoot td, .o_list_footer td { font-weight: 700; background: var(--ei-card) !important; border-top: 1px solid var(--ei-line) !important; padding: 14px 12px !important; }
+    .o_group_header td, .o_group_header th { background: var(--ei-surface-2) !important; font-weight: 700; color: var(--ei-ink); }
+    input[type=checkbox], .form-check-input { accent-color: var(--ei-primary); border-radius: 5px; }
+    .o_data_cell a, .o_data_cell .o_form_uri { color: var(--ei-primary); font-weight: 600; text-decoration: none; &:hover { text-decoration: underline; } }
+    .o_list_number_th, .o_list_number { font-variant-numeric: tabular-nums; }
+}
+.o_data_row.text-warning td { color: var(--ei-warn) !important; font-weight: 500; }
+
+// ---------------------------------------------------------------- kanban: soft cards that rise a little on hover
+.o_kanban_view .o_kanban_renderer { padding: 0 !important; gap: 18px !important; }
+.o_kanban_view .o_kanban_record {
+    border-radius: var(--h-r) !important; border: 1px solid var(--h-edge) !important; box-shadow: var(--h-shadow) !important; background: var(--ei-card) !important; overflow: hidden; animation: ei-page-in .3s ease backwards;
+    transition: transform .18s, box-shadow .18s;
+    &:hover { transform: translateY(-3px); box-shadow: var(--h-shadow-hover) !important; }
+}
+.o_kanban_view .o_kanban_group .o_kanban_header { font-weight: 700; color: var(--ei-ink); }
+.ei-card-body { padding: 18px 20px !important; border-left-width: 5px !important; }
+
+// ---------------------------------------------------------------- forms: a sheet card, boxed fields you can see, pill tabs and status
+.o_form_view .o_form_sheet_bg { background: transparent !important; border: 0 !important; padding: 0 !important; }
+.o_form_view .o_form_renderer { gap: 0; }
+.o_form_view .o_form_sheet_bg > .o_form_statusbar { padding: 4px var(--ei-gutter) 8px !important; margin: 0 !important; background: transparent !important; border: 0 !important; }
+.o_form_view .o_form_sheet {
+    background: var(--ei-card) !important; border: 1px solid var(--h-edge) !important; border-radius: var(--h-r) !important; box-shadow: var(--h-shadow) !important;
+    padding: 32px 36px !important; margin: 4px var(--ei-gutter) var(--ei-gutter) !important; max-width: none !important; width: calc(100% - 2 * var(--ei-gutter)) !important; box-sizing: border-box; animation: ei-page-in .3s ease backwards;
+}
+.o_form_view .oe_title h1, .o_form_view .oe_title .o_field_widget { font-weight: 800; letter-spacing: -.03em; color: var(--ei-ink); }
+.o_form_view .o_form_label, .o_form_view .o_td_label label, .modal .o_form_label { color: var(--ei-muted) !important; opacity: 1 !important; font-weight: 600; font-size: 13.5px; }
+.text-muted, .text-body-secondary, .o_form_view .o_form_label.o_readonly_modifier { color: var(--ei-muted) !important; opacity: 1; }
+.text-muted.opacity-50, .o-mail-Message-date, .o-mail-DateSection { opacity: 1 !important; }
+.o-mail-Message-date, .o-mail-DateSection, .o-mail-Message-header .text-muted { color: var(--ei-muted) !important; }   // the conversation's date labels were 2:1; muted text at full strength is 7:1   // Odoo's own grey is 4.3:1; ours is 7:1
+.o_form_view .o_horizontal_separator { text-transform: none; font-size: 15px; letter-spacing: -.01em; color: var(--ei-ink); font-weight: 800; border-bottom: 0; margin: 30px 0 12px; padding: 0; }
+.o_form_view .o_group { row-gap: 4px; }
+// boxed inputs: a person sees where to type before touching anything
+.o_form_view .o_field_widget:not(.o_readonly_modifier):not(.o_field_boolean):not(.o_field_statusbar):not(.o_field_badge) .o_input,
+.o_form_view .o_field_widget:not(.o_readonly_modifier) input:not([type=checkbox]):not([type=radio]),
+.o_form_view .o_field_widget:not(.o_readonly_modifier) textarea, .o_form_view .o_field_widget:not(.o_readonly_modifier) select,
+.modal .o_field_widget:not(.o_readonly_modifier) .o_input, .modal .o_field_widget:not(.o_readonly_modifier) input:not([type=checkbox]):not([type=radio]), .modal .o_field_widget:not(.o_readonly_modifier) select, .modal .o_field_widget:not(.o_readonly_modifier) textarea {
+    border: 1px solid var(--ei-line-strong) !important; border-radius: 12px !important; background: var(--ei-card) !important; padding: 9px 13px !important; min-height: 42px; color: var(--ei-text);
+    transition: border-color .15s, box-shadow .15s;
+    &:hover { border-color: var(--ei-faint) !important; }
+    &:focus, &:focus-within { border-color: var(--ei-primary) !important; box-shadow: 0 0 0 4px var(--ei-primary-soft) !important; outline: none; }
+}
+.o_form_view .o_field_widget.o_field_many2one .o_input_dropdown, .modal .o_field_widget.o_field_many2one .o_input_dropdown { width: 100%; }
+.o_form_view .o_field_widget input::placeholder, .modal .o_field_widget input::placeholder { color: var(--ei-faint); }
+.o_form_view .o_field_widget a, .o_form_view .o_form_uri { color: var(--ei-primary); font-weight: 600; }
+.o_form_view .o_field_invalid .o_input, .o_form_view .o_field_invalid input { border-color: var(--ei-bad) !important; box-shadow: 0 0 0 4px var(--ei-bad-soft) !important; }
+// the steps of a record: a row of pills, the current one filled
+.o_form_view .o_form_statusbar .o_statusbar_status { background: var(--ei-card); border: 1px solid var(--h-edge); border-radius: 999px; padding: 4px; gap: 2px; box-shadow: var(--h-shadow); flex-wrap: nowrap; }
+.o_form_view .o_statusbar_status .o_arrow_button {
+    border: 0 !important; border-radius: 999px !important; background: transparent !important; color: var(--ei-muted) !important; font-weight: 600; font-size: 13px; padding: 8px 16px !important; clip-path: none !important; margin: 0 !important; height: auto;
+    &::before, &::after { display: none !important; content: none !important; }
+    &:hover { color: var(--ei-primary) !important; }
+    &.o_arrow_button_current { background: var(--ei-primary) !important; color: var(--ei-on-primary) !important; box-shadow: 0 4px 12px rgba(29, 78, 216, .28); }
+}
+.o_form_view .o_statusbar_buttons .btn { min-height: 42px; padding: 0 18px; }
+// tabs inside a record
+.o_notebook .nav-tabs, .o_notebook_headers .nav-tabs { border: 0 !important; gap: 6px; margin-bottom: 14px; }
+.o_notebook .nav-link { border: 0 !important; border-radius: 999px !important; padding: 8px 18px !important; font-weight: 600; color: var(--ei-muted); background: transparent; transition: background .15s, color .15s; &:hover { background: var(--ei-surface-2); color: var(--ei-ink); } &.active { background: var(--ei-primary-soft) !important; color: var(--ei-primary) !important; } }
+// a list inside a record is a quiet table, not a second card
+.o_form_view .o_list_renderer { box-shadow: none !important; border: 1px solid var(--ei-line) !important; border-radius: var(--h-r-sm) !important; animation: none; overflow-x: auto; overflow-y: hidden; }
+.o_form_view .o_list_table thead th { padding: 11px 10px !important; }
+.o_form_view .o_list_table tbody tr.o_data_row td { padding: 11px 10px !important; }
+.o_form_view .o_field_x2many .o_field_x2many_list_row_add a { color: var(--ei-primary); font-weight: 600; }
+// the side conversation: its own white card beside the sheet
+.o_form_view .o-mail-ChatterContainer.o-aside, .o_form_view .o-mail-Form-chatter.o-aside {
+    background: var(--ei-card) !important; border: 1px solid var(--h-edge) !important; border-radius: var(--h-r) !important; box-shadow: var(--h-shadow); margin: 4px var(--ei-gutter) var(--ei-gutter) 0; overflow: hidden;
+}
+.o-mail-Chatter-top { background: var(--ei-card) !important; border-bottom: 1px solid var(--ei-line); }
+
+// one exception component instead of stacked red boxes: a title, every discrepancy as its own line, and the next step
+.ei-exc .ei-exc-list { display: block; margin: 8px 0 10px; white-space: pre-line; font-weight: 600; }
+.ei-exc .ei-exc-next { display: block; font-weight: 500; }
+// a setup problem is a quiet hint at the point where it matters, not a permanent line of text
+.ei-hint { display: inline-flex; align-items: center; gap: 8px; margin: 0 0 14px; padding: 6px 12px; border-radius: 999px; background: var(--ei-info-soft); color: var(--ei-info); font-size: 13px; font-weight: 600;
+    &::before { content: "i"; display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: var(--ei-info); color: var(--ei-card); font: italic 700 12px Georgia, serif; } }
+// fields fill their cell, so a form reads as an aligned grid and not a ragged column of narrow boxes
+.o_form_view .o_inner_group .o_cell .o_field_widget:is(.o_field_char, .o_field_many2one, .o_field_date, .o_field_datetime, .o_field_monetary, .o_field_float, .o_field_integer, .o_field_selection, .o_field_text, .o_field_many2many_tags) { width: 100%; max-width: 100%; }
+
+// the activity panel: narrower by default, and a button beside the pager hides it (remembered per browser)
+.o_form_view .o-mail-ChatterContainer.o-aside { flex: 0 0 380px !important; width: 380px !important; max-width: 380px; }
+body.ei-chatter-off .o_form_view .o-mail-ChatterContainer.o-aside { display: none !important; }
+body.ei-chatter-off .o_form_view .o_form_sheet_bg { flex: 1 1 auto; max-width: none; }
+.ei-chatter-toggle { position: fixed; z-index: 11; display: inline-flex; align-items: center; gap: 7px; height: 36px; padding: 0 14px 0 11px; border: 1px solid var(--h-edge); border-radius: 999px; background: var(--ei-card); box-shadow: var(--h-shadow); color: var(--ei-text); font: 600 13px/1 var(--ei-font); cursor: pointer; transition: background .15s, color .15s;
+    &:hover { background: var(--ei-primary-soft); color: var(--ei-primary); } &:focus-visible { outline: 3px solid var(--ei-focus); outline-offset: 2px; } .ei-chatter-ico { width: 17px; height: 17px; } }
+
+// ---------------------------------------------------------------- pop-ups: dialogs, menus, notices
+.modal-content { border: 0 !important; border-radius: 22px !important; box-shadow: var(--ei-shadow-pop) !important; background: var(--ei-card); overflow: hidden; animation: ei-page-in .22s ease backwards; }
+.modal-header { border: 0 !important; padding: 24px 28px 6px !important; .modal-title { font-size: 21px !important; font-weight: 800; letter-spacing: -.02em; color: var(--ei-ink); } .btn-close { border-radius: 50%; opacity: .6; &:hover { opacity: 1; background-color: var(--ei-surface-2); } } }
+.modal-body { padding: 10px 28px 14px !important; }
+.modal-footer { border: 0 !important; padding: 10px 28px 24px !important; gap: 8px; justify-content: flex-start; }
+.modal-backdrop.show { opacity: .5; }
+.dropdown-menu, .o-dropdown--menu, .popover, .o_popover, .o-autocomplete--dropdown-menu { border: 1px solid var(--h-edge) !important; border-radius: 16px !important; box-shadow: var(--ei-shadow-pop) !important; padding: 6px !important; background: var(--ei-card); }
+.o-autocomplete--dropdown-menu .dropdown-item, .o-autocomplete--dropdown-menu .dropdown-item a, .o-autocomplete--dropdown-item { color: var(--ei-text) !important; font-weight: 500; }
+.o-autocomplete--dropdown-menu .dropdown-item.ui-state-active, .o-autocomplete--dropdown-menu .dropdown-item.focus { background: var(--ei-primary-soft) !important; color: var(--ei-primary) !important; }
+.dropdown-item, .o-dropdown-item { border-radius: 10px; padding: 8px 12px; font-weight: 500; transition: background .12s; &:hover, &.focus { background: var(--ei-primary-soft); color: var(--ei-primary); } }
+.o_notification { border: 0 !important; border-radius: 16px !important; box-shadow: var(--ei-shadow-pop) !important; }
+.o_view_nocontent .o_nocontent_help { background: var(--ei-card); border: 1px solid var(--h-edge); border-radius: var(--h-r); box-shadow: var(--h-shadow); padding: 40px 48px; }
+.badge.text-bg-100, .badge.text-bg-200, .badge.text-bg-300, .badge.text-bg-400 { background: var(--ei-surface-2) !important; color: var(--ei-text) !important; box-shadow: inset 0 0 0 1px var(--ei-line); }   // Odoo's grey status pills, in the page's own greys (and dark-ready)
+.alert { border-radius: 14px; }
+.ei-next { border-radius: 16px; border-left-width: 0; box-shadow: var(--h-shadow); }
+
+@media (max-width: 767.98px) {
+    :root { --ei-gutter: 12px; }
+    .o_control_panel { padding-top: 10px !important; .o_breadcrumb .active, .o_last_breadcrumb_item.active { font-size: 22px !important; } }
+    .o_form_view .o_form_sheet { padding: 18px 16px !important; }
+    .o_form_view .o-mail-ChatterContainer.o-aside { margin: 4px var(--ei-gutter) var(--ei-gutter); }
+}
+@media (prefers-reduced-motion: reduce) { .o_list_renderer, .o_kanban_record, .o_form_sheet, .modal-content { animation: none !important; } .btn, .o_data_row td { transition: none !important; } }

@@ -1,0 +1,353 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ======================================================== Aged receivables -->
+    <record id="view_report_ar_search" model="ir.ui.view">
+        <field name="name">ei.report.ar.aging.search</field>
+        <field name="model">ei.report.ar.aging</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="partner_id"/>
+                <field name="move_id"/>
+                <filter name="overdue" string="Overdue" domain="[('days_overdue', '&gt;', 0)]"/>
+                <filter name="over30" string="More than 30 days late" domain="[('days_overdue', '&gt;', 30)]"/>
+                <filter name="over90" string="Over 90 days late" domain="[('bucket', '=', 'd90p')]"/>
+                <separator/>
+                <filter name="b_current" string="Not due yet" domain="[('bucket', '=', 'current')]"/>
+                <filter name="b_d1_30" string="1-30 days late" domain="[('bucket', '=', 'd1_30')]"/>
+                <filter name="b_d31_60" string="31-60 days late" domain="[('bucket', '=', 'd31_60')]"/>
+                <filter name="b_d61_90" string="61-90 days late" domain="[('bucket', '=', 'd61_90')]"/>
+                <filter name="b_d90p" string="Over 90 days late (band)" domain="[('bucket', '=', 'd90p')]"/>
+                <group>
+                    <filter name="by_partner" string="Customer" context="{'group_by': 'partner_id'}"/>
+                    <filter name="by_bucket" string="How late" context="{'group_by': 'bucket'}"/>
+                    <filter name="by_due" string="Due month" context="{'group_by': 'due_date:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    <record id="view_report_ar_list" model="ir.ui.view">
+        <field name="name">ei.report.ar.aging.list</field>
+        <field name="model">ei.report.ar.aging</field>
+        <field name="arch" type="xml">
+            <list string="Aged receivables" action="action_open_source" type="object" create="0" edit="0" delete="0"
+                  decoration-danger="days_overdue &gt; 90" decoration-warning="days_overdue &gt; 0 and days_overdue &lt;= 90">
+                <field name="partner_id"/>
+                <field name="move_id" string="Invoice"/>
+                <field name="invoice_date" optional="show"/>
+                <field name="due_date"/>
+                <field name="days_overdue" string="Days late"/>
+                <field name="bucket" widget="badge"/>
+                <field name="amount_residual" sum="Total owed" width="150px"/>
+                <field name="currency_id" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_report_ar_pivot" model="ir.ui.view">
+        <field name="name">ei.report.ar.aging.pivot</field>
+        <field name="model">ei.report.ar.aging</field>
+        <field name="arch" type="xml">
+            <pivot string="Aged receivables" disable_linking="1">
+                <field name="partner_id" type="row"/>
+                <field name="bucket" type="col"/>
+                <field name="amount_residual" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+    <record id="view_report_ar_graph" model="ir.ui.view">
+        <field name="name">ei.report.ar.aging.graph</field>
+        <field name="model">ei.report.ar.aging</field>
+        <field name="arch" type="xml">
+            <graph string="Who owes us, by how late" type="bar">
+                <field name="bucket"/>
+                <field name="amount_residual" type="measure"/>
+            </graph>
+        </field>
+    </record>
+    <record id="action_report_ar_aging" model="ir.actions.act_window">
+        <field name="name">Aged receivables</field>
+        <field name="res_model">ei.report.ar.aging</field>
+        <field name="view_mode">graph,pivot,list</field>
+        <field name="search_view_id" ref="view_report_ar_search"/>
+            <field name="help" type="html"><p class="o_view_nocontent_smiling_face">No open receivables</p><p>Customers owe nothing right now, or no customer invoice has been posted yet. Post an invoice and it appears here until it is paid.</p></field>
+    </record>
+
+    <!-- ======================================================== Bank book against bank confirmation -->
+    <record id="view_report_bankfresh_search" model="ir.ui.view">
+        <field name="name">ei.report.bank.freshness.search</field>
+        <field name="model">ei.report.bank.freshness</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="journal_id"/>
+                <filter name="not_today" string="Not confirmed today" domain="[('freshness', 'in', ('stale', 'never'))]"/>
+                <filter name="differs" string="Differs from the bank" domain="[('freshness', '=', 'difference')]"/>
+                <group>
+                    <filter name="by_state" string="Confirmation" context="{'group_by': 'freshness'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    <record id="view_report_bankfresh_list" model="ir.ui.view">
+        <field name="name">ei.report.bank.freshness.list</field>
+        <field name="model">ei.report.bank.freshness</field>
+        <field name="arch" type="xml">
+            <list string="Bank book against bank confirmation" action="action_open_source" type="object" create="0" edit="0" delete="0"
+                  decoration-danger="freshness in ('never', 'difference')" decoration-warning="freshness == 'stale'">
+                <field name="journal_id"/>
+                <field name="book_balance" sum="Book balance" width="160px"/>
+                <field name="freshness" widget="badge"/>
+                <field name="confirmed_date"/>
+                <field name="age_days" invisible="freshness == 'never'"/>
+                <field name="bank_balance" width="150px"/>
+                <field name="difference" width="130px"/>
+                <field name="currency_id" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_report_bankfresh_pivot" model="ir.ui.view">
+        <field name="name">ei.report.bank.freshness.pivot</field>
+        <field name="model">ei.report.bank.freshness</field>
+        <field name="arch" type="xml">
+            <pivot string="Bank book against bank confirmation" disable_linking="1">
+                <field name="journal_id" type="row"/>
+                <field name="freshness" type="col"/>
+                <field name="book_balance" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+    <record id="view_report_bankfresh_graph" model="ir.ui.view">
+        <field name="name">ei.report.bank.freshness.graph</field>
+        <field name="model">ei.report.bank.freshness</field>
+        <field name="arch" type="xml">
+            <graph string="Book balance by bank account" type="bar">
+                <field name="journal_id"/>
+                <field name="book_balance" type="measure"/>
+            </graph>
+        </field>
+    </record>
+    <record id="action_report_bank_freshness" model="ir.actions.act_window">
+        <field name="name">Bank book against bank confirmation</field>
+        <field name="res_model">ei.report.bank.freshness</field>
+        <field name="view_mode">list,graph,pivot</field>
+        <field name="search_view_id" ref="view_report_bankfresh_search"/>
+            <field name="help" type="html"><p class="o_view_nocontent_smiling_face">No bank accounts yet</p><p>Bank accounts appear here once a bank journal exists. Each shows the book balance and when someone last confirmed it with the bank.</p></field>
+    </record>
+
+    <!-- ======================================================== Bank lines not yet in the books -->
+    <record id="view_report_bankunm_search" model="ir.ui.view">
+        <field name="name">ei.report.bank.unmatched.search</field>
+        <field name="model">ei.report.bank.unmatched</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="journal_id"/>
+                <field name="partner_id"/>
+                <field name="ref"/>
+                <field name="narration"/>
+                <filter name="receipts" string="Money in" domain="[('direction', '=', 'receipt')]"/>
+                <filter name="payments" string="Money out" domain="[('direction', '=', 'payment')]"/>
+                <filter name="week" string="Waiting more than a week" domain="[('age_days', '&gt;', 7)]"/>
+                <group>
+                    <filter name="by_state" string="Where it stands" context="{'group_by': 'state'}"/>
+                    <filter name="by_age" string="Waiting for" context="{'group_by': 'age_bucket'}"/>
+                    <filter name="by_journal" string="Bank account" context="{'group_by': 'journal_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    <record id="view_report_bankunm_list" model="ir.ui.view">
+        <field name="name">ei.report.bank.unmatched.list</field>
+        <field name="model">ei.report.bank.unmatched</field>
+        <field name="arch" type="xml">
+            <list string="Bank lines not yet in the books" action="action_open_source" type="object" create="0" edit="0" delete="0"
+                  decoration-danger="age_days &gt; 30" decoration-warning="age_days &gt; 7 and age_days &lt;= 30">
+                <field name="date"/>
+                <field name="journal_id"/>
+                <field name="narration"/>
+                <field name="amount" sum="Net amount" width="150px"/>
+                <field name="state" widget="badge"/>
+                <field name="age_days"/>
+                <field name="partner_id" optional="show"/>
+                <field name="suggested_partner_id" optional="hide"/>
+                <field name="ref" optional="hide"/>
+                <field name="currency_id" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_report_bankunm_pivot" model="ir.ui.view">
+        <field name="name">ei.report.bank.unmatched.pivot</field>
+        <field name="model">ei.report.bank.unmatched</field>
+        <field name="arch" type="xml">
+            <pivot string="Bank lines not yet in the books" disable_linking="1">
+                <field name="state" type="row"/>
+                <field name="age_bucket" type="col"/>
+                <field name="amount" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+    <record id="view_report_bankunm_graph" model="ir.ui.view">
+        <field name="name">ei.report.bank.unmatched.graph</field>
+        <field name="model">ei.report.bank.unmatched</field>
+        <field name="arch" type="xml">
+            <graph string="How many bank lines wait, and for how long" type="bar" stacked="1">
+                <field name="age_bucket"/>
+                <field name="state"/>
+            </graph>
+        </field>
+    </record>
+    <record id="action_report_bank_unmatched" model="ir.actions.act_window">
+        <field name="name">Bank lines not yet in the books</field>
+        <field name="res_model">ei.report.bank.unmatched</field>
+        <field name="view_mode">graph,pivot,list</field>
+        <field name="search_view_id" ref="view_report_bankunm_search"/>
+            <field name="help" type="html"><p class="o_view_nocontent_smiling_face">Nothing is waiting</p><p>Every imported bank line is already in the books or was rejected. Lines appear here after a statement is imported, until they are matched and posted.</p></field>
+    </record>
+
+    <!-- ======================================================== Contracts: ordered, promised, lifted, expected gross spread -->
+    <record id="view_report_spread_search" model="ir.ui.view">
+        <field name="name">ei.report.contract.spread.search</field>
+        <field name="model">ei.report.contract.spread</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="contract_id"/>
+                <field name="parent_partner_id"/>
+                <field name="product_id"/>
+                <filter name="live" string="Active contracts" domain="[('state', 'in', ('active', 'fulfilled'))]"/>
+                <filter name="open_lift" string="Promised, not yet lifted" domain="[('not_lifted_mtl', '&gt;', 0)]"/>
+                <filter name="free" string="Not yet promised" domain="[('not_promised_mtl', '&gt;', 0)]"/>
+                <group>
+                    <filter name="by_contract" string="Contract" context="{'group_by': 'contract_id'}"/>
+                    <filter name="by_parent" string="Parent company" context="{'group_by': 'parent_partner_id'}"/>
+                    <filter name="by_product" string="Material" context="{'group_by': 'product_id'}"/>
+                    <filter name="by_state" string="Contract state" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    <record id="view_report_spread_list" model="ir.ui.view">
+        <field name="name">ei.report.contract.spread.list</field>
+        <field name="model">ei.report.contract.spread</field>
+        <field name="arch" type="xml">
+            <list string="Contracts" action="action_open_source" type="object" create="0" edit="0" delete="0">
+                <field name="contract_id"/>
+                <field name="parent_partner_id" optional="show"/>
+                <field name="product_id"/>
+                <field name="ordered_mtl" sum="Ordered"/>
+                <field name="allocated_mtl" sum="Promised"/>
+                <field name="lifted_mtl" sum="Lifted"/>
+                <field name="not_lifted_mtl" sum="Promised, not lifted"/>
+                <field name="not_promised_mtl" sum="Not promised"/>
+                <field name="purchase_rate" optional="hide" width="130px"/>
+                <field name="sale_rate" optional="hide" width="130px"/>
+                <field name="spread_per_mtl" optional="show" width="130px"/>
+                <field name="gross_spread" sum="Expected gross spread (provisional)" width="170px"/>
+                <field name="currency_id" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_report_spread_pivot" model="ir.ui.view">
+        <field name="name">ei.report.contract.spread.pivot</field>
+        <field name="model">ei.report.contract.spread</field>
+        <field name="arch" type="xml">
+            <pivot string="Contracts" disable_linking="1">
+                <field name="contract_id" type="row"/>
+                <field name="ordered_mtl" type="measure"/>
+                <field name="allocated_mtl" type="measure"/>
+                <field name="lifted_mtl" type="measure"/>
+                <field name="gross_spread" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+    <record id="view_report_spread_graph" model="ir.ui.view">
+        <field name="name">ei.report.contract.spread.graph</field>
+        <field name="model">ei.report.contract.spread</field>
+        <field name="arch" type="xml">
+            <graph string="Expected gross spread per contract (provisional)" type="bar">
+                <field name="contract_id"/>
+                <field name="gross_spread" type="measure"/>
+            </graph>
+        </field>
+    </record>
+    <record id="action_report_contract_spread" model="ir.actions.act_window">
+        <field name="name">Contracts: ordered, promised, lifted, expected spread</field>
+        <field name="res_model">ei.report.contract.spread</field>
+        <field name="view_mode">graph,pivot,list</field>
+        <field name="search_view_id" ref="view_report_spread_search"/>
+            <field name="help" type="html"><p class="o_view_nocontent_smiling_face">No contract lines yet</p><p>Contract lines appear here once a contract is entered. Each shows what was ordered, promised and lifted, and the expected gross spread.</p></field>
+    </record>
+
+    <!-- ======================================================== Material lifting -->
+    <record id="view_report_lifting_search" model="ir.ui.view">
+        <field name="name">ei.report.lifting.search</field>
+        <field name="model">ei.report.lifting</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="customer_id"/>
+                <field name="contract_id"/>
+                <field name="da_id"/>
+                <field name="product_id"/>
+                <field name="vehicle_no"/>
+                <filter name="verified" string="Verified" domain="[('state', '=', 'verified')]"/>
+                <filter name="draft" string="Waiting to be verified" domain="[('state', '=', 'draft')]"/>
+                <filter name="differs" string="Weighed differently from the gate pass" domain="[('discrepancy_mtl', '!=', 0)]"/>
+                <group>
+                    <filter name="by_day" string="Day" context="{'group_by': 'date:day'}"/>
+                    <filter name="by_month" string="Month" context="{'group_by': 'date:month'}"/>
+                    <filter name="by_customer" string="Customer" context="{'group_by': 'customer_id'}"/>
+                    <filter name="by_contract" string="Contract" context="{'group_by': 'contract_id'}"/>
+                    <filter name="by_product" string="Material" context="{'group_by': 'product_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    <record id="view_report_lifting_list" model="ir.ui.view">
+        <field name="name">ei.report.lifting.list</field>
+        <field name="model">ei.report.lifting</field>
+        <field name="arch" type="xml">
+            <list string="Truck loadings" action="action_open_source" type="object" create="0" edit="0" delete="0" decoration-muted="state == 'reversed'">
+                <field name="date"/>
+                <field name="customer_id"/>
+                <field name="contract_id"/>
+                <field name="da_id" optional="show"/>
+                <field name="product_id" optional="show"/>
+                <field name="vehicle_no"/>
+                <field name="claimed_mtl" sum="Gate pass"/>
+                <field name="lifted_mtl" sum="Lifted (verified)"/>
+                <field name="discrepancy_mtl" optional="show"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_report_lifting_pivot" model="ir.ui.view">
+        <field name="name">ei.report.lifting.pivot</field>
+        <field name="model">ei.report.lifting</field>
+        <field name="arch" type="xml">
+            <pivot string="Material lifted" disable_linking="1">
+                <field name="customer_id" type="row"/>
+                <field name="month" type="col"/>
+                <field name="lifted_mtl" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+    <record id="view_report_lifting_graph" model="ir.ui.view">
+        <field name="name">ei.report.lifting.graph</field>
+        <field name="model">ei.report.lifting</field>
+        <field name="arch" type="xml">
+            <graph string="Material lifted per day" type="bar">
+                <field name="date" interval="day"/>
+                <field name="lifted_mtl" type="measure"/>
+            </graph>
+        </field>
+    </record>
+    <record id="action_report_lifting" model="ir.actions.act_window">
+        <field name="name">Material lifting</field>
+        <field name="res_model">ei.report.lifting</field>
+        <field name="view_mode">graph,pivot,list</field>
+        <field name="search_view_id" ref="view_report_lifting_search"/>
+            <field name="help" type="html"><p class="o_view_nocontent_smiling_face">No truck loadings yet</p><p>Loadings appear here once a truck loading is recorded against a delivery advice. Only verified loadings count as lifted.</p></field>
+    </record>
+
+    <!-- ======================================================== the catalog -->
+    <record id="action_report_catalog" model="ir.actions.client">
+        <field name="name">Reports</field>
+        <field name="tag">ei_reports_catalog</field>
+    </record>
+</odoo>

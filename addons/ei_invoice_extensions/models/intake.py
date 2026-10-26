@@ -1,3 +1,4 @@
+from odoo.tools.misc import format_amount
 from odoo import api, fields, models, _, Command
 from odoo.exceptions import AccessError, UserError
 
@@ -207,8 +208,11 @@ class EiSupplierIntakeLine(models.Model):
         if self.intake_id.kind == 'in_invoice' and self.received_mtl > self.expected_mtl + 1e-9:
             out.append(_("%(d)s: invoiced %(q)s MTL, only %(e)s MTL expected.", d=self.da_id.name, q=self.received_mtl, e=self.expected_mtl))
         if self.currency_id.compare_amounts(self.unit_rate, self.expected_rate):
-            out.append(_("%(d)s: invoice rate %(r)s differs from the DA purchase rate %(e)s.", d=self.da_id.name,
-                         r=self.unit_rate, e=self.expected_rate))
+            fmt = lambda v: format_amount(self.env, v, self.currency_id)
+            diff = self.unit_rate - self.expected_rate
+            out.append(_("%(d)s: the supplier's rate %(r)s per MTL differs from the delivery advice's buy rate %(e)s per MTL: %(v)s per MTL %(w)s agreed, "
+                         "%(i)s on the %(q)s MTL invoiced.", d=self.da_id.name, r=fmt(self.unit_rate), e=fmt(self.expected_rate), v=fmt(abs(diff)),
+                         w=_("more than") if diff > 0 else _("less than"), i=fmt(abs(diff) * self.received_mtl), q=self.received_mtl))
         return out
 
     @api.model_create_multi

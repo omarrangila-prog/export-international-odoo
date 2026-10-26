@@ -68,3 +68,14 @@ Reference: the user supplied a dashboard they liked (a rounded-card overview wit
 * **Period cards:** Invoiced (smooth area with an end dot that follows the hover), Received in the bank (bars), Material lifted (bars): big number, a change chip, "Before: <earlier figure>", a day-by-day chart with hover, "Show as table", and an arrow that opens exactly the records added up. The change is only a percentage when there is something to compare ("New" and "No activity" otherwise).
 * **Lists:** bank balances (finance only, with whether the bank confirmed them) and who owes most (initials avatar, share bar, opens the party); recent invoices (or truck loadings for operators) with due date and a status in words, right after the cards.
 * **Rules that did not change:** a card the role may not see is absent; money only for finance, management and the auditor; charts never carry meaning by colour alone; light, dark and right-to-left share one file; motion is off under `prefers-reduced-motion`.
+
+## Standard screens (lists, cards, records, dialogs, menus) - 26 Oct 2026
+The same language as the Overview, in `ei_ui_theme/static/src/scss/screens.scss` (tokens only, so the dark theme follows):
+* **Page:** a faint brand glow on the page colour; one gutter (24px, 12px on a phone) that lines up with the floating top bar.
+* **Title strip:** no band and no rule; a 28px bold title, the search field as one rounded card with its filters inside (focus = blue edge and a soft halo), round pager buttons, the view switch as a rounded segmented control.
+* **Lists:** one white rounded card with a soft shadow; calm sentence-case column titles (muted, 12.5px, 600); airy rows; hover grey, selection blue; links blue; the footer total bold. A list inside a record is a quiet bordered table that still scrolls sideways.
+* **Cards (kanban):** rounded, soft shadow, rise 3px on hover (the entry animation never overrides it: `animation-fill-mode: backwards`).
+* **Records:** a white rounded sheet; the steps as a row of pills with the current one filled; fields as **visible boxes** (1px edge, 12px radius, 42px high, a halo on focus) so a person sees where to type before touching anything; tabs as pills; the conversation as its own rounded card.
+* **Dialogs and menus:** 22px radius, soft shadow, 21px bold title, footer buttons left, a visible Cancel; menus and pick-lists 16px radius with soft hover.
+* **Contrast:** Odoo's own greys were 4.3:1 on white; muted text is now our 7:1 grey everywhere, including chatter dates. Odoo's white disc behind round buttons is removed (it showed as a white tile in dark mode).
+* **Checked by** `tests/e2e/specs/11_screens.js` (computed styles, boxes, mouse wheel, axe contrast; light, dark, phone).

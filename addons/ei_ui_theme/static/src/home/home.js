@@ -8,6 +8,8 @@ import { EiSearchBox } from "../search/search_box";
 const SCHEME_COOKIE = "color_scheme";
 const FILTERS = [
     { key: "all", label: "All" },
+    { key: "act", label: "Needs my action" },
+    { key: "team", label: "Team queue" },
     { key: "mine", label: "Assigned to me" },
     { key: "overdue", label: "Overdue" },
     { key: "escalated", label: "Escalated" },
@@ -16,11 +18,6 @@ const PRIORITY_WORD = { high: "High", medium: "Medium", low: "Normal" };
 const VISIBLE_TASKS = 8;
 const SNOOZE = [[1, "Until tomorrow"], [3, "For 3 days"], [7, "For a week"]];
 
-// the next round number above n (13 -> 15, 40 -> 50, 120 -> 150), so an axis reads 0, half, top
-function niceCeil(n) {
-    const mag = 10 ** Math.floor(Math.log10(n));
-    return [1, 1.5, 2, 3, 4, 5, 6, 8, 10].map((f) => f * mag).find((v) => v >= n);
-}
 // a smooth curve through the points (a Catmull-Rom spline as cubic curves), kept inside the chart's height
 function smoothPath(pts, height) {
     const clamp = (y) => Math.min(height, Math.max(0, y));
@@ -45,13 +42,16 @@ export class EiHome extends Component {
         this.state = proxy({
             loading: true, error: false, data: null, filter: "all", showSnoozed: false, menu: null, dialog: null, busy: false,
             toast: null, tables: { aging: false }, snoozed: null, allTasks: false,
-            period: "14d", flowTables: {}, flowTip: null, pipeTip: null, ask: "",
+            period: "14d", flowTables: {}, flowTip: null, pipeTip: null, ask: "", newMenu: false, openDays: {},
         });
         this.filters = FILTERS;
         this.snoozeChoices = SNOOZE;
         this.toastTimer = null;
         this.onKey = (ev) => this.handleKey(ev);
-        this.onDocClick = (ev) => { if (this.state.menu && !ev.target.closest(".ei-menu, .ei-more")) { this.state.menu = null; this.lastFocus = null; } };
+        this.onDocClick = (ev) => {
+            if (this.state.menu && !ev.target.closest(".ei-menu, .ei-more")) { this.state.menu = null; this.lastFocus = null; }
+            if (this.state.newMenu && !ev.target.closest(".ei-newwrap")) { this.state.newMenu = false; }
+        };
         onWillStart(() => this.load());
         onMounted(() => { document.addEventListener("keydown", this.onKey); document.addEventListener("click", this.onDocClick); });
         onWillUnmount(() => { document.removeEventListener("keydown", this.onKey); document.removeEventListener("click", this.onDocClick); clearTimeout(this.toastTimer); });
@@ -84,7 +84,7 @@ export class EiHome extends Component {
         if (key === "hero") { return d.pipeline.length > 0 || !!d.charts.aging || !!d.charts.material; }
         if (key === "flows") { return d.flows.length > 0 || d.banks.length > 0 || !!d.top_owing; }
         if (key === "recent") { return !!d.recent && d.recent.rows.length > 0; }
-        if (key === "kpis") { return d.kpis.length > 0; }
+        if (key === "kpis") { return this.kpis.length > 0; }
         if (key === "alerts") { return true; }
         if (key === "work") { return d.work.items.length > 0 || d.work.counts.snoozed > 0 || d.work.counts.others > 0 || true; }
         if (key === "charts") { return !!d.charts.material && !!d.charts.aging; }       // with no ageing card the material card sits in the hero
@@ -94,8 +94,15 @@ export class EiHome extends Component {
         if (key === "system") { return !!d.system; }
         return false;
     }
-    get kpiMain() { return this.state.data.kpis.slice(0, 4); }
-    get kpiMore() { return this.state.data.kpis.slice(4); }
+    // one figure, one place: what the hero shows (what customers owe) and the bank card (bank balances) are not repeated as tiles
+    get kpis() {
+        const d = this.state.data, here = new Set();
+        if (this.agingHero) { here.add("ar"); }
+        if (d.banks.length && d.layout.includes("flows")) { here.add("bank"); }
+        return d.kpis.filter((k) => !here.has(k.key));
+    }
+    get kpiMain() { return this.kpis.slice(0, 4); }
+    get kpiMore() { return this.kpis.slice(4); }
     get tasks() {
         const rows = this.filteredTasks;
         return this.state.allTasks ? rows : rows.slice(0, VISIBLE_TASKS);
@@ -106,6 +113,8 @@ export class EiHome extends Component {
         if (this.state.filter === "snoozed") { return this.state.snoozed || []; }
         return w.items.filter((t) => {
             if (this.state.filter === "mine") { return t.assignee_me || t.my_activity; }
+            if (this.state.filter === "act") { return t.can_act && !t.view_only; }
+            if (this.state.filter === "team") { return !t.can_act || t.view_only; }
             if (this.state.filter === "overdue") { return t.overdue; }
             if (this.state.filter === "escalated") { return t.status === "escalated"; }
             return true;
@@ -114,18 +123,19 @@ export class EiHome extends Component {
     filterCount(key) {
         const c = this.state.data.work.counts;
         if (key === "all") { return this.state.data.work.total; }
+        const items = this.state.data.work.items;
+        if (key === "act") { return items.filter((t) => t.can_act && !t.view_only).length; }
+        if (key === "team") { return items.filter((t) => !t.can_act || t.view_only).length; }
         return { mine: c.mine, overdue: c.overdue, escalated: c.escalated }[key] || 0;
     }
     // ---- the Overview cards: every shape below is drawn from the numbers the server counted
-    // the pipeline as one picture: a column per step, a smooth area through the bar tops, and an axis in whole numbers
-    get pipeChart() {
-        const st = this.state.data.pipeline, n = st.length;
-        const max = Math.max(1, ...st.map((s) => s.count));
-        const top = max <= 4 ? Math.ceil(max / 2) * 2 : niceCeil(max);
-        const cols = st.map((s, i) => ({ ...s, h: s.count ? Math.max(5, (s.count / top) * 100) : 0, x: ((i + 0.5) / n) * 100 }));
-        const pts = cols.map((c) => [c.x, 100 - c.h]);
-        const line = smoothPath(pts, 100);
-        return { cols, ticks: [top, top / 2, 0], line, area: `${line} L${pts[n - 1][0].toFixed(2)},100 L${pts[0][0].toFixed(2)},100 Z` };
+    // the pipeline: one card per step. Each step counts its OWN kind of record, so the counts are never drawn as one series; the small bar
+    // inside a card is that step's own split between what is done and what waits for a person
+    get stages() {
+        return this.state.data.pipeline.map((s) => {
+            const total = s.count + s.waiting;
+            return { ...s, donePct: total ? Math.round((s.count / total) * 100) : 0, waitPct: total ? 100 - Math.round((s.count / total) * 100) : 0, total };
+        });
     }
     get ageIcons() { return ["calendar", "snooze", "flag", "alert", "alert"]; }
     get agingHero() {
@@ -172,6 +182,7 @@ export class EiHome extends Component {
         return { ...f.series[t.i], left: f.key === "invoiced" && n > 1 ? (t.i / (n - 1)) * 100 : t.left };
     }
     toggleFlowTable(f) { this.state.flowTables[f.key] = !this.state.flowTables[f.key]; }
+    stageTip(s) { return `${s.main}. ${s.definition} ${s.waiting ? s.sub + ". " + s.waiting_def : s.sub + "."}`; }
     stageWord(s) { return s.main.replace(/^[\d,.]+\s*/, ""); }       // "10 loadings verified" -> "loadings verified" (the number is shown big above it)
     initials(name) {          // "DEMO Customer - Rehman Traders" -> "RT": the part after the last " - " is the real name
         const plain = String(name || "?").split(" - ").pop();
@@ -182,6 +193,11 @@ export class EiHome extends Component {
         await this.load();
     }
     onFlow(f) { return this.call("open_flow", [f.key, this.state.period]); }
+    // the ageing card opens the receivables report, on the band that was clicked
+    onAgeRow(r) {
+        const keys = ["current", "d1_30", "d31_60", "d61_90", "d90p"];
+        return this.action.doAction("ei_reports.action_report_ar_aging", { additionalContext: r ? { ["search_default_b_" + keys[r.step]]: 1 } : {} });
+    }
     onOwing(r) { return this.call("open", ["ei.party360", r.partner_id], "ei.search"); }
     onRecent(r) { return this.call("open", [r.model, r.res_id], "ei.search"); }
     onAsk() {
@@ -204,7 +220,7 @@ export class EiHome extends Component {
     // ------------------------------------------------------------------ keyboard
     handleKey(ev) {
         if (ev.key === "Escape") {
-            if (this.state.dialog) { this.closeDialog(); ev.stopPropagation(); } else if (this.state.menu) { this.closeMenu(); }
+            if (this.state.dialog) { this.closeDialog(); ev.stopPropagation(); } else if (this.state.newMenu) { this.state.newMenu = false; } else if (this.state.menu) { this.closeMenu(); }
             return;
         }
         // dialog: keep Tab inside it
@@ -247,9 +263,21 @@ export class EiHome extends Component {
     onKpi(k) { return this.call("open_kpi", [k.key]); }
     onAlert(a) { return this.call("open_alert", [a.key]); }
     onStage(s) { return this.call("open_stage", [s.key]); }
-    onQuick(q) { return this.call("open_quick", [q.key]); }
+    onQuick(q) { this.state.newMenu = false; return this.call("open_quick", [q.key]); }
+    toggleNew() { this.state.newMenu = !this.state.newMenu; if (this.state.newMenu) { setTimeout(() => { const el = document.querySelector(".ei-newmenu button"); if (el) { el.focus(); } }, 0); } }
     onStep(s) { return this.call("open_step", [s.key]); }
     onTask(t) { return this.call("open_task", [t.model, t.res_id], "ei.work"); }
+    // a digest: repeated events by the same person on the same day ("8 truck loadings created") fold into one line that opens
+    get activityRows() {
+        const rows = [], byKey = new Map();
+        for (const a of this.state.data.activity) {
+            const day = a.when.slice(0, 6), key = `${day}|${a.who}|${a.text}`;
+            if (!byKey.has(key)) { const g = { key, day, who: a.who, text: a.text, items: [] }; byKey.set(key, g); rows.push(g); }
+            byKey.get(key).items.push(a);
+        }
+        return rows.map((g) => ({ ...g, many: g.items.length >= 3, open: !!this.state.openDays[g.key] }));
+    }
+    toggleDigest(g) { this.state.openDays[g.key] = !this.state.openDays[g.key]; }
     onActivity(a) { return this.call("open", [a.model, a.res_id], "ei.search"); }
     onReminders() { return this.action.doAction("mail.mail_activity_action_my"); }
     onRefresh() { return this.load(); }

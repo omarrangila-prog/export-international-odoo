@@ -7,6 +7,8 @@ const SCREENS = [
   { key: 'Contracts (cards)', url: '/odoo/action-ei_contract_da.ei_contract_action', wait: '.o_kanban_view, .o_list_view', dark: true },
   { key: 'Bank payments to check (list)', url: '/odoo/action-ei_bank_operations.ei_bank_line_action', wait: '.o_list_view', dark: true },
   { key: 'Ask', url: '/odoo/action-ei_assistant.action_ei_assistant', wait: '.ei-ask .ei-ask-welcome', own: '.ei-ask', dark: true },
+  { key: 'Reports', url: '/odoo/action-ei_reports.action_report_catalog', wait: '.ei-rc-card', own: '.ei-rc', dark: true },
+  { key: 'Aged receivables (list)', url: '/odoo/action-ei_reports.action_report_ar_aging', wait: '.o_graph_view, .o_pivot, .o_list_view' },
   { key: 'Match bank payments', url: '/odoo/action-ei_matching.action_ei_matching', wait: '.ei-mt .ei-mt-cols', own: '.ei-mt', dark: true },
   { key: 'Parent statements (cards)', url: '/odoo/action-ei_parent_reconciliation.ei_parent_statement_action', wait: '.o_kanban_view, .o_list_view' },
   { key: 'Cash vouchers (cards)', url: '/odoo/action-ei_cashbook.ei_cash_voucher_action', wait: '.o_kanban_view, .o_list_view' },

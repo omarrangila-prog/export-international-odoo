@@ -230,14 +230,23 @@
         <field name="model">ei.supplier.intake</field>
         <field name="inherit_id" ref="ei_invoice_extensions.ei_intake_form"/>
         <field name="arch" type="xml">
+            <xpath expr="//div[hasclass('alert-danger')]" position="replace"/>
+            <xpath expr="//div[field[@name='ocr_status']]" position="attributes">
+                <attribute name="class">ei-hint</attribute>
+                <attribute name="invisible">state != 'draft'</attribute>
+            </xpath>
             <xpath expr="//sheet/*[1]" position="before">
                 <div class="ei-next" invisible="state not in ('draft')">
                     <span class="ei-next-ico"/>
                     <div><span class="ei-next-title">Your turn</span><span>Type what the supplier's invoice says, attach it, then press <b>Run checks</b>.</span></div>
                 </div>
-                <div class="ei-next ei-next-stop" invisible="state not in ('mismatch')">
+                <div class="ei-next ei-next-stop ei-exc" invisible="state not in ('mismatch')" role="alert">
                     <span class="ei-next-ico"/>
-                    <div><span class="ei-next-title">Something does not match</span><span>Read the red box. Fix the figures, or an approver can accept the difference with a written reason.</span></div>
+                    <div>
+                        <span class="ei-next-title">Blocked: the supplier's invoice does not match the delivery advice</span>
+                        <field name="issue_text" nolabel="1" readonly="1" class="ei-exc-list"/>
+                        <span class="ei-exc-next"><b>Next step:</b> correct the figures and press <b>Run checks</b> again, or an invoice approver (not the person who entered it) accepts the difference with a written reason. A blocked invoice cannot become a bill.</span>
+                    </div>
                 </div>
                 <div class="ei-next ei-next-done" invisible="state not in ('matched', 'reviewed')">
                     <span class="ei-next-ico"/>

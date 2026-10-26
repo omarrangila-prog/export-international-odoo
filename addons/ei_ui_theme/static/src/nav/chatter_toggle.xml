@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="ei_ui_theme.ChatterToggle">
+        <button t-if="this.state.present" type="button" class="ei-chatter-toggle" t-att-style="'top:' + this.state.top + 'px; right:' + this.state.right + 'px'"
+                t-on-click="() => this.toggle()" t-att-aria-pressed="this.state.hidden ? 'false' : 'true'" t-att-title="this.state.hidden ? 'Show the activity panel' : 'Hide the activity panel'">
+            <svg class="ei-chatter-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+            <span><t t-if="this.state.hidden">Show activity</t><t t-else="">Hide activity</t></span>
+        </button>
+    </t>
+</templates>
