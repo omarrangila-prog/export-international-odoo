@@ -27,8 +27,8 @@ module.exports = {
         const lay = await s.layout();
         ctx.check(!lay.overflow && !lay.wide.length, `${w}px: no horizontal overflow in right-to-left`, JSON.stringify(lay.wide));
         ctx.check(!lay.clipped.length, `${w}px: no clipped buttons or badges in right-to-left`, lay.clipped.join(' | '));
-        const kp = await p.locator('.ei-kpi').first().evaluate(el => getComputedStyle(el).borderTopWidth);
-        ctx.check(parseFloat(kp) >= 3, `${w}px: figures keep their styling`);
+        const kp = await p.locator('.ei-kpi').first().evaluate(el => parseFloat(getComputedStyle(el).borderTopLeftRadius));
+        ctx.check(kp >= 16, `${w}px: figures keep their card styling`, String(kp));
         await p.locator('#ei-search-q').fill('DA-DEMO'); await p.waitForSelector('.ei-search-hit', { timeout: 10000 });
         ctx.check(await p.locator('.ei-search-pop').isVisible(), `${w}px: search results still open`);
         await s.clean(`${w}px: right-to-left Home has no console or server errors`, m);

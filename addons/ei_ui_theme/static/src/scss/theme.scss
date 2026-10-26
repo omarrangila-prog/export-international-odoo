@@ -3,7 +3,7 @@
 // Text pairs were checked for >= 4.5:1 (muted/faint on card and page, status colour on its soft tint).
 :root {
     --ei-font: "Inter", "Segoe UI", system-ui, -apple-system, "Noto Sans", "Noto Nastaliq Urdu", Roboto, "Helvetica Neue", Arial, sans-serif;
-    --ei-ink: #0F1B33;         --ei-on-ink: #F1F5F9;      --ei-nav-bg: #0F1B33;
+    --ei-ink: #0F1B33;         --ei-on-ink: #F1F5F9;      --ei-nav-bg: #FFFFFF;      --ei-nav-edge: rgba(15,27,51,.07);
     --ei-text: #1E293B;
     --ei-muted: #566275;       --ei-faint: #5F6B7E;
     --ei-line: #E3E8EF;        --ei-line-strong: #CBD3DF;
@@ -14,7 +14,10 @@
     --ei-warn: #9A4D06;        --ei-warn-soft: #FEF3E2;   --ei-warn-line: #F7D9A8;
     --ei-bad: #B91C1C;         --ei-bad-soft: #FDECEC;    --ei-bad-line: #F3B9B9;
     --ei-info: #0369A1;        --ei-info-soft: #E6F3FA;   --ei-info-line: #B6DDF0;
-    --ei-s1: #2A78D6;          --ei-s2: #EB6834;          // chart series (blue, orange): validated light + dark
+    --ei-s1: #2A78D6;          --ei-s2: #EB6834;          --ei-s3: #1BAF7A;       // chart series (blue, orange, aqua): the first three validated slots, light + dark
+    --ei-s1-ink: #1D5FB5;      --ei-s2-ink: #B8420F;      --ei-s3-ink: #0B7452;   // the same hues as icon and text colour (>= 4.5:1 on their soft tint)
+    --ei-s1-soft: #E5EFFB;     --ei-s2-soft: #FDEBE3;     --ei-s3-soft: #E0F5EC;
+    --ei-s1-lite: #A9C9F3;     --ei-s2-lite: #F6B9A0;     --ei-s3-lite: #94DCBE;   // the pale end of a bar's gradient
     --ei-seq-0: #86B6EF; --ei-seq-1: #5598E7; --ei-seq-2: #2A78D6; --ei-seq-3: #184F95; --ei-seq-4: #0D366B;   // one-hue ramp, older = darker
     --ei-radius: 12px;
     --ei-shadow: 0 1px 2px rgba(15,27,51,.05);
@@ -24,30 +27,61 @@
 
 body, .o_web_client { background: var(--ei-bg); color: var(--ei-text); font-size: 15px; font-family: var(--ei-font); }
 
+// scrollbars: slim, rounded, in the page's own greys (Firefox and Chrome read the standard properties, Safari the webkit ones)
+:root { scrollbar-color: var(--ei-line-strong) transparent; }
+::-webkit-scrollbar { width: 12px; height: 12px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--ei-line-strong); border-radius: 999px; border: 3px solid transparent; background-clip: padding-box; }
+::-webkit-scrollbar-thumb:hover { background: var(--ei-faint); background-clip: padding-box; border: 3px solid transparent; }
+// Odoo gives every action "overflow: hidden" and hides its scrollbar. A page that is taller than the window (the Home)
+// has to scroll inside itself, with a bar you can see and drag.
+.o_web_client > .o_action_manager > .o_action.ei-home:not(.o_action_delegate_scroll) { position: relative; overflow-x: hidden; overflow-y: auto; scrollbar-width: thin; }   // relative: the visually-hidden helper is absolutely positioned and would otherwise inflate the window's own scroll height
+
 // ---------------------------------------------------------------- top bar
+// A light bar that floats above the page (rounded, soft shadow): the entry you are in is a filled pill. The bar keeps
+// Odoo's own markup and keyboard behaviour; only colour, shape and spacing change. Dark mode re-declares the tokens.
 .o_main_navbar {
     background: var(--ei-nav-bg) !important;
     height: 58px;
-    border: 0;
-    box-shadow: 0 2px 10px rgba(20,33,61,.25);
+    border: 1px solid var(--ei-nav-edge) !important;
+    box-shadow: 0 1px 2px rgba(15,27,51,.04), 0 10px 28px rgba(29,78,216,.08);
+    position: relative; z-index: 12;
+    @media (min-width: 768px) { margin: 10px 20px 10px; border-radius: 22px; padding-inline-end: 12px; }
     .o_nav_entry, .o-dropdown.dropdown-toggle, .o_menu_brand {
         background: transparent !important;
-        color: #E8EDF7 !important;
-        font-size: 14px;
+        color: var(--ei-text) !important;
+        font-size: 14.5px;
         font-weight: 600;
-        border-radius: 10px;
-        margin: 0 1px;
-        padding: 8px 10px !important;
-        transition: background .15s;
+        border-radius: 999px;
+        margin: 0 2px;
+        padding: 8px 15px !important;
+        transition: background .15s, color .15s;
         i, .oi { color: inherit; }
     }
-    .o_menu_brand { font-weight: 800; letter-spacing: .2px; color: #fff !important; font-size: 16px; }
-    .o_nav_entry:hover, .o-dropdown.dropdown-toggle:hover { background: rgba(255,255,255,.14) !important; color: #fff !important; }
-    .o_nav_entry.focus, .o_nav_entry.active, .o_nav_entry:focus, .o-dropdown.dropdown-toggle.show {
-        background: rgba(255,255,255,.18) !important; color: #fff !important;
+    .o_menu_brand { font-weight: 800; letter-spacing: -.01em; color: var(--ei-ink) !important; font-size: 17px; padding-inline-start: 6px !important; }
+    .o_navbar_apps_menu .dropdown-toggle { padding: 8px 12px !important; }
+    .o_nav_entry:hover, .o-dropdown.dropdown-toggle:hover { background: var(--ei-surface-2) !important; color: var(--ei-ink) !important; }
+    .o_menu_brand:hover { background: transparent !important; }
+    .o_nav_entry:focus-visible, .o-dropdown.dropdown-toggle:focus-visible { outline: 3px solid var(--ei-focus); outline-offset: 1px; }
+    .o_nav_entry.focus, .o_nav_entry:focus, .o-dropdown.dropdown-toggle.show { background: var(--ei-primary-soft) !important; color: var(--ei-primary) !important; }
+    // the entry that holds the open screen (marked by nav_current.js)
+    .o_menu_sections [aria-current], .o_menu_sections [aria-current]:hover, .o_menu_sections [aria-current].show {
+        background: var(--ei-primary) !important; color: var(--ei-on-primary) !important; box-shadow: 0 4px 12px rgba(29,78,216,.28);
     }
-    .o_menu_systray .o-dropdown.dropdown-toggle { padding: 8px 10px !important; }
+    .o_menu_systray { align-items: center; gap: 2px; }
+    .o_menu_systray .o-dropdown.dropdown-toggle, .o_menu_systray > button { padding: 8px 10px !important; }
+    // round icon buttons: messages, activities
+    .o_menu_systray .o-dropdown.dropdown-toggle:not(.o_user_menu):not(.o_switch_company_menu) {
+        width: 40px; height: 40px; display: inline-grid !important; place-items: center; padding: 0 !important; border-radius: 50%; border: 1px solid var(--ei-nav-edge);
+    }
+    .o_menu_systray .o-dropdown.dropdown-toggle { position: relative; }
+    .o_menu_systray .o-mail-MessagingMenuInDropdown-counter { position: absolute; top: 0; inset-inline-end: -2px; min-width: 18px; height: 18px; padding: 0 4px; display: grid; place-items: center; font-size: 10px; line-height: 1; background: var(--ei-bad) !important; color: #fff !important; border: 2px solid var(--ei-nav-bg); border-radius: 999px; }
+    .oe_topbar_name { color: var(--ei-muted); font-weight: 600; }
+    .o_user_menu { gap: 8px; align-items: center; padding-inline: 4px 12px !important; }
+    .o_user_menu img, .o_user_menu foreignObject { border-radius: 50% !important; }
+    .o_user_menu .oe_topbar_name { display: block !important; color: var(--ei-ink); font-weight: 700; margin: 0 !important; mark { display: none !important; } }
 }
+
 .o_tour_pointer, .o_tour_pointer_tip { display: none !important; }
 
 // ---------------------------------------------------------------- buttons

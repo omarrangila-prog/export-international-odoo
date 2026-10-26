@@ -16,17 +16,22 @@ const PRIORITY_WORD = { high: "High", medium: "Medium", low: "Normal" };
 const VISIBLE_TASKS = 8;
 const SNOOZE = [[1, "Until tomorrow"], [3, "For 3 days"], [7, "For a week"]];
 
-function niceMax(v) {
-    const p = Math.pow(10, Math.floor(Math.log10(v)));
-    const m = [1, 1.2, 1.6, 2, 2.4, 3, 4, 5, 6, 8, 10].find((x) => x * p >= v) || 10;
-    return m * p;
+// the next round number above n (13 -> 15, 40 -> 50, 120 -> 150), so an axis reads 0, half, top
+function niceCeil(n) {
+    const mag = 10 ** Math.floor(Math.log10(n));
+    return [1, 1.5, 2, 3, 4, 5, 6, 8, 10].map((f) => f * mag).find((v) => v >= n);
 }
-
-function compact(n) {
-    const a = Math.abs(n);
-    if (a >= 1e6) { return (n / 1e6).toFixed(a >= 1e7 ? 0 : 1).replace(/\.0$/, "") + "M"; }
-    if (a >= 1e3) { return Math.round(n / 1e3) + "k"; }
-    return String(Math.round(n));
+// a smooth curve through the points (a Catmull-Rom spline as cubic curves), kept inside the chart's height
+function smoothPath(pts, height) {
+    const clamp = (y) => Math.min(height, Math.max(0, y));
+    let line = `M${pts[0][0].toFixed(2)},${pts[0][1].toFixed(2)}`;
+    for (let i = 0; i < pts.length - 1; i++) {
+        const p0 = pts[i - 1] || pts[i], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] || p2, t = 0.18;
+        const c1 = [p1[0] + (p2[0] - p0[0]) * t, clamp(p1[1] + (p2[1] - p0[1]) * t)];
+        const c2 = [p2[0] - (p3[0] - p1[0]) * t, clamp(p2[1] - (p3[1] - p1[1]) * t)];
+        line += ` C${c1[0].toFixed(2)},${c1[1].toFixed(2)} ${c2[0].toFixed(2)},${c2[1].toFixed(2)} ${p2[0].toFixed(2)},${p2[1].toFixed(2)}`;
+    }
+    return line;
 }
 
 export class EiHome extends Component {
@@ -39,7 +44,8 @@ export class EiHome extends Component {
         this.action = useService("action");
         this.state = proxy({
             loading: true, error: false, data: null, filter: "all", showSnoozed: false, menu: null, dialog: null, busy: false,
-            toast: null, tables: { cashflow: false, aging: false }, tip: null, snoozed: null, allTasks: false,
+            toast: null, tables: { aging: false }, snoozed: null, allTasks: false,
+            period: "14d", flowTables: {}, flowTip: null, pipeTip: null, ask: "",
         });
         this.filters = FILTERS;
         this.snoozeChoices = SNOOZE;
@@ -55,7 +61,7 @@ export class EiHome extends Component {
     async load() {
         this.state.loading = true;
         try {
-            this.state.data = await this.orm.call("ei.home", "get_data", []);
+            this.state.data = await this.orm.call("ei.home", "get_data", [this.state.period]);
             this.state.error = false;
         } catch {
             this.state.error = true;
@@ -75,10 +81,13 @@ export class EiHome extends Component {
     get layout() { return this.state.data.layout.filter((s) => this.hasSection(s)); }
     hasSection(key) {
         const d = this.state.data;
+        if (key === "hero") { return d.pipeline.length > 0 || !!d.charts.aging || !!d.charts.material; }
+        if (key === "flows") { return d.flows.length > 0 || d.banks.length > 0 || !!d.top_owing; }
+        if (key === "recent") { return !!d.recent && d.recent.rows.length > 0; }
         if (key === "kpis") { return d.kpis.length > 0; }
         if (key === "alerts") { return true; }
         if (key === "work") { return d.work.items.length > 0 || d.work.counts.snoozed > 0 || d.work.counts.others > 0 || true; }
-        if (key === "charts") { return Object.keys(d.charts).length > 0; }
+        if (key === "charts") { return !!d.charts.material && !!d.charts.aging; }       // with no ageing card the material card sits in the hero
         if (key === "pipeline") { return d.pipeline.length > 0; }
         if (key === "activity") { return d.activity.length > 0; }
         if (key === "quick") { return d.quick.length > 0; }
@@ -107,23 +116,82 @@ export class EiHome extends Component {
         if (key === "all") { return this.state.data.work.total; }
         return { mine: c.mine, overdue: c.overdue, escalated: c.escalated }[key] || 0;
     }
-    get cashflow() {
-        const c = this.state.data.charts.cashflow;
-        const top = Math.max(1, ...c.days.map((d) => Math.max(d.invoiced, d.received)));
-        const max = niceMax(top);          // a friendly top of the scale, so the middle tick is a round number too
-        return {
-            ...c, max, ticks: [1, 0.5, 0].map((f) => ({ f, label: compact(max * f) })),
-            cols: c.days.map((d) => ({ ...d, hi: (d.invoiced / max) * 100, hr: (d.received / max) * 100 })),
-        };
+    // ---- the Overview cards: every shape below is drawn from the numbers the server counted
+    // the pipeline as one picture: a column per step, a smooth area through the bar tops, and an axis in whole numbers
+    get pipeChart() {
+        const st = this.state.data.pipeline, n = st.length;
+        const max = Math.max(1, ...st.map((s) => s.count));
+        const top = max <= 4 ? Math.ceil(max / 2) * 2 : niceCeil(max);
+        const cols = st.map((s, i) => ({ ...s, h: s.count ? Math.max(5, (s.count / top) * 100) : 0, x: ((i + 0.5) / n) * 100 }));
+        const pts = cols.map((c) => [c.x, 100 - c.h]);
+        const line = smoothPath(pts, 100);
+        return { cols, ticks: [top, top / 2, 0], line, area: `${line} L${pts[n - 1][0].toFixed(2)},100 L${pts[0][0].toFixed(2)},100 Z` };
     }
-    get aging() {
+    get ageIcons() { return ["calendar", "snooze", "flag", "alert", "alert"]; }
+    get agingHero() {
         const a = this.state.data.charts.aging;
-        const max = Math.max(1, ...a.rows.map((r) => r.value));
-        return { ...a, rows: a.rows.map((r, i) => ({ ...r, w: (r.value / max) * 100, step: i })) };
+        if (!a) { return null; }
+        const total = a.rows.reduce((t, r) => t + r.value, 0);
+        const late = a.rows.slice(1).reduce((t, r) => t + r.value, 0);
+        const rows = a.rows.map((r, i) => ({ ...r, step: i, pct: total > 0 ? Math.round((r.value / total) * 100) : 0, w: total > 0 ? Math.max(r.value ? 2 : 0, (r.value / total) * 100) : 0 }));
+        return { ...a, total, latePct: total > 0 ? Math.round((late / total) * 100) : 0, rows,
+            meterLabel: "Share of what customers owe, by how late: " + rows.map((r) => `${r.label} ${r.pct}%`).join(", ") };
     }
+    flowMax(f) { return Math.max(1e-9, ...f.series.map((p) => p.v)); }
+    flowBars(f) {
+        const max = this.flowMax(f);
+        return f.series.map((p, i) => ({ ...p, i, h: p.v > 0 ? Math.max(6, (p.v / max) * 100) : 0 }));
+    }
+    // a smooth line through the daily values (viewBox 0 0 100 40; y grows downwards)
+    flowPaths(f) {
+        const n = f.series.length;
+        const pts = this.flowPoints(f);
+        const line = smoothPath(pts, 40);
+        return { line, area: `${line} L100,40 L0,40 Z`, endTop: (pts[n - 1][1] / 40) * 100 };
+    }
+    flowPoints(f) {
+        const n = f.series.length, max = this.flowMax(f);
+        return f.series.map((p, i) => [n > 1 ? (i / (n - 1)) * 100 : 50, 36 - (p.v / max) * 30]);
+    }
+    flowDotTop(f, tip) {                   // where the line is on the hovered day, as a share of the chart height
+        const i = f.series.findIndex((p) => p.iso === tip.iso);
+        return i < 0 ? 50 : (this.flowPoints(f)[i][1] / 40) * 100;
+    }
+    hoverFlow(ev, f) {
+        const box = ev.currentTarget.getBoundingClientRect();
+        const rtl = document.documentElement.dir === "rtl";
+        const x = rtl ? box.right - ev.clientX : ev.clientX - box.left;
+        const i = Math.min(f.series.length - 1, Math.max(0, Math.floor((x / box.width) * f.series.length)));
+        this.state.flowTip = { key: f.key, i, left: ((i + 0.5) / f.series.length) * 100 };
+    }
+    leaveFlow() { this.state.flowTip = null; }
+    flowTipOf(f) {
+        const t = this.state.flowTip;
+        if (!t || t.key !== f.key) { return null; }
+        const n = f.series.length;
+        return { ...f.series[t.i], left: f.key === "invoiced" && n > 1 ? (t.i / (n - 1)) * 100 : t.left };
+    }
+    toggleFlowTable(f) { this.state.flowTables[f.key] = !this.state.flowTables[f.key]; }
+    stageWord(s) { return s.main.replace(/^[\d,.]+\s*/, ""); }       // "10 loadings verified" -> "loadings verified" (the number is shown big above it)
+    initials(name) {          // "DEMO Customer - Rehman Traders" -> "RT": the part after the last " - " is the real name
+        const plain = String(name || "?").split(" - ").pop();
+        return plain.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join("").toUpperCase();
+    }
+    async setPeriod(ev) {
+        this.state.period = ev.target.value;
+        await this.load();
+    }
+    onFlow(f) { return this.call("open_flow", [f.key, this.state.period]); }
+    onOwing(r) { return this.call("open", ["ei.party360", r.partner_id], "ei.search"); }
+    onRecent(r) { return this.call("open", [r.model, r.res_id], "ei.search"); }
+    onAsk() {
+        const text = this.state.ask.trim();
+        if (!text) { return; }
+        return this.action.doAction("ei_assistant.action_ei_assistant", { additionalContext: { ei_ask: text } });
+    }
+    onAskChip(text) { this.state.ask = text; return this.onAsk(); }
+    onAskInput(ev) { this.state.ask = ev.target.value; }
     shortName(item) { return item.title.length > 48 ? item.title.slice(0, 47) + "..." : item.title; }
-    showTip(col) { this.state.tip = col; }
-    hideTip() { this.state.tip = null; }
 
     // ------------------------------------------------------------------ feedback
     say(text, kind = "ok") {

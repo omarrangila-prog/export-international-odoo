@@ -95,8 +95,9 @@ module.exports = {
       await s.menu('Bills & Invoices', 'Invoice delivered material');
       await p.locator('.o_data_row', { hasText: 'To invoice' }).first().locator('input[type=checkbox]').check();
       await p.locator('.o_cp_action_menus button').first().click(); await p.getByText('Invoice verified liftings', { exact: true }).click(); await p.waitForTimeout(1200);
-      await p.locator('.modal button', { hasText: 'Create invoices' }).click(); await p.waitForTimeout(2000);
-      ctx.check(/account\.move|action-/.test(p.url()) && await p.locator('.o_list_view, .o_form_view').count() > 0 && !(await p.locator('.modal').count()), '6 ... and shows the new customer invoice');
+      await p.locator('.modal button', { hasText: 'Create invoices' }).click(); await p.waitForSelector('.modal', { state: 'detached', timeout: 20000 }).catch(() => {}); await p.waitForSelector('.o_list_view, .o_form_view', { timeout: 20000 }); await p.waitForTimeout(500);
+      const after = { url: p.url(), views: await p.locator('.o_list_view, .o_form_view').count(), modal: await p.locator('.modal').count() ? (await p.locator('.modal').first().innerText()).replace(/\s+/g, ' ').slice(0, 160) : '' };
+      ctx.check(/account\.move|action-/.test(after.url) && after.views > 0 && !after.modal, '6 ... and shows the new customer invoice', JSON.stringify(after));
     });
     // 7 bank statement import wizard
     await flow('7 Import a bank statement opens the imported statement', async () => {

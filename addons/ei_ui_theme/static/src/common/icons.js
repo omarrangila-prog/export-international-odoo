@@ -33,6 +33,12 @@ export const ICON_PATHS = {
     shield: "M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z",
     snooze: "M12 7v5l3 2M12 3a9 9 0 100 18 9 9 0 000-18",
     flag: "M5 21V4M5 4h11l-2 4 2 4H5",
+    calendar: "M4 6h16v14H4zM4 10h16M8 3v4M16 3v4",
+    sparkle: "M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z",
+    trendup: "M7 17L17 7M9 7h8v8",
+    trenddown: "M7 7l10 10M17 9v8H9",
+    arrowright: "M5 12h14M13 6l6 6-6 6",
+    layers: "M12 3l9 5-9 5-9-5zM3 13l9 5 9-5M3 17.5l9 5 9-5",
 };
 // icon names used by the server (Font Awesome style) -> our names
 export const ICON_ALIAS = {

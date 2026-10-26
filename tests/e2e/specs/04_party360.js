@@ -13,6 +13,9 @@ module.exports = {
     await p.waitForSelector('.ei-p360-party');
     ctx.check(/Rehman/i.test(await p.innerText('.ei-p360-name')), 'Enter opens the chosen party');
     ctx.check(await p.locator('.ei-p360-kpi').count() >= 3 && await p.isVisible('.ei-p360-asof'), 'figures and the "read at" time are shown');
+    const w360 = await s.wheelScroll('.ei-p360');
+    ctx.check(w360.max > 300 && w360.top >= w360.max - 2 && w360.win === 0 && w360.scrollbarWidth !== 'none', 'Party 360: the mouse wheel takes a person to the end of the page, and its scrollbar is not hidden', JSON.stringify(w360));
+    await p.evaluate(() => { document.querySelector('.ei-p360').scrollTop = 0; });
     const btn = p.locator('.ei-p360-kpi .ei-p360-link[aria-expanded]').first();
     await btn.click(); await p.waitForTimeout(300);
     ctx.check(await btn.getAttribute('aria-expanded') === 'true' && await p.isVisible('.ei-p360-explain'), '"How is this worked out?" opens the explanation');

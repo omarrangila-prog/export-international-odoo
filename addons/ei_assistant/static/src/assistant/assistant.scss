@@ -84,11 +84,11 @@
     }
 }
 
-// the button in the top bar
-.ei-ask-btn { display: inline-flex; align-items: center; gap: 6px; border: 0; background: transparent; color: #F1F5F9;   // the top bar is dark in light and dark mode
-    font-weight: 700; padding: 0 12px; height: 100%; min-height: 40px; cursor: pointer; font-family: inherit;
-    &:hover { background: rgba(255, 255, 255, .12); }
-    &:focus-visible { outline: 3px solid var(--ei-focus, #86b7fe); outline-offset: -3px; }
-    .ei-ask-btn-icon { width: 20px; height: 20px; flex: none; }
+// the button in the top bar (a light bar in both themes): plain text with a blue spark, like a menu entry
+.ei-ask-btn { display: inline-flex; align-items: center; gap: 7px; border: 0; background: transparent; color: var(--ei-text);
+    font-weight: 600; font-size: 14.5px; padding: 0 14px; height: 40px; border-radius: 999px; cursor: pointer; font-family: inherit; transition: background .15s;
+    &:hover { background: var(--ei-surface-2); color: var(--ei-ink); }
+    &:focus-visible { outline: 3px solid var(--ei-focus, #86b7fe); outline-offset: 1px; }
+    .ei-ask-btn-icon { width: 19px; height: 19px; flex: none; color: var(--ei-primary); }
     @media (max-width: 767.98px) { .ei-ask-btn-label { display: none; } padding: 0 10px; }
 }

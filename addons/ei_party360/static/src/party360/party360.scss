@@ -1,3 +1,5 @@
+// Odoo gives every action "overflow: hidden" and no scrollbar; this long page has to scroll inside itself, with a bar you can see
+.o_web_client > .o_action_manager > .o_action.ei-p360:not(.o_action_delegate_scroll) { position: relative; overflow-x: hidden; overflow-y: auto; scrollbar-width: thin; }
 .ei-p360 {
     background: var(--ei-bg); overflow-y: auto; height: 100%; color: var(--ei-text);
     .ei-p360-inner { max-width: 1180px; width: 100%; margin: 0 auto; padding: 24px 24px 64px; }

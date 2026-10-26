@@ -312,3 +312,12 @@ class TestAssistant(TestJourney):
             if name.endswith('.py'):
                 with open(os.path.join(folder, name), encoding='utf-8') as fh:
                     self.assertFalse(banned.findall(fh.read()), name)
+
+    def test_a23_home_offers_the_question_box_only_to_people_with_questions(self):
+        d = self.env['ei.home'].with_user(self.ceo).get_data()
+        self.assertEqual(d['ask']['starters'], self.A(self.ceo).starters()[:3])
+        self.assertEqual(d['ask']['example'], self.A(self.ceo).starters()[0])
+        self.assertTrue(all(self.ask(q)['kind'] == 'answer' for q in d['ask']['starters']))     # each chip on Home really works
+        ops = self.env['ei.home'].with_user(self.maker).get_data()
+        self.assertNotIn('Who owes us money?', ops['ask']['starters'])
+        self.assertNotIn('ask', self.env['ei.home'].with_user(self.plain).get_data())

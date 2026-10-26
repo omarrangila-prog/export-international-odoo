@@ -59,6 +59,18 @@ class Session {
   }
   async goto(p) { await this.page.goto(this.ctx.base + p); await this.page.waitForTimeout(900); }
   async home() { await this.page.goto(this.ctx.base + '/odoo'); await this.page.waitForSelector('.ei-home .ei-top-tools, .ei-home .ei-banner-bad', { timeout: 30000 }); await this.page.waitForTimeout(600); }
+  // scroll the way a person does, with the mouse wheel. (scrollIntoViewIfNeeded scrolls a container the user cannot reach, which
+  // hid for weeks that Odoo's "overflow: hidden" action wrapper stopped the Home and Party 360 from scrolling at all)
+  async wheelScroll(root) {
+    const p = this.page; const vp = p.viewportSize();
+    await p.mouse.move(vp.width / 2, vp.height / 2);
+    for (let i = 0; i < 40; i++) { await p.mouse.wheel(0, 900); await p.waitForTimeout(50); }
+    await p.waitForTimeout(250);
+    return p.evaluate((sel) => {
+      const el = document.querySelector(sel); const cs = getComputedStyle(el);
+      return { top: Math.round(el.scrollTop), max: Math.round(el.scrollHeight - el.clientHeight), win: Math.round(scrollY), overflowY: cs.overflowY, scrollbarWidth: cs.scrollbarWidth };
+    }, root);
+  }
   // top bar -> (optional) dropdown item, by visible text, like a person would
   async menu(top, item) {
     const p = this.page;

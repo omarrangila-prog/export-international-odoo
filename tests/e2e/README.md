@@ -21,5 +21,6 @@ Results: `docs/e2e_results.md`, screenshots in `docs/ui/e2e/`. Exit code 1 if an
 | 07 | Automation rules: preview creates nothing, run creates exactly the previewed reminders for the right colleague, running twice does not duplicate, non-managers cannot see or change rules |
 | 08 | Match bank payments: a suggestion stays a suggestion until confirmed, evidence note rules, proposals are never saved, saving an allocation posts nothing, unidentified / reject / ask / put aside, keyboard, roles, phone step flow, light + dark axe |
 | 09 | Ask (read-only assistant): top-bar button, answers equal the books, sources and "how worked out" on every answer, choosing between parties, not understanding, refusing to change anything (nothing moves), questions logged for management, a role without finance never sees money, phone/tablet/desktop layout, light + dark axe |
+| 10 | Overview on Home: period choice, cards equal the records and compare with the days before, pipeline counts, who owes most opens the party, recent invoices, the question box, an operator never sees money, phone/tablet/desktop, dark axe |
 
 Reproducing a bug first: run `node tests/e2e/run.js --base http://127.0.0.1:PORT --spec 01` against an older checkout (git worktree of `b7ef73e` and a database built from it); the result of doing exactly that is in `docs/e2e_baseline_reproduction.md`.

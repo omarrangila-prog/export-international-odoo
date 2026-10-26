@@ -1,7 +1,7 @@
 // Dark theme: the same token names, stepped for a dark surface (not an inversion). Loaded only in Odoo's dark bundle
 // (web.assets_web_dark), which the server picks when the user's colour-scheme cookie is "dark".
 :root {
-    --ei-ink: #F1F5F9;         --ei-on-ink: #0B1220;      --ei-nav-bg: #0A1020;
+    --ei-ink: #F1F5F9;         --ei-on-ink: #0B1220;      --ei-nav-bg: #131D31;      --ei-nav-edge: rgba(255,255,255,.08);
     --ei-text: #E2E8F0;
     --ei-muted: #9AA7BA;       --ei-faint: #8693A7;
     --ei-line: #26324A;        --ei-line-strong: #3A4863;
@@ -12,7 +12,10 @@
     --ei-warn: #FBBF5B;        --ei-warn-soft: #3A2A10;   --ei-warn-line: #6B4A17;
     --ei-bad: #F87171;         --ei-bad-soft: #3F1A1D;    --ei-bad-line: #7A2E33;
     --ei-info: #5EC4F0;        --ei-info-soft: #10303F;   --ei-info-line: #1F5A73;
-    --ei-s1: #3987E5;          --ei-s2: #D95926;
+    --ei-s1: #3987E5;          --ei-s2: #D95926;          --ei-s3: #199E70;
+    --ei-s1-ink: #7FB2F5;      --ei-s2-ink: #F0976F;      --ei-s3-ink: #5CD3A4;
+    --ei-s1-soft: #15294A;     --ei-s2-soft: #3A2218;     --ei-s3-soft: #11342A;
+    --ei-s1-lite: #1B3C69;     --ei-s2-lite: #6B3018;     --ei-s3-lite: #0F4332;
     --ei-seq-0: #184F95; --ei-seq-1: #256ABF; --ei-seq-2: #3987E5; --ei-seq-3: #6DA7EC; --ei-seq-4: #86B6EF;     // in dark, more = lighter
     --ei-shadow: 0 1px 2px rgba(0,0,0,.35);
     --ei-shadow-hover: 0 4px 14px rgba(0,0,0,.45);
@@ -65,7 +68,6 @@ body, .o_web_client, .o_action_manager, .o_content, .o_action { background: var(
 .o-mail-Message-body, .o-mail-Chatter-top, .o_FormRenderer_chatterContainer { color: var(--ei-text); }
 .text-muted, .text-body-secondary { color: var(--ei-muted) !important; }
 hr { border-color: var(--ei-line); }
-::-webkit-scrollbar-thumb { background: var(--ei-line-strong); }
 
 // found by scanning the dark form for light surfaces: breadcrumb, status bar, chatter, record links
 ol.breadcrumb, .breadcrumb { background: transparent !important; }
@@ -77,3 +79,11 @@ ol.breadcrumb, .breadcrumb { background: transparent !important; }
 .o-mail-Message-date, .o-mail-DateSection { color: var(--ei-muted) !important; }
 .o_form_uri, .o_field_widget a:not(.btn), .o_form_view a:not(.btn):not(.dropdown-item):not(.nav-link) { color: var(--ei-primary) !important; }
 .o_form_view .o_form_label, .o_form_view .o_td_label label { color: var(--ei-muted) !important; opacity: 1; }
+
+// ---- Home cards: the same shapes, shadows and glow stepped for a dark surface
+.ei-home {
+    --h-shadow: 0 1px 2px rgba(0, 0, 0, .40), 0 12px 32px rgba(0, 0, 0, .35);
+    --h-shadow-hover: 0 2px 4px rgba(0, 0, 0, .45), 0 16px 40px rgba(0, 0, 0, .50);
+    --h-edge: rgba(255, 255, 255, .07);
+    --h-glow: radial-gradient(900px 420px at 6% -10%, rgba(57, 135, 229, .18), transparent 62%), radial-gradient(760px 380px at 100% 0%, rgba(25, 158, 112, .10), transparent 60%);
+}

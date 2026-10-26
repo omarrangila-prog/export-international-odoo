@@ -11,5 +11,6 @@ ei_shell -d $DB --log-level=error < migration/setup_company.py
 EXI_SOURCE=migration/source/CODE_LIST.xlsx ei_shell -d $DB --log-level=error < migration/import_legacy_codes.py | grep BATCH
 EI_USER=admin ei_shell -d $DB --log-level=error < migration/grant_uat_roles.py | grep granted
 ei_shell -d $DB --log-level=error < migration/seed_uat_demo.py | grep "DEMO data"
+ei_shell -d $DB --log-level=error < migration/seed_dashboard_history.py | grep "DEMO history"
 ei_check_filestore $DB
 echo "staging ready: db=$DB  admin/admin + demo.<role>/demo   (serve: migration/serve.sh $DB)"

@@ -14,10 +14,10 @@ Nothing here replaces Odoo's web client: it is Odoo-supported assets (SCSS, Owl 
 | Group | Tokens | Notes |
 |---|---|---|
 | Ink and text | `ink` `text` `muted` `faint` `on-ink` | `ink` is headline colour in both themes (navy in light, near-white in dark). `nav-bg` is the top bar |
-| Surfaces | `bg` `card` `surface-2` `line` `line-strong` | Cards have a 1px border and a very light shadow; no glass, no gradients |
+| Surfaces | `bg` `card` `surface-2` `line` `line-strong` | Home cards (since the Overview redesign, 26 Oct) use `--h-r` 20px radius, a hairline `--h-edge` and a soft brand-tinted `--h-shadow` (declared on `.ei-home`, stepped for dark in `theme.dark.scss`); the page carries a faint blue/aqua glow `--h-glow`. Other screens keep the 12px card |
 | Brand | `primary` `primary-hover` `primary-soft` `primary-line` `on-primary` `focus` | One accent (blue). Focus ring is 3px, always visible |
 | Status | `ok` `warn` `bad` `info`, each with `-soft` and `-line` | Text colour on its own soft tint is >= 4.5:1 in both themes |
-| Chart | `s1` blue, `s2` orange, `seq-0..4` one-hue ramp | Series pair validated for colour-blind separation and 3:1 contrast in light and dark (dataviz validator: all checks pass) |
+| Chart | `s1` blue, `s2` orange, `s3` aqua (+ `-ink` for icons/text, `-soft` for icon chips, `-lite` for the pale end of a bar gradient), `seq-0..4` one-hue ramp | The first three slots of the validated palette, checked ALL-PAIRS in light and dark (dataviz validator: all pass; aqua on white is 2.74:1, so every aqua figure also shows its number and has a table view). Invoiced = blue, Received = orange, Material lifted = aqua |
 | Shape | `radius` 12px, `shadow`, `shadow-hover`, `shadow-pop` | |
 | Type | `font` | System UI stack (Inter if present, then Segoe UI/system-ui, Noto Nastaliq for Urdu). Figures use tabular numerals |
 
@@ -25,7 +25,7 @@ Measured contrast (WCAG ratio; 4.5 needed for text): light muted/card 6.2, muted
 dark muted/card 6.7, status colours on their tints 5.5 to 7.7. Axe-core runs on Home in the end-to-end suite and fails the build on any serious or critical finding.
 
 ## Scale
-Type: page title 20, section label 12 (uppercase, tracked), KPI value 28 (20 small), body 14-14.5, meta 12.5-13. Spacing: 4/8/12/16/24/28 rhythm. Touch targets: 44px on touch devices.
+Type: page title 44 (Home Overview; 32 on a phone), card title 16, big number 38 (32 in a period card, 30 in a pipeline column), KPI value 28 (21 small), section heading 18, body 14-14.5, meta 12.5-13. Numbers are tabular and tightly tracked (-0.03em). Spacing: 4/8/12/16/24/28 rhythm. Touch targets: 44px on touch devices.
 Motion: 120-200ms colour/position changes only; none for money values; all motion is switched off under `prefers-reduced-motion`.
 
 ## Components (Home)
@@ -58,3 +58,13 @@ Home and Party 360 use logical CSS properties (`inline-start/end`) and the compi
 Landmarks and headings; every icon is `aria-hidden` and every icon button has a label; search is an ARIA combobox with `aria-activedescendant`; menus use `role=menu`; dialogs are modal with Esc;
 tables and charts have a text alternative ("Show as table"); statuses carry words; `aria-pressed` on toggles; polite live region for confirmations. Keyboard: `/` focuses search, Ctrl+K opens Odoo's palette (now searching records too), Tab order follows reading order.
 Not yet done: supervised screen-reader pass and a keyboard-only task study with real staff.
+
+## The Overview (Home, 26 Oct 2026)
+Reference: the user supplied a dashboard they liked (a rounded-card overview with a big title, a period choice with "compared to", a gradient pipeline chart, a big number with a change chip, a question box). We took the visual language only, never the content: every number is real or absent.
+* **Top bar (all screens, both themes):** a light, rounded bar that floats clear of the window edges (dark card in dark mode), the open screen as a filled blue pill (`aria-current`, set by `static/src/nav/nav_current.js`), round icon buttons for messages and activities with a red count, "Ask" with a blue spark, the company and the signed-in person. Odoo's own markup and keyboard behaviour are untouched.
+* **Scrolling:** the Home and Party 360 are their own scroll containers with a thin, rounded scrollbar in the page's greys (`scrollbar-color`, `::-webkit-scrollbar`). Odoo's `.o_action { overflow: hidden; scrollbar-width: none }` wins over a plain `overflow-y: auto`, so the rule is `.o_web_client > .o_action_manager > .o_action.ei-home:not(.o_action_delegate_scroll)`; a test scrolls with the real mouse wheel.
+* **Header:** the title "Overview" with a round refresh button beside it, the period on the right as two date pills (the period, a choice; the days it is compared to, fixed), one line of context, then search.
+* **Hero:** the contract-to-payment pipeline (a column per step: what it is, the real count, what waits for a person) over one picture: gradient bars, a dashed smooth area through their tops, an axis in whole numbers (0, half, top), a tooltip on hover; the question box (Ask) is the foot of that card. Beside it "Customers owe us": the big number, how much of it is late, a one-bar picture of how late, and one row per band with an icon tile and a bar (a table view on the round button).
+* **Period cards:** Invoiced (smooth area with an end dot that follows the hover), Received in the bank (bars), Material lifted (bars): big number, a change chip, "Before: <earlier figure>", a day-by-day chart with hover, "Show as table", and an arrow that opens exactly the records added up. The change is only a percentage when there is something to compare ("New" and "No activity" otherwise).
+* **Lists:** bank balances (finance only, with whether the bank confirmed them) and who owes most (initials avatar, share bar, opens the party); recent invoices (or truck loadings for operators) with due date and a status in words, right after the cards.
+* **Rules that did not change:** a card the role may not see is absent; money only for finance, management and the auditor; charts never carry meaning by colour alone; light, dark and right-to-left share one file; motion is off under `prefers-reduced-motion`.

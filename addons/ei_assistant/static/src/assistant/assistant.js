@@ -23,7 +23,12 @@ export class EiAssistant extends Component {
                 this.state.starters = [];
             }
         });
-        onMounted(() => this.focusInput());
+        // a question typed into the box on Home arrives here as context and is asked at once
+        this.handedOver = ((this.props.action && this.props.action.context) || {}).ei_ask || "";
+        onMounted(() => {
+            this.focusInput();
+            if (this.handedOver) { this.ask(String(this.handedOver).slice(0, 300)); }
+        });
         onPatched(() => {
             if (this.stick) {
                 this.stick = false;

@@ -19,7 +19,7 @@ Audit and gap report: `AUDIT_AND_GAP_REPORT.md`. Status and honest limits: `docs
 | ei_automation | Business-owned reminders (A17 supplier invoice missing, A18 approved material not lifted, A19 overdue customer, A24 anomalies): every rule ships off, preview shows what it would do, the only effect is an internal reminder to a colleague, full run log |
 | ei_matching | Match bank payments: one screen with the queue, the decision (who paid, which invoices) and the evidence and effect; suggestions stay suggestions until a bank officer confirms; nothing is approved or posted from it |
 | ei_assistant | Ask: a read-only, rule-based assistant (not a language model) in the top bar. Answers from your own records with sources and "how worked out"; refuses to change anything; questions logged for management |
-| ei_ui_theme | Home command centre (figures, alerts, My Work with assign/snooze/escalate, pipeline, charts, grouped launcher) per role, universal search + Ctrl+K, light and dark themes, plain-language labels, card views, next-step banners, menus |
+| ei_ui_theme | Home Overview per role (period comparison, pipeline, what customers owe, who owes most, recent invoices, question box, figures, alerts, My Work with assign/snooze/escalate, grouped launcher), universal search + Ctrl+K, light and dark themes, plain-language labels, card views, next-step banners, menus |
 
 Open the staging site: see `docs/deployment_runbook.md` section 2 (admin/admin, demo.<role>/demo). Screenshots: `docs/ui/final/`.
 Run everything: `tests/run_all.sh` (unit tests, then the real-browser suite in `tests/e2e/`). Setup and operations: `docs/deployment_runbook.md`.

@@ -67,7 +67,7 @@ class TestHomeV2(TransactionCase):
             d = self.home(user)
             self.assertEqual(d['profile'], profile, user.login)
             self.assertEqual(sorted(d['layout']), sorted(set(d['layout'])), 'no section is listed twice')
-        self.assertEqual(self.home(self.ceo)['layout'][0], 'kpis')          # insight first
+        self.assertEqual(self.home(self.ceo)['layout'][0], 'hero')          # the overview first
         self.assertEqual(self.home(self.approver)['layout'][0], 'work')     # workflow first
         self.assertEqual(self.home(self.sysadmin)['layout'][0], 'system')
 

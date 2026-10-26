@@ -3,7 +3,7 @@
 const ROLES = [
   { key: 'CEO / executive', login: 'demo.ceo', profile: 'executive', role: 'Executive view',
     kpis: ['Bank balances', 'Customers owe us', 'We owe suppliers', 'Collected today', 'Bank money to match', 'Cash in hand', 'Expected gross spread', 'Differences with parent companies'],
-    sections: ['Needs attention', 'Trends and balances', 'From contract to payment'], money: true, drill: true },
+    sections: ['Needs attention', 'Money and material', 'From contract to payment'], money: true, drill: true },
   { key: 'Finance manager', login: 'demo.finance', profile: 'finance', role: 'Finance manager',
     kpis: ['Bank balances', 'Customers owe us', 'We owe suppliers', 'Collected today', 'Bank money to match', 'Cash in hand'], absent: ['Expected gross spread'], money: true, drill: true },
   { key: 'Accountant', login: 'demo.accountant', profile: 'accountant', role: 'Accountant', kpis: ['Customers owe us', 'We owe suppliers'], absent: ['Expected gross spread'], money: true, drill: true },

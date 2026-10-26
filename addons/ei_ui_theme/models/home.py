@@ -104,14 +104,14 @@ PROFILE_KPIS = {
     'general': ['k_contracts', 'k_left'],
 }
 PROFILE_LAYOUT = {
-    'executive': ['kpis', 'alerts', 'charts', 'work', 'pipeline', 'activity', 'quick'],
-    'finance': ['kpis', 'alerts', 'work', 'charts', 'pipeline', 'quick', 'activity'],
-    'accountant': ['work', 'kpis', 'alerts', 'quick', 'pipeline', 'charts', 'activity'],
-    'logistics': ['work', 'kpis', 'quick', 'pipeline', 'alerts', 'activity', 'charts'],
-    'contract': ['work', 'kpis', 'quick', 'pipeline', 'alerts', 'activity', 'charts'],
-    'data_entry': ['work', 'quick', 'kpis', 'alerts', 'pipeline', 'activity', 'charts'],
-    'admin': ['system', 'alerts', 'quick', 'pipeline', 'activity', 'work', 'charts', 'kpis'],
-    'general': ['work', 'kpis', 'quick', 'pipeline', 'alerts', 'activity', 'charts'],
+    'executive': ['hero', 'flows', 'recent', 'alerts', 'kpis', 'work', 'charts', 'activity', 'quick'],
+    'finance': ['hero', 'flows', 'recent', 'alerts', 'kpis', 'work', 'charts', 'quick', 'activity'],
+    'accountant': ['work', 'kpis', 'alerts', 'quick', 'hero', 'flows', 'charts', 'recent', 'activity'],
+    'logistics': ['work', 'kpis', 'quick', 'hero', 'flows', 'alerts', 'recent', 'activity', 'charts'],
+    'contract': ['work', 'kpis', 'quick', 'hero', 'flows', 'alerts', 'recent', 'activity', 'charts'],
+    'data_entry': ['work', 'quick', 'kpis', 'alerts', 'hero', 'recent', 'activity', 'charts', 'flows'],
+    'admin': ['system', 'alerts', 'quick', 'hero', 'activity', 'work', 'recent', 'charts', 'kpis', 'flows'],
+    'general': ['work', 'kpis', 'quick', 'hero', 'alerts', 'flows', 'recent', 'activity', 'charts'],
 }
 
 
@@ -182,7 +182,7 @@ class EiHome(models.AbstractModel):
 
     # ------------------------------------------------------------------ the page
     @api.model
-    def get_data(self):
+    def get_data(self, period=None):
         env, user = self.env, self.env.user
         now = fields.Datetime.context_timestamp(self, datetime.now())
         profile, role_label = self._profile()
@@ -191,13 +191,16 @@ class EiHome(models.AbstractModel):
         kpis = self._kpis(profile, dash)
         alerts = self._alerts()
         quick = self._quick()
+        # bank balances are a finance figure: the people who enter bank lines see what they entered, not what the banks hold
+        banks = self._banks() if self._finance_ok() else []
         data = {
             'profile': profile, 'layout': PROFILE_LAYOUT[profile],
             'header': self._header(now, role_label, work, alerts, dash),
             'kpis': kpis, 'alerts': alerts, 'work': work, 'quick': quick,
             'pipeline': self._pipeline(dash), 'charts': self._charts(dash), 'activity': self._activity(),
             'system': self._system() if user.has_group('base.group_system') else None,
-            'banks': self._banks(), 'steps': self._day_steps(),
+            'banks': banks, 'banks_total': self._fmt(sum(b['amount'] for b in banks)) if banks else '', 'steps': self._day_steps(),
+            'period': self._period_info(period), 'flows': self._flows(period), 'top_owing': self._top_owing(dash), 'recent': self._recent(),
         }
         data['empty'] = not (kpis or work['items'] or quick or alerts)
         return data
@@ -444,7 +447,7 @@ class EiHome(models.AbstractModel):
                        ('aging_90', _("61-90 days late")), ('aging_90plus', _("Over 90 days late")))
             rows = [{'label': label, 'value': round(dash[f], 2), 'text': self._fmt(dash[f])} for f, label in buckets]
             charts['aging'] = {'title': _("Who owes us, by how late"), 'rows': rows, 'empty': not any(r['value'] for r in rows),
-                               'summary': _("Total owed %s.", self._fmt(dash.ar_open))}
+                               'summary': _("Total owed %s.", self._fmt(dash.ar_open)), 'total': round(dash.ar_open, 2), 'total_text': self._fmt(dash.ar_open)}
         mat = self._material()
         if mat and mat.get('ordered'):
             charts['material'] = {'title': _("Material on active contracts"), **mat}
@@ -454,8 +457,11 @@ class EiHome(models.AbstractModel):
         env = self.env
         # bulk-created records (the 639 old codes) would drown the feed with one line each
         bulk = {w['model'] for w in WORK if w.get('bulk')}
-        models = sorted(({w['model'] for w in WORK} | {'account.move'}) - bulk)
-        models = [m for m in models if self._can(m)]
+        models = {w['model'] for w in WORK}
+        if self._finance_ok():
+            # an invoice's change messages carry its amounts: only people who may see money read them here
+            models.add('account.move')
+        models = [m for m in sorted(models - bulk) if self._can(m)]
         if not models:
             return []
         msgs = env['mail.message'].search([('model', 'in', models), ('message_type', 'in', ('comment', 'notification', 'tracking')),
@@ -465,6 +471,8 @@ class EiHome(models.AbstractModel):
             rec = env[m.model].browse(m.res_id).exists()
             if not rec or not rec.has_access('read'):
                 continue
+            if m.model == 'account.move' and rec.move_type == 'entry':
+                continue        # a bank or journal entry's change messages are bookkeeping noise, the invoice and the statement say it better
             # Odoo 20 writes a status change as a readable message: "Draft -> Reviewed (Status)"
             text = re.sub(r'\*(.+?)\*', r'\1', html2plaintext(m.body or '')).strip().replace('\n', ' ')[:140]
             if not text:
@@ -564,7 +572,7 @@ class EiHome(models.AbstractModel):
                 tone, text = 'danger', _("Bank and books differ by %s", self._fmt(chk.difference))
             else:
                 tone, text = 'warning', _("Last confirmed on %s", fields.Date.to_string(chk.date))
-            out.append({'name': j.name, 'balance': self._fmt(ledger), 'tone': tone, 'text': text})
+            out.append({'name': j.name, 'balance': self._fmt(ledger), 'amount': ledger, 'tone': tone, 'text': text})
         return out
 
     def _material(self):

@@ -91,6 +91,19 @@ Not done: performance/load test, penetration/security review, UAT with the clien
 | Whole screen in a real browser: top-bar button, answers equal the books, sources open, choosing between parties, refusals change nothing, log, operator never sees money, phone/tablet/desktop layout, axe in light and dark | GREEN | browser spec 09, and the screen is also in spec 05 |
 | A language model, Urdu and Roman-Urdu questions, follow-up questions, supervised user test | NOT DONE | needs decisions: `docs/open_decisions.md` 20-22 |
 
+## The Overview on Home (ei_ui_theme, 26 Oct 2026)
+| Check | Status | Evidence |
+|---|---|---|
+| The period is chosen by the server (an unknown or hostile value falls back to 14 days); the period before has the same length and ends the day before this one starts | GREEN | `ei_ui_theme` test_o01 |
+| A change is a percentage only when there is something to compare; otherwise "New" or "No activity" | GREEN | test_o02 |
+| Invoiced, received and lifted equal the posted invoices, posted bank receipts and verified loadings of the period, and the daily points add up to the card | GREEN | tests o03, o04 |
+| A card is absent when the role may not see it; a card opens exactly the records it added up; money roles only | GREEN | tests o05, o06 |
+| Who owes most adds up to what customers owe; recent invoices carry a status in words (overdue / not paid / paid); operators get truck loadings instead | GREEN | tests o07, o08 |
+| Banks total equals the sum of the banks and the bank figure; every layout contains the Overview and only known sections | GREEN | test o09 |
+| Home offers the question box only to people who have a question the assistant can answer, and each chip works | GREEN | `ei_assistant` test a23 |
+| In a real browser: cards equal the database for 14, 30 and 7 days; the change is worked out against the days before; hover tooltip; table equals the card; the arrow opens the records; who owes most opens the party; recent invoices open; the question box on Home reaches Ask; an operator sees no money; phone/tablet/desktop; dark axe | GREEN | browser spec 10; Home is also in specs 02, 03, 05 and 06 |
+| Supervised look by the CEO, a screen-reader pass | NOT DONE | |
+
 ## EXI ONE upgrade (25-26 Oct 2026) - what each piece is proven by
 | Check | Status | Evidence |
 |---|---|---|
