@@ -8,6 +8,7 @@
     'depends': ['ei_management_dashboard', 'web_tour'],
     'data': [
         'security/ir.access.csv',
+        'data/params.xml',
         'views/home_views.xml',
         'views/menus.xml',
         'views/cards.xml',

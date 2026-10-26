@@ -5,41 +5,55 @@ Two ways to sign in, on the same page (tabs **Password** | **PIN**):
 | Way | You type | Good for |
 |---|---|---|
 | Password | user name + password | everybody, always works |
-| PIN | user name + four digits | a quick sign-in on a shared desk or a phone, for people who set one |
+| PIN | **four digits, nothing else** (a number pad on a phone) | a quick sign-in at a shared desk or on a phone |
 
-The password way is Odoo's own and is untouched. A PIN does **not** replace it and is never required.
+The password way is Odoo's own and is untouched. A PIN does **not** replace it and is never required. (If an administrator sets `ei.pin.only_enabled` to False the PIN tab asks for the user name as well.)
 
 ## Setting your own PIN
-Sign in with your password. Open your name menu (top right) → **Sign-in PIN**. Type your password (every time), then the four digits twice. The server refuses the obvious ones in plain words: 1234, 0000, any repeated digit, digits in a row (3456, 5432), a year (1900-2035), a repeated pair (4747).
-You can remove it the same way ("Remove my PIN").
+Sign in with your password. Open your name menu (top right) → **Sign-in PIN**. Type your password (every time), then the four digits twice. Because the PIN alone says who you are, **two people cannot have the same PIN**: if yours is taken you are told "That PIN cannot be used" (without saying by whom) and after 5 such refusals in an hour you must wait, so nobody can find out whose PIN is which by trying them all.
+Easy PINs are refused in plain words: 1234, 0000, any repeated digit, digits in a row (3456, 5432), a year (1900-2035), a repeated pair (4747). You can remove it the same way ("Remove my PIN").
 
 ## What an administrator can and cannot do
-* Cannot read or choose anyone's PIN (only a salted hash is stored; there is no screen or call that returns it).
-* Can **remove** a person's PIN, or **lift a lock**: Settings > Users > the person > tab *Sign-in PIN*. The person then signs in with their password and can set a new PIN.
+* Cannot read or choose anyone's PIN from the screens (only a keyed hash is stored; no screen or call returns it).
+* Can **remove** a person's PIN, or **lift a lock**: Settings > Users > the person > tab *Sign-in PIN*.
+* The operator who deploys the system can give a **first PIN** from the server console (`migration/provision_pins.py`, below). Nothing else can choose a PIN for someone.
 * The system administrator account itself signs in with the password only (a PIN is refused even if one was planted).
 
-## Safety, in one place
+## What a PIN alone can and cannot protect (read this)
+A four-digit PIN has 10 000 possibilities, and with the PIN alone as the way in nobody has to guess *whose* PIN it is: any valid PIN works. So:
 | Question | Answer |
 |---|---|
-| How is it stored? | pbkdf2-sha512, random salt, bound to the account (a hash copied to another person does not work). No PIN is ever written to a log. |
-| Can someone guess it? | 10 000 combinations, so the *person* is locked, not the address: 5 wrong tries pause the PIN for 15 minutes, 10 for an hour, 15 lock it until an administrator lifts it. 15 guesses is 0.15 % of the combinations. The password is never affected by any of this. |
-| Many addresses at once? | The counter is per person. One address may also fail only 20 times in 15 minutes (all names together). Odoo's own per-address cooldown still applies. |
-| What does the person see on a refusal? | Always the same sentence: wrong PIN, unknown name, no PIN set, paused, locked and switched-off all read alike, so the page cannot be used to find out who has an account or a PIN. |
-| Does a PIN open the programming interfaces (RPC, API)? | No. It opens the web page only (`interactive` sign-in). Typing a PIN where a password is expected does nothing. |
-| Password reset by someone else? | A password set by someone other than the person (an administrator after a doubt, a reset link) also removes the PIN, so whoever held the old secrets keeps no way in. A person changing their own password keeps their PIN. |
-| Is there a record? | Yes: Setup > *Sign-in PIN activity* (system administrator, management, auditor; read-only, 180 days): every PIN sign-in good or refused (name, address, reason), and every set / remove / reset / unlock. An unknown name is stored as "(not a known name)" because people sometimes type their password into the name box. |
-| Honest limits | A four-digit PIN is guessable by someone who watches it being typed, and could be brute-forced **offline** by whoever copies the database (10 000 candidates; the salt and 600 000 rounds only slow that down). That is why it is a convenience beside the password, not a replacement, and why decision 26 in `open_decisions.md` recommends keeping the approving roles on the password. |
+| Can someone guess it? | Every refused PIN-alone sign-in, from any address, counts for the whole system. At 20 in an hour or 60 in a day **PIN sign-in rests for everybody** until the window has passed ("PIN sign-in is resting for a while. Use your password."); the password keeps working. One address may also fail only 20 times in 15 minutes. That holds a patient guesser to 60 tries a day: about 1.8 % a day to hit one of three random PINs. Home shows the administrator a red line while it is happening. |
+| Easy PINs (repeated digits, 1234...) | **These are the first nine or ten things anybody tries. Whoever types 1111, 2222 ... 9999 reaches such an account in under a minute, before any limit helps.** The system lets an operator provision them (the owner decided so) but `provision_pins.py` refuses unless `EI_PIN_ACCEPT_WEAK=1`, and the remedy is below: restrict PIN sign-in to the office network, or choose PINs that are not easy. |
+| Restrict where a PIN works | System Parameter `ei.pin.allowed_networks`, e.g. `203.0.113.0/24, 10.0.0.0/8` (addresses or ranges, comma-separated). From anywhere else the page says "PIN sign-in is only available from the office network. Use your password." Empty means anywhere. A value with no valid network closes PIN sign-in. Behind a proxy the server must run with `proxy_mode` so it sees the real address. |
+| How is it stored? | HMAC-SHA256 of the PIN with a key kept **outside the database** (`EI_PIN_PEPPER` in the server's environment). Someone who copies only the database cannot recover PINs. Without the variable the database's own secret is used: it works and protects nothing if the database is copied (Home says so to the administrator). Changing the key invalidates every PIN. No PIN is ever written to a log. |
+| Does a PIN open the programming interfaces (RPC, API)? | No: the web page only. Typing a PIN where a password is expected does nothing. |
+| What does a refusal say? | One sentence (or one of two that say nothing about PINs: "resting", "office network only"), so the page cannot be used to learn who has a PIN. |
+| Password reset by someone else? | A password set by someone other than the person (an administrator after a doubt, a reset link) also removes the PIN. A person changing their own password keeps it. |
+| With a user name too (`ei.pin.only_enabled` = False) | The PIN is checked against that one person: 5 wrong tries pause it 15 minutes, 10 an hour, 15 lock it until an administrator lifts it. Much safer; recommended for any account that approves or posts. |
+| Honest limit | A four-digit PIN is guessable by someone who watches it typed, and is only as strong as the limits and the network rule around it. It is a convenience beside the password, never a replacement for it on an account that can move money. |
 
 ## Settings (System Parameters)
 | Key | Meaning | Default |
 |---|---|---|
-| `ei.pin.enabled` | switch the whole feature off (the tab disappears, PIN sign-in is refused) | True |
-| `ei.pin.blocked_groups` | comma-separated group ids that must use the password, e.g. `base.group_system,ei_contract_da.group_ei_contract_approver`; write `none` to reserve nobody | `base.group_system` |
+| `ei.pin.enabled` | switch the whole feature off | True |
+| `ei.pin.only_enabled` | allow the PIN alone (False: the PIN tab also asks for the user name) | True |
+| `ei.pin.blocked_groups` | comma-separated group ids that must use the password; write `none` to reserve nobody | `base.group_system` |
+| `ei.pin.allowed_networks` | where a PIN may be used (above) | empty = anywhere |
+| `EI_PIN_PEPPER` (server environment, not a parameter) | the key that protects PINs | must be set on a live server |
 
-The numbers (5 / 10 / 15 tries, 15 min / 1 h, 20 per address) are constants in `addons/ei_pin_login/models/pin_policy.py`.
+The numbers (5 / 10 / 15 tries, 20 and 60 refusals, 20 per address) are constants in `addons/ei_pin_login/models/pin_policy.py`.
+
+## Giving first PINs (the operator)
+```
+EI_PROVISION_FILE=/somewhere/outside/the/repo/people.json  [EI_PIN_ACCEPT_WEAK=1]  ei_shell -d DB < migration/provision_pins.py
+```
+`people.json` (never in git) lists `login`, `name`, `role` (`executive` = the CEO's view; `all_operations` = every Export International role plus accountant, **not** the system administrator) and `pin`. A new person gets a random first password, shown once. Roles can be set with `groups` instead. See the header of the script.
+
+On the staging copy three senior people were provisioned this way at the owner's request (the CEO and a second director with the executive view, the IT team lead with every operational role but not the system administrator account). The second director's role was assumed and is to be confirmed. Their PINs are in the owner's hands and in a private file on the machine that built this, never in git.
 
 ## Demo PINs (STAGING only, synthetic)
-`migration/seed_demo_pins.py` gives every demo login a PIN so the feature can be tried; they exist only on the staging copy and are changed by each person from the name menu.
+`migration/seed_demo_pins.py` gives every demo login a PIN so the feature can be tried; they exist only on the staging copy.
 
 | Login | PIN |
 |---|---|
@@ -53,6 +67,9 @@ The numbers (5 / 10 / 15 tries, 15 min / 1 h, 20 per address) are constants in `
 | demo.dispatch | 9261 |
 | demo.sysadmin | none (administrator: password only) |
 
+## Record
+Setup > *Sign-in PIN activity* (system administrator, management, auditor; read-only, 180 days): every PIN sign-in, good or refused (address, reason; nobody is blamed for a refused PIN alone), and every set / remove / reset / unlock. A PIN is never recorded.
+
 ## Tests
-* `addons/ei_pin_login/tests/test_pin_login.py` - 27 tests: PIN rules, hash only, password needed to set, every refusal reads the same, PIN is not a password and the reverse, copied hash fails, pause / hour / hard lock / unlock, lock belongs to the person, address throttle, system administrator excluded, switch off, admin remove and unlock only, nobody can read the hashes, log content (never a PIN), clean-up, and the real `/web/login` page and `/xmlrpc` (a PIN does not open it).
-* `tests/e2e/specs/15_pin_login.js` - the real page in a browser: both tabs, only the chosen field sent, digits only, set from the name menu (wrong password, weak PIN, mismatch, success), sign in with it, wrong PIN and unknown name read the same and stay on the PIN tab, password still works, administrator has no menu entry, removal closes it, log, phone.
+* `addons/ei_pin_login/tests/test_pin_login.py` - 34 tests: PIN rules; keyed hash; password needed to set; no two people share a PIN and probing for taken ones is stopped; the PIN alone signs in and is logged without blaming anyone; the system-wide pause (hourly and daily); the switch; the network rule; provisioned PINs; every refusal reads the same; a PIN is not a password and the reverse; pause / hour / hard lock / unlock for the named variant; address throttle; the system administrator excluded; nobody can read the hashes; the log never holds a PIN; the real `/web/login` page, `/xmlrpc`, and the network message. Mutation-checked: removing the pause, the lock or the network rule makes tests fail.
+* `tests/e2e/specs/15_pin_login.js` - the real page in a browser: both tabs, only the chosen field sent, no name asked, set from the name menu (wrong password, weak PIN, mismatch, success), sign in with the four digits alone, wrong PIN, the number pad on a phone (digits, delete, clear, sends at the fourth digit), password still works, the administrator has no menu entry, removal closes it, the log, phone layout.

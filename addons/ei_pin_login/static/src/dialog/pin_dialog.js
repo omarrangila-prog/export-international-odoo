@@ -45,7 +45,7 @@ export class EiPinDialog extends Component {
         }
     }
 
-    save() { if (this.canSave) { return this.run("ei_set_pin", { password: this.state.password, pin: this.state.pin, confirm: this.state.confirm }, _t("Your PIN is saved. On the sign-in page, choose the PIN tab, type your user name and the four digits.")); } }
+    save() { if (this.canSave) { return this.run("ei_set_pin", { password: this.state.password, pin: this.state.pin, confirm: this.state.confirm }, this.state.info.pin_only ? _t("Your PIN is saved. On the sign-in page, choose the PIN tab and type the four digits.") : _t("Your PIN is saved. On the sign-in page, choose the PIN tab, type your user name and the four digits.")); } }
     remove() { if (this.state.password && !this.state.busy) { return this.run("ei_remove_pin", { password: this.state.password }, _t("Your PIN is removed. Sign in with your password.")); } else { this.state.error = _t("Type your password first."); } }
 }
 

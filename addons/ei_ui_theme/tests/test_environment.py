@@ -18,3 +18,10 @@ class TestEnvironmentLabel(HttpCase):
         self.assertIn('Export International', page)                                                  # the brand line
         self.assertIn('STAGING - synthetic demo data', page)                                          # and which system this is
         self.assertIn('oe_login_form', page)                                                          # Odoo's own form and security flow are still there
+
+    def test_e02_nobody_can_open_an_account_for_themselves(self):
+        self.assertEqual(self.env['ir.config_parameter'].sudo().get_str('auth_signup.invitation_scope'), 'b2b')
+        self.opener.cookies.clear()
+        self.assertNotIn("have an account", self.url_open('/web/login').text)                        # no sign-up link on the sign-in page
+        self.assertNotEqual(self.url_open('/web/signup', allow_redirects=False).status_code, 200)    # and no sign-up page
+

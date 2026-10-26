@@ -1,9 +1,9 @@
 {
     'name': 'Export International - Sign-in with a PIN',
-    'version': '20.0.1.0.0',
+    'version': '20.0.1.1.0',
     'category': 'Hidden',
-    'summary': 'Second way to sign in: user name and a personal four-digit PIN, beside user name and password. Salted hash, pauses and locks '
-               'after wrong tries, a sign-in log, the web page only (never the programming interfaces).',
+    'summary': 'Second way to sign in: a personal four-digit PIN (alone, no user name), beside user name and password. Keyed hash, pauses and '
+               'locks after wrong tries, optional network allow-list, a sign-in log, the web page only (never the programming interfaces).',
     'author': 'Odoovations',
     'license': 'LGPL-3',
     'depends': ['ei_ui_theme', 'ei_management_dashboard', 'ei_legacy_master'],

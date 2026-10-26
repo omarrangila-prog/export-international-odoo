@@ -8,4 +8,11 @@ body.o_web_login {
     .ei-pin-input { text-align: center; font-size: 26px; font-weight: 700; letter-spacing: .55em; padding-inline-start: calc(.55em + 14px); font-variant-numeric: tabular-nums; min-height: 56px; }
     .ei-pin-input::placeholder { letter-spacing: .4em; color: #B4BDCC; }
     .ei-pin-help { display: block; margin-top: 8px; color: #566275; font-size: 12.5px; line-height: 1.4; }
+    .ei-keypad { display: none; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 16px; }
+    .ei-key { appearance: none; border: 1px solid var(--ei-line, #CBD3DF); background: #fff; border-radius: 16px; min-height: 58px; font: inherit; font-size: 22px; font-weight: 700; color: #0F1B33; cursor: pointer; touch-action: manipulation;
+        transition: background .12s, transform .08s; -webkit-tap-highlight-color: transparent;
+        &:active { background: #E8EEFC; transform: scale(.97); }
+        &:focus-visible { outline: 3px solid #93B4F5; outline-offset: 1px; } }
+    .ei-key-ghost { font-size: 14px; font-weight: 600; color: #566275; background: transparent; border-color: transparent; }
+    @media (pointer: coarse), (max-width: 640px) { .ei-keypad { display: grid; } .ei-pin-help { text-align: center; } }
 }

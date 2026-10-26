@@ -1,27 +1,29 @@
+import hashlib
+import hmac
 import logging
+import os
 from datetime import timedelta
 
 import psycopg2.errors
-from passlib.context import CryptContext
 
-from odoo import api, fields, models
-from odoo.addons.base.models.res_users import MIN_ROUNDS
+from odoo import _, api, fields, models
 
-from .pin_policy import EiPinDenied, lock_for
+from .pin_policy import EiPinDenied, PinNotAvailable, lock_for
 
 _logger = logging.getLogger(__name__)
-_DUMMY = {}
+_warned = set()
 
 
 class EiPinCredential(models.Model):
-    """The sign-in PIN of one person: only a salted hash, never the PIN, and the count of wrong tries. Nobody (an administrator
-    included) can read or choose someone else's PIN; an administrator can only remove it or lift a lock."""
+    """The sign-in PIN of one person. Only a keyed hash (HMAC-SHA256, key kept OUTSIDE the database), never the PIN. The same PIN cannot
+    belong to two people (that is what lets a PIN alone say who is signing in). Nobody, an administrator included, can read or choose
+    someone else's PIN; an administrator can only remove it or lift a lock."""
     _name = 'ei.pin.credential'
     _description = 'Sign-in PIN'
     _log_access = True
 
     user_id = fields.Many2one('res.users', required=True, ondelete='cascade', index=True)
-    pin_hash = fields.Char(required=True, copy=False, prefetch=False)
+    pin_index = fields.Char(required=True, copy=False, prefetch=False)
     set_on = fields.Datetime(readonly=True)
     last_used = fields.Datetime(readonly=True)
     failed_count = fields.Integer('Wrong tries since the last good one', readonly=True, default=0)
@@ -29,35 +31,35 @@ class EiPinCredential(models.Model):
     hard_locked = fields.Boolean('Locked until unlocked', readonly=True)
 
     _user_uniq = models.Constraint('unique(user_id)', 'A person has one PIN.')
+    _pin_uniq = models.Constraint('unique(pin_index)', 'That PIN cannot be used.')
 
-    # ---- hashing: pbkdf2-sha512 with a random salt per PIN, bound to the account so a copied hash does not work for another person
+    # ---- keyed hash. 10 000 PINs can be tried in a blink by anyone who has BOTH the database and the key, so the key lives in the server's
+    # environment (EI_PIN_PEPPER), not in the database. Without it the fallback is the database's own secret: it works, and protects
+    # nothing if the database is copied (a warning says so once).
     @api.model
-    def _context(self):
-        rounds = max(MIN_ROUNDS, self.env['ir.config_parameter'].sudo().get_int('password.hashing.rounds'))
-        return CryptContext(['pbkdf2_sha512'], pbkdf2_sha512__rounds=rounds)
+    def _pepper(self):
+        key = os.environ.get('EI_PIN_PEPPER')
+        if key:
+            return key
+        if self.env.cr.dbname not in _warned:
+            _warned.add(self.env.cr.dbname)
+            _logger.warning('EI_PIN_PEPPER is not set: sign-in PINs are keyed with the database secret, which protects nothing if the '
+                            'database is copied. Set EI_PIN_PEPPER in the server environment (docs/pin_login.md).')
+        return self.env['ir.config_parameter'].sudo().get_str('database.secret', 'ei')
 
     @api.model
-    def _secret(self, user_id, pin):
-        return f'{user_id}:{pin}'
-
-    @api.model
-    def _hash(self, user_id, pin):
-        return self._context().hash(self._secret(user_id, pin))
-
-    @api.model
-    def _dummy_verify(self, pin):
-        """Spend the same time on a person who has no PIN (or is paused) as on one who has, so the answer does not give the name away."""
-        ctx = self._context()
-        key = id(self.env.registry)
-        if key not in _DUMMY:
-            _DUMMY[key] = ctx.hash('0:0000')
-        ctx.verify(self._secret(0, pin), _DUMMY[key])
+    def _index(self, pin):
+        return hmac.new(self._pepper().encode(), f'ei-pin:{pin}'.encode(), hashlib.sha256).hexdigest()
 
     # ---- set / remove (the person, after proving the password) and reset / unlock (an administrator)
     @api.model
     def _set_pin(self, user, pin):
-        now = fields.Datetime.now()
-        vals = {'pin_hash': self._hash(user.id, pin), 'set_on': now, 'failed_count': 0, 'locked_until': False, 'hard_locked': False}
+        """Stores the PIN. No quality rule here (a person's PIN is checked by check_new_pin before; an operator provisioning a first PIN
+        decides for themselves); the only refusal is a PIN that already belongs to somebody else."""
+        index = self._index(pin)
+        if self.sudo().search_count([('pin_index', '=', index), ('user_id', '!=', user.id)]):
+            raise PinNotAvailable(_('That PIN cannot be used. Choose another.'))
+        vals = {'pin_index': index, 'set_on': fields.Datetime.now(), 'failed_count': 0, 'locked_until': False, 'hard_locked': False}
         cred = self.sudo().search([('user_id', '=', user.id)])
         if cred:
             cred.write(vals)
@@ -67,34 +69,34 @@ class EiPinCredential(models.Model):
     def _lift_lock(self):
         self.sudo().write({'failed_count': 0, 'locked_until': False, 'hard_locked': False})
 
+    @api.model
+    def _user_for_pin(self, pin):
+        """Whose PIN is this? (empty recordset when nobody's.) Used by the sign-in with the PIN alone."""
+        return self.sudo().search([('pin_index', '=', self._index(pin))], limit=1).user_id
+
     # ---- the check itself. One transaction of its own that is committed whatever happens to the request, with the row held, so two
     # guesses at the same moment cannot both be counted as the first. The refusal is raised only after the commit.
     @api.model
     def _verify(self, user, pin):
-        ctx = self._context()
+        wanted = self._index(pin)
         reason = 'wrong_pin'
         try:
             with self.pool.cursor() as cr:
-                cr.execute('SELECT id, pin_hash, failed_count, locked_until, hard_locked FROM ei_pin_credential WHERE user_id = %s FOR UPDATE', [user.id])
+                cr.execute('SELECT id, pin_index, failed_count, locked_until, hard_locked FROM ei_pin_credential WHERE user_id = %s FOR UPDATE', [user.id])
                 row = cr.fetchone()
                 if not row:
-                    self._dummy_verify(pin)
                     reason = 'not_set'
                 else:
-                    cid, pin_hash, failed, locked_until, hard = row
+                    cid, stored, failed, locked_until, hard = row
                     failed = failed or 0
                     if hard:
-                        self._dummy_verify(pin)
                         reason = 'locked_hard'
                     elif locked_until and locked_until > fields.Datetime.now():
-                        self._dummy_verify(pin)
                         reason = 'paused'
+                    elif hmac.compare_digest(stored, wanted):
+                        cr.execute('UPDATE ei_pin_credential SET failed_count = 0, locked_until = NULL, last_used = %s WHERE id = %s', [fields.Datetime.now(), cid])
+                        return {'uid': user.id, 'auth_method': 'ei_pin', 'mfa': 'default'}
                     else:
-                        valid, replacement = ctx.verify_and_update(self._secret(user.id, pin), pin_hash)
-                        if valid:
-                            cr.execute('UPDATE ei_pin_credential SET failed_count = 0, locked_until = NULL, last_used = %s, pin_hash = %s WHERE id = %s',
-                                       [fields.Datetime.now(), replacement or pin_hash, cid])
-                            return {'uid': user.id, 'auth_method': 'ei_pin', 'mfa': 'default'}
                         failed += 1
                         seconds, hard = lock_for(failed)
                         until = fields.Datetime.now() + timedelta(seconds=seconds) if seconds else None

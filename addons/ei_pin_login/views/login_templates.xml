@@ -4,7 +4,7 @@
          cooldown and the password recovery are Odoo's own; the PIN tab only swaps which field is sent and what `type` says. -->
     <template id="login_pin" inherit_id="web.login" name="Export International sign-in PIN">
         <xpath expr="//div[hasclass('field-login')]" position="before">
-            <div t-if="ei_pin_enabled" class="ei-login-tabs" role="group" aria-label="Sign in with" t-att-data-server-mode="ei_login_mode or None">
+            <div t-if="ei_pin_enabled" class="ei-login-tabs" role="group" aria-label="Sign in with" t-att-data-server-mode="ei_login_mode or None" t-att-data-pin-only="'1' if ei_pin_only else None">
                 <button type="button" class="ei-login-tab" data-mode="password" aria-pressed="true">Password</button>
                 <button type="button" class="ei-login-tab" data-mode="pin" aria-pressed="false">PIN</button>
             </div>
@@ -24,7 +24,14 @@
                 <label for="ei_pin" class="form-label">PIN</label>
                 <input type="password" name="ei_pin" id="ei_pin" class="form-control ei-pin-input" inputmode="numeric" pattern="[0-9]{4}" minlength="4" maxlength="4"
                        autocomplete="off" autocapitalize="off" placeholder="&#8226;&#8226;&#8226;&#8226;" disabled="disabled" aria-describedby="ei_pin_help"/>
-                <small id="ei_pin_help" class="ei-pin-help">Four digits. If you do not have a PIN yet, sign in with your password and set one from your name menu.</small>
+                <div class="ei-keypad" role="group" aria-label="Number pad">
+                    <button type="button" class="ei-key" data-key="1">1</button><button type="button" class="ei-key" data-key="2">2</button><button type="button" class="ei-key" data-key="3">3</button>
+                    <button type="button" class="ei-key" data-key="4">4</button><button type="button" class="ei-key" data-key="5">5</button><button type="button" class="ei-key" data-key="6">6</button>
+                    <button type="button" class="ei-key" data-key="7">7</button><button type="button" class="ei-key" data-key="8">8</button><button type="button" class="ei-key" data-key="9">9</button>
+                    <button type="button" class="ei-key ei-key-ghost" data-key="clear" aria-label="Clear the digits">Clear</button><button type="button" class="ei-key" data-key="0">0</button>
+                    <button type="button" class="ei-key ei-key-ghost" data-key="back" aria-label="Delete the last digit">&#9003;</button>
+                </div>
+                <small id="ei_pin_help" class="ei-pin-help">Four digits. No PIN yet? sign in with your password and set one from your name menu.</small>
             </div>
         </xpath>
     </template>

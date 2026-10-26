@@ -24,7 +24,7 @@
                             <input id="ei_pin_confirm" type="password" class="o_input ei-pin-digits" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="&#8226;&#8226;&#8226;&#8226;" t-att-value="this.state.confirm" t-on-input="(ev) => this.digits('confirm', ev)"/>
                         </div>
                     </div>
-                    <p class="ei-pin-note">Not a PIN like 1234, 0000, a year, or digits in a row. Do not share it: anyone with your user name and PIN can sign in as you.</p>
+                    <p class="ei-pin-note">Not a PIN like 1234, 0000, a year, or digits in a row. Do not share it: <t t-if="this.state.info and this.state.info.pin_only">anyone who knows these four digits can sign in as you, without your user name.</t><t t-else="">anyone with your user name and PIN can sign in as you.</t></p>
                 </t>
             </div>
             <t t-set-slot="footer">

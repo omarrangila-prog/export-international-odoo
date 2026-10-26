@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- This is a company's own system: nobody creates an account for themselves. Odoo's default here was "free sign up" (b2c), which put a
+         "Don't have an account?" link on the sign-in page. Set once at install; an administrator can still choose otherwise afterwards. -->
+    <function model="ir.config_parameter" name="set_str" eval="('auth_signup.invitation_scope', 'b2b')"/>
+</odoo>

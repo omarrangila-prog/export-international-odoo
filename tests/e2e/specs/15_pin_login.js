@@ -1,7 +1,7 @@
-// Sign-in with a user name and a four-digit PIN, beside user name and password: the real page in a real browser.
+// Sign-in with a four-digit PIN ALONE (no user name), beside user name and password: the real page in a real browser.
 // What is proved: both ways are offered and only the chosen field is sent; a person sets their own PIN from the name menu only after
 // typing the password (and weak PINs are refused in plain words); that PIN then signs them in; a wrong PIN and an unknown name read
-// exactly the same and the page stays on the PIN tab with the name kept; the system administrator is never offered a PIN; removing the
+// exactly the same and the page stays on the PIN tab; the number pad works on a phone; the system administrator is never offered a PIN; removing the
 // PIN closes the way; the page fits a phone. (Locking after repeated wrong tries is proved in the unit tests, not by hammering this server:
 // Odoo's own per-address cooldown would then refuse the next sign-ins of this run.)
 const LOGIN = 'demo.contracts', PASSWORD = 'demo', PIN = '4829';
@@ -35,9 +35,10 @@ module.exports = {
     await tabs.nth(1).click();
     ctx.check(await tabs.nth(1).getAttribute('aria-pressed') === 'true' && await visible(p, '#ei_pin') && !await visible(p, '#password'), '1 the PIN tab shows the PIN field and hides the password');
     ctx.check(await p.locator('input[name=type]').inputValue() === 'ei_pin' && await p.locator('#password').isDisabled() && !await p.locator('#ei_pin').isDisabled(), '1 now only the PIN is sent, as type "ei_pin"');
-    await p.fill('#login', LOGIN); await p.locator('#ei_pin').pressSequentially('48a2 b9');
-    ctx.check(await p.locator('#ei_pin').inputValue() === PIN, '1 the PIN field takes digits only, four at most', await p.locator('#ei_pin').inputValue());
-    ctx.check(await p.locator('#ei_pin').getAttribute('inputmode') === 'numeric', '1 a phone shows the number pad');
+    ctx.check(!await visible(p, '#login') && await p.locator('#login').isDisabled(), '1 the PIN tab does not ask for a user name: the four digits say who it is');
+    await p.locator('#ei_pin').pressSequentially('4a8 b2');
+    ctx.check(await p.locator('#ei_pin').inputValue() === '482', '1 the PIN field takes digits only', await p.locator('#ei_pin').inputValue());
+    ctx.check(await p.locator('#ei_pin').getAttribute('inputmode') === 'numeric' && await p.locator('#ei_pin').getAttribute('maxlength') === '4', '1 four digits at most, and a phone shows the number pad');
     await p.fill('#ei_pin', ''); await ctx.shot(p, 'login_pin');
     const axe = await view.axe('form.oe_login_form');
     ctx.check(!axe || !axe.filter(v => v.impact === 'serious' || v.impact === 'critical').length, '1 accessibility on the PIN tab', JSON.stringify(axe));
@@ -78,22 +79,28 @@ module.exports = {
     await s.clean('2 setting a PIN opens clean', m);
     await s.close();
 
-    // ---- 3 the PIN signs them in; a wrong PIN and an unknown name read the same and the page stays on the PIN tab
+    // ---- 3 the PIN alone signs them in; a wrong PIN reads like any refusal and the page stays on the PIN tab
     ({ bctx, p, view } = await signInPage(ctx, browser));
     await p.locator('.ei-login-tab[data-mode=pin]').click();
-    await p.fill('#login', LOGIN); await p.locator('#ei_pin').pressSequentially('5083'); await p.keyboard.press('Enter');
+    await p.locator('#ei_pin').pressSequentially('5083');                                  // the fourth digit sends it
     await p.waitForSelector('.alert-danger');
     const wrongText = (await p.locator('.alert-danger').innerText()).replace(/\s+/g, ' ').trim();
-    ctx.check(/That did not work/.test(wrongText) && !/lock|paus/i.test(wrongText.replace(/After several wrong tries a PIN is paused for a while\./, '')), '3 a wrong PIN: one plain sentence, no hint which part was wrong', wrongText);
-    ctx.check(await p.locator('.ei-login-tab[data-mode=pin]').getAttribute('aria-pressed') === 'true' && await p.locator('#login').inputValue() === LOGIN, '3 the page stays on the PIN tab and keeps the name');
+    ctx.check(/That did not work/.test(wrongText) && !/lock/i.test(wrongText), '3 a wrong PIN: one plain sentence', wrongText);
+    ctx.check(await p.locator('.ei-login-tab[data-mode=pin]').getAttribute('aria-pressed') === 'true' && !await visible(p, '#login'), '3 the page stays on the PIN tab, still without a name');
     await ctx.shot(p, 'login_pin_error');
-    await p.fill('#login', 'nobody.at.all'); await p.locator('#ei_pin').pressSequentially('5083'); await p.keyboard.press('Enter');
-    await p.waitForSelector('.alert-danger');
-    ctx.check((await p.locator('.alert-danger').innerText()).replace(/\s+/g, ' ').trim() === wrongText, '3 a name that does not exist reads exactly the same');
-    await p.fill('#login', LOGIN); await p.locator('#ei_pin').fill(''); await p.locator('#ei_pin').pressSequentially(PIN); await p.keyboard.press('Enter');
+    await p.locator('#ei_pin').pressSequentially(PIN);
     await p.waitForSelector('.o_navbar', { timeout: 60000 });
     const info = await p.evaluate(async () => (await (await fetch('/web/session/get_session_info', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{"jsonrpc":"2.0","method":"call","params":{}}' })).json()).result);
-    ctx.check(info.uid === uid, '3 user name and PIN signs in as that person', `uid ${info.uid} expected ${uid}`);
+    ctx.check(info.uid === uid, '3 the four digits alone sign in the person they belong to', `uid ${info.uid} expected ${uid}`);
+    await bctx.close();
+
+    // ---- 3b a phone: the number pad fills the same field and sends at the fourth digit
+    ({ bctx, p, view } = await signInPage(ctx, browser, [390, 844]));
+    await p.locator('.ei-login-tab[data-mode=pin]').click();
+    ctx.check(await visible(p, '.ei-keypad') && (await p.locator('.ei-key[data-key="5"]').boundingBox()).height >= 44, '3b the number pad shows on a phone, keys big enough to touch');
+    for (const k of ['4', '8', 'back', '8', 'clear', '4', '8', '2', '9']) await p.locator(`.ei-key[data-key="${k}"]`).click();
+    await p.waitForSelector('.o_navbar', { timeout: 60000 });
+    ctx.check(true, '3b typing 4, 8, delete, 8, clear, 4, 8, 2, 9 on the pad signs in (delete and clear work)');
     await bctx.close();
 
     // ---- 4 the password still works on the same page, after the PIN was set
@@ -114,18 +121,20 @@ module.exports = {
     ctx.check(await state() === 'none', '6 an administrator can remove a PIN (never read or choose one)');
     ({ bctx, p, view } = await signInPage(ctx, browser));
     await p.locator('.ei-login-tab[data-mode=pin]').click();
-    await p.fill('#login', LOGIN); await p.locator('#ei_pin').pressSequentially(PIN); await p.keyboard.press('Enter');
+    await p.locator('#ei_pin').pressSequentially(PIN);
     await p.waitForSelector('.alert-danger');
     ctx.check(/That did not work/.test(await p.locator('.alert-danger').innerText()), '6 the removed PIN no longer signs in');
     await bctx.close();
     const log = await admin.rpc('ei.pin.log', 'search_read', [[['user_id', '=', uid]], ['event', 'success', 'reason']]);
     const kinds = log.map(r => `${r.event}:${r.success ? 'ok' : 'no'}`);
-    ctx.check(kinds.includes('set:ok') && kinds.includes('signin:ok') && kinds.includes('signin:no') && kinds.includes('reset:ok'), '6 the log holds the set, the good and refused sign-ins and the removal', kinds.join(' '));
+    ctx.check(kinds.includes('set:ok') && kinds.includes('signin:ok') && kinds.includes('reset:ok'), '6 the log holds the set, the good sign-ins and the removal', kinds.join(' '));
+    const refused = await admin.rpc('ei.pin.log', 'search_read', [[['pin_only', '=', true], ['success', '=', false]], ['reason', 'user_id', 'login']]);
+    ctx.check(refused.length >= 2 && refused.every(r => !r.user_id && !r.login), '6 refused PIN-alone sign-ins are logged and nobody is blamed for them', JSON.stringify(refused.slice(0, 2)));
     ctx.check(!JSON.stringify(log).includes(PIN) && !JSON.stringify(log).includes('5083'), '6 the log never holds a PIN');
 
     // ---- 7 a phone
     ({ bctx, p, view } = await signInPage(ctx, browser, [390, 844]));
-    await p.locator('.ei-login-tab[data-mode=pin]').click(); await p.fill('#login', LOGIN);
+    await p.locator('.ei-login-tab[data-mode=pin]').click();
     const lay = await view.layout();
     ctx.check(!lay.overflow && !lay.wide.length, '7 the PIN tab fits a phone: no sideways scroll', JSON.stringify(lay));
     ctx.check((await p.locator('#ei_pin').boundingBox()).height >= 44, '7 the PIN field is a comfortable touch target');

@@ -3,7 +3,7 @@ on their own."""
 import re
 
 from odoo import _
-from odoo.exceptions import AccessDenied, ValidationError
+from odoo.exceptions import AccessDenied, UserError, ValidationError
 
 PIN_RE = re.compile(r'[0-9]{4}')           # ASCII digits only (\d would also accept other scripts)
 
@@ -11,6 +11,11 @@ PIN_RE = re.compile(r'[0-9]{4}')           # ASCII digits only (\d would also ac
 # addresses does not help. Password sign-in is never affected by any of this. 15 wrong guesses is 0.15 % of the 10 000 possible PINs.
 PAUSE_AFTER = ((10, 3600), (5, 900))        # 5 wrong -> 15 minutes, 10 wrong -> 1 hour
 HARD_LOCK_AFTER = 15                         # 15 wrong -> locked until an administrator unlocks it (or the person sets a new PIN with the password)
+# Signing in with the PIN ALONE (no name): a wrong PIN cannot be blamed on anybody, so the brake is on the whole system. Over these
+# limits PIN sign-in pauses for everyone (the password keeps working) until the window has passed, and an administrator sees it on Home.
+PIN_ONLY_HOUR_LIMIT = 20                     # refused PIN-only sign-ins, any address, in the last hour
+PIN_ONLY_DAY_LIMIT = 60                      # ... in the last 24 hours
+SET_REFUSED_LIMIT = 5                        # PINs refused as "not available" per person per hour (stops a signed-in person probing which PINs are taken)
 IP_WINDOW_SECONDS = 900                      # one address may fail this many times, over all names together, in 15 minutes
 IP_LIMIT = 20
 
@@ -54,9 +59,14 @@ def lock_for(failures):
 
 
 class EiPinDenied(AccessDenied):
-    """A refused PIN sign-in. The person always sees the same sentence; the reason is only for the sign-in log."""
+    """A refused PIN sign-in. The person normally sees the same sentence whatever the reason; the reason is only for the sign-in log.
+    A few reasons that say nothing about anybody's PIN carry their own sentence (paused for everyone, wrong network)."""
 
-    def __init__(self, reason, user_id=False):
-        super().__init__()
+    def __init__(self, reason, user_id=False, message=None):
+        super().__init__(message) if message else super().__init__()
         self.reason = reason
         self.user_id = user_id
+
+
+class PinNotAvailable(UserError):
+    """The PIN is already somebody else's. Said in one flat sentence that also fits a PIN that is not allowed."""

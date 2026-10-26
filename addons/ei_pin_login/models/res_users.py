@@ -1,10 +1,11 @@
+import ipaddress
 import logging
 
 from odoo import _, api, fields, models
 from odoo.exceptions import AccessDenied, AccessError, UserError
 from odoo.http import request
 
-from .pin_policy import PIN_RE, EiPinDenied, check_new_pin
+from .pin_policy import PIN_RE, EiPinDenied, PinNotAvailable, check_new_pin
 
 _logger = logging.getLogger(__name__)
 DEFAULT_BLOCKED = 'base.group_system'
@@ -54,30 +55,76 @@ class ResUsers(models.Model):
         user = self.sudo()
         return not any(user.has_group(g) for g in self._ei_pin_blocked_groups() if self.env['ir.model.data']._xmlid_to_res_id(g, raise_if_not_found=False))
 
+    # ---- where from
+    @api.model
+    def _ei_pin_network_ok(self, ip):
+        """PIN sign-in only from the networks named in `ei.pin.allowed_networks` (comma-separated addresses or ranges such as
+        203.0.113.0/24). Empty means from anywhere. A value that names no valid network closes PIN sign-in (it never opens it)."""
+        names = [n.strip() for n in self.env['ir.config_parameter'].sudo().get_str('ei.pin.allowed_networks', '').split(',') if n.strip()]
+        if not names or not ip or ip == 'n/a':
+            return True
+        try:
+            here = ipaddress.ip_address(ip)
+        except ValueError:
+            return False
+        for name in names:
+            try:
+                if here in ipaddress.ip_network(name, strict=False):
+                    return True
+            except ValueError:
+                _logger.warning('ei.pin.allowed_networks: %r is not an address or a range; ignored', name)
+        return False
+
+    @api.model
+    def _ei_pin_only_enabled(self):
+        return self.env['ir.config_parameter'].sudo().get_bool('ei.pin.only_enabled', True)
+
     # ---- signing in
     @api.model
     def _login(self, credential, user_agent_env):
         if credential.get('type') != 'ei_pin':
             return super()._login(credential, user_agent_env)
         Log = self.env['ei.pin.log']
+        pin_only = not credential.get('login')
         login = (credential.get('login') or '')[:80]
         ip = request.httprequest.remote_addr if request else 'n/a'
         if Log._ip_throttled(ip):
             raise AccessDenied(_('Too many login failures, please wait a bit before trying again.'))
         try:
-            auth_info = super()._login(credential, user_agent_env)
+            if not self._ei_pin_network_ok(ip):
+                raise EiPinDenied('network_not_allowed', message=_('PIN sign-in is only available from the office network. Use your password.'))
+            if pin_only:
+                # the PIN alone: find whose it is, then sign that person in through exactly the same steps as a typed name
+                with self._assert_can_auth(user='(PIN)'):
+                    user = self._ei_pin_only_user(credential.get('password') or '')
+                    credential['login'] = user.login          # the session (and the log below) now know who it is
+                    login = user.login
+                    auth_info = super()._login(credential, user_agent_env)
+            else:
+                auth_info = super()._login(credential, user_agent_env)
         except EiPinDenied as e:
-            Log._write_apart({'event': 'signin', 'success': False, 'reason': e.reason, 'login': login, 'ip': ip, 'user_id': e.user_id})
+            Log._write_apart({'event': 'signin', 'success': False, 'reason': e.reason, 'login': login, 'ip': ip, 'user_id': e.user_id, 'pin_only': pin_only})
             raise
         except AccessDenied as e:
             reason = 'unknown_name' if e.args == AccessDenied().args else 'cooling_down'
-            if reason == 'unknown_name':
-                self.env['ei.pin.credential']._dummy_verify(credential.get('password') or '')     # take as long as for a real name
             # an unknown name is not kept: people sometimes type their password into the name box
-            Log._write_apart({'event': 'signin', 'success': False, 'reason': reason, 'login': '(not a known name)', 'ip': ip})
+            Log._write_apart({'event': 'signin', 'success': False, 'reason': reason, 'login': '(not a known name)' if login else '', 'ip': ip, 'pin_only': pin_only})
             raise
-        Log._write_apart({'event': 'signin', 'success': True, 'reason': 'ok', 'login': login, 'ip': ip, 'user_id': auth_info['uid']})
+        Log._write_apart({'event': 'signin', 'success': True, 'reason': 'ok', 'login': login, 'ip': ip, 'user_id': auth_info['uid'], 'pin_only': pin_only})
         return auth_info
+
+    @api.model
+    def _ei_pin_only_user(self, pin):
+        if not self._ei_pin_enabled() or not self._ei_pin_only_enabled():
+            raise EiPinDenied('switched_off')
+        if self.env['ei.pin.log']._pin_only_paused():
+            raise EiPinDenied('paused_everywhere', message=_('PIN sign-in is resting for a while. Use your password.'))
+        if not PIN_RE.fullmatch(pin):
+            raise EiPinDenied('not_four_digits')
+        user = self.env['ei.pin.credential']._user_for_pin(pin)
+        if not user:
+            raise EiPinDenied('wrong_pin')
+        return user
 
     def _check_credentials(self, credential, env):
         if credential.get('type') != 'ei_pin':
@@ -89,7 +136,6 @@ class ResUsers(models.Model):
             if not self._ei_pin_enabled():
                 raise EiPinDenied('switched_off')
             if not self._ei_pin_allowed():
-                self.env['ei.pin.credential']._dummy_verify(credential.get('password') or '')     # no quicker an answer for a reserved role
                 raise EiPinDenied('role_not_allowed')
             pin = credential.get('password') or ''
             if not PIN_RE.fullmatch(pin):
@@ -117,7 +163,7 @@ class ResUsers(models.Model):
     def ei_pin_info(self):
         user = self.env.user
         cred = self.env['ei.pin.credential'].sudo().search([('user_id', '=', user.id)])
-        return {'enabled': self._ei_pin_enabled(), 'allowed': user._ei_pin_allowed(), 'has_pin': bool(cred),
+        return {'enabled': self._ei_pin_enabled(), 'allowed': user._ei_pin_allowed(), 'has_pin': bool(cred), 'pin_only': self._ei_pin_only_enabled(),
                 'set_on': fields.Datetime.to_string(cred.set_on) if cred else False}
 
     def _ei_pin_require_password(self, password):
@@ -137,8 +183,17 @@ class ResUsers(models.Model):
         if not user._ei_pin_allowed():
             raise AccessError(_('A PIN cannot be used for this account. Sign in with your password.'))
         self._ei_pin_require_password(password)
+        Log = self.env['ei.pin.log']
+        ip = request.httprequest.remote_addr if request else 'n/a'
+        if Log._set_refused_recently(user):
+            raise UserError(_('Too many PINs were refused. Try again in an hour, or ask an administrator.'))
         check_new_pin(pin, confirm)
-        self.env['ei.pin.credential']._set_pin(user, pin)
+        try:
+            self.env['ei.pin.credential']._set_pin(user, pin)
+        except PinNotAvailable:
+            # counted: a person must not be able to find out which PINs are taken by trying them all
+            Log._write_apart({'event': 'set', 'success': False, 'reason': 'not_available', 'user_id': user.id, 'actor_id': user.id, 'login': user.login, 'ip': ip})
+            raise
         self.env['ei.pin.log']._write_apart({'event': 'set', 'success': True, 'user_id': user.id, 'actor_id': user.id, 'login': user.login,
                                              'ip': request.httprequest.remote_addr if request else 'n/a'})
         return True
