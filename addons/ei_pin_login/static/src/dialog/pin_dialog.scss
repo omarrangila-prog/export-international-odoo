@@ -1,0 +1,12 @@
+.ei-pin-dialog {
+    display: flex; flex-direction: column; gap: 14px;
+    .ei-pin-note { margin: 0; color: var(--ei-muted, #566275); font-size: 13.5px; line-height: 1.5; }
+    .ei-pin-ok, .ei-pin-bad { padding: 10px 14px; border-radius: 12px; font-size: 14px; font-weight: 600; }
+    .ei-pin-ok { background: var(--ei-ok-soft, #E7F6EC); color: var(--ei-ok, #13692F); }
+    .ei-pin-bad { background: var(--ei-bad-soft, #FDECEC); color: var(--ei-bad, #B91C1C); }
+    .o_input { min-height: 46px; padding-inline: 14px; border: 1px solid var(--ei-line-strong, #CBD3DF) !important; border-radius: 12px; background: var(--ei-card, #fff);
+        &:focus { border-color: var(--ei-primary, #1D4ED8) !important; box-shadow: 0 0 0 4px var(--ei-primary-soft, #E8EEFC); outline: 0; } }
+    .ei-pin-row { display: flex; flex-direction: column; gap: 6px; label { font-weight: 600; font-size: 13.5px; small { font-weight: 400; color: var(--ei-muted, #566275); } } }
+    .ei-pin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .ei-pin-digits { text-align: center; font-size: 22px; font-weight: 700; letter-spacing: .5em; padding-inline-start: .5em; font-variant-numeric: tabular-nums; }
+}

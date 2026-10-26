@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Sign-in with a user name and either the password or a four-digit PIN. The form, the database choice, the redirect, the
+         cooldown and the password recovery are Odoo's own; the PIN tab only swaps which field is sent and what `type` says. -->
+    <template id="login_pin" inherit_id="web.login" name="Export International sign-in PIN">
+        <xpath expr="//div[hasclass('field-login')]" position="before">
+            <div t-if="ei_pin_enabled" class="ei-login-tabs" role="group" aria-label="Sign in with" t-att-data-server-mode="ei_login_mode or None">
+                <button type="button" class="ei-login-tab" data-mode="password" aria-pressed="true">Password</button>
+                <button type="button" class="ei-login-tab" data-mode="pin" aria-pressed="false">PIN</button>
+            </div>
+        </xpath>
+        <xpath expr="//label[@for='login']" position="replace">
+            <label for="login" class="form-label d-flex justify-content-between">User name or email</label>
+        </xpath>
+        <xpath expr="//input[@id='login']" position="attributes">
+            <attribute name="placeholder">Enter your user name</attribute>
+        </xpath>
+        <xpath expr="//button[hasclass('o_show_password')]" position="attributes">
+            <attribute name="aria-label">Show the password</attribute>
+            <attribute name="title">Show the password</attribute>
+        </xpath>
+        <xpath expr="//div[hasclass('o_caps_lock_warning')]" position="after">
+            <div t-if="ei_pin_enabled" class="mb-3 ei-pin-field d-none">
+                <label for="ei_pin" class="form-label">PIN</label>
+                <input type="password" name="ei_pin" id="ei_pin" class="form-control ei-pin-input" inputmode="numeric" pattern="[0-9]{4}" minlength="4" maxlength="4"
+                       autocomplete="off" autocapitalize="off" placeholder="&#8226;&#8226;&#8226;&#8226;" disabled="disabled" aria-describedby="ei_pin_help"/>
+                <small id="ei_pin_help" class="ei-pin-help">Four digits. If you do not have a PIN yet, sign in with your password and set one from your name menu.</small>
+            </div>
+        </xpath>
+    </template>
+</odoo>

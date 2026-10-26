@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- Switch for the whole feature, and the roles that must always sign in with the password (comma-separated group ids). -->
+    <record id="param_enabled" model="ir.config_parameter">
+        <field name="key">ei.pin.enabled</field>
+        <field name="value">True</field>
+    </record>
+    <record id="param_blocked_groups" model="ir.config_parameter">
+        <field name="key">ei.pin.blocked_groups</field>
+        <field name="value">base.group_system</field>
+    </record>
+</odoo>

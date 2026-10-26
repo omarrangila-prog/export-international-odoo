@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- On the person's record: is there a PIN, is it paused. An administrator can remove it or lift a lock; never read it, never choose it. -->
+    <record id="view_users_form_ei_pin" model="ir.ui.view">
+        <field name="name">res.users.form.ei.pin</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="base.view_users_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="Sign-in PIN" name="ei_pin">
+                    <group>
+                        <field name="ei_pin_allowed" invisible="1"/>
+                        <field name="ei_pin_state" widget="badge"/>
+                        <field name="ei_pin_set_on" invisible="ei_pin_state == 'none'"/>
+                        <field name="ei_pin_last_used" invisible="not ei_pin_last_used"/>
+                    </group>
+                    <p class="text-muted" invisible="ei_pin_allowed">This person's roles are reserved for the password (System Parameter <b>ei.pin.blocked_groups</b>), or PIN sign-in is switched off (<b>ei.pin.enabled</b>), so a PIN cannot be used.</p>
+                    <p class="text-muted">The person sets their own PIN from their name menu, after typing their password. You cannot see it or choose it. After 5, 10 and 15 wrong tries the PIN is paused for 15 minutes, for an hour, and then locked until you lift the lock here. The password is never affected.</p>
+                    <div class="d-flex gap-2">
+                        <button name="action_ei_pin_unlock" type="object" string="Lift the lock" class="btn btn-primary" invisible="ei_pin_state not in ('paused', 'locked')"/>
+                        <button name="action_ei_pin_reset" type="object" string="Remove this person's PIN" class="btn btn-secondary" invisible="ei_pin_state == 'none'"
+                                confirm="Remove this person's PIN? They sign in with their password and can set a new PIN."/>
+                    </div>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="ei_pin_log_list" model="ir.ui.view">
+        <field name="name">ei.pin.log.list</field>
+        <field name="model">ei.pin.log</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0" delete="0" default_order="id desc">
+                <field name="at"/>
+                <field name="event"/>
+                <field name="success" widget="boolean"/>
+                <field name="reason"/>
+                <field name="login"/>
+                <field name="user_id" optional="show"/>
+                <field name="actor_id" optional="hide"/>
+                <field name="ip" optional="show"/>
+            </list>
+        </field>
+    </record>
+    <record id="ei_pin_log_search" model="ir.ui.view">
+        <field name="name">ei.pin.log.search</field>
+        <field name="model">ei.pin.log</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="login"/><field name="user_id"/><field name="ip"/>
+                <filter name="failed" string="Refused sign-ins" domain="[('event', '=', 'signin'), ('success', '=', False)]"/>
+                <filter name="ok" string="PIN sign-ins that worked" domain="[('event', '=', 'signin'), ('success', '=', True)]"/>
+                <filter name="changes" string="PIN changes" domain="[('event', '!=', 'signin')]"/>
+                <group><filter name="by_user" string="Person" context="{'group_by': 'user_id'}"/><filter name="by_ip" string="Address" context="{'group_by': 'ip'}"/><filter name="by_event" string="Kind" context="{'group_by': 'event'}"/></group>
+            </search>
+        </field>
+    </record>
+    <record id="ei_pin_log_action" model="ir.actions.act_window">
+        <field name="name">Sign-in PIN activity</field>
+        <field name="res_model">ei.pin.log</field>
+        <field name="view_mode">list</field>
+        <field name="context">{'search_default_failed': 1}</field>
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">Nobody has used or changed a PIN yet.</p><p>Every PIN sign-in, good or refused, and every change to a PIN is recorded here for 180 days. A PIN itself is never recorded.</p></field>
+    </record>
+    <menuitem id="menu_ei_pin_log" name="Sign-in PIN activity" parent="ei_legacy_master.menu_ei_master" action="ei_pin_log_action" sequence="97"
+              groups="base.group_system,ei_management_dashboard.group_ei_management,ei_legacy_master.group_ei_auditor"/>
+</odoo>

@@ -12,5 +12,7 @@ EXI_SOURCE=migration/source/CODE_LIST.xlsx ei_shell -d $DB --log-level=error < m
 EI_USER=admin ei_shell -d $DB --log-level=error < migration/grant_uat_roles.py | grep granted
 ei_shell -d $DB --log-level=error < migration/seed_uat_demo.py | grep "DEMO data"
 ei_shell -d $DB --log-level=error < migration/seed_dashboard_history.py | grep "DEMO history"
+ei_shell -d $DB --log-level=error < migration/seed_demo_pins.py | grep "DEMO PINs"
+ei_shell -d $DB --log-level=error <<<"env['ir.config_parameter'].sudo().set_str('ei.environment_label', 'STAGING - synthetic demo data'); env.cr.commit()" >/dev/null
 ei_check_filestore $DB
-echo "staging ready: db=$DB  admin/admin + demo.<role>/demo   (serve: migration/serve.sh $DB)"
+echo "staging ready: db=$DB  admin/admin + demo.<role>/demo or demo.<role> + the PIN in docs/pin_login.md   (serve: migration/serve.sh $DB)"

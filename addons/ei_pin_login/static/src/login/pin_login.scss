@@ -1,0 +1,11 @@
+// Sign-in page: the Password | PIN switch and the PIN field, in the same look as the rest of the sign-in card.
+body.o_web_login {
+    .ei-login-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; margin-bottom: 18px; background: #EEF1F7; border-radius: 14px; }
+    .ei-login-tab { appearance: none; border: 0; background: transparent; border-radius: 10px; min-height: 40px; font: inherit; font-weight: 700; font-size: 14px; color: #566275; cursor: pointer; transition: background .15s, color .15s, box-shadow .15s;
+        &:hover { color: #0F1B33; }
+        &[aria-pressed="true"] { background: #fff; color: #1D4ED8; box-shadow: 0 1px 2px rgba(15, 27, 51, .08), 0 4px 12px rgba(29, 78, 216, .10); }
+        &:focus-visible { outline: 3px solid #93B4F5; outline-offset: 1px; } }
+    .ei-pin-input { text-align: center; font-size: 26px; font-weight: 700; letter-spacing: .55em; padding-inline-start: calc(.55em + 14px); font-variant-numeric: tabular-nums; min-height: 56px; }
+    .ei-pin-input::placeholder { letter-spacing: .4em; color: #B4BDCC; }
+    .ei-pin-help { display: block; margin-top: 8px; color: #566275; font-size: 12.5px; line-height: 1.4; }
+}

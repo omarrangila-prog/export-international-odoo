@@ -1,0 +1,5 @@
+id,name,model_id,group_id/id,operation,domain
+access_ei_pin_log_admin,ei.pin.log system administrator,ei.pin.log,base.group_system,r,
+access_ei_pin_log_management,ei.pin.log management,ei.pin.log,ei_management_dashboard.group_ei_management,r,
+access_ei_pin_log_auditor,ei.pin.log auditor,ei.pin.log,ei_legacy_master.group_ei_auditor,r,
+access_ei_pin_credential_admin,ei.pin.credential system administrator,ei.pin.credential,base.group_system,r,

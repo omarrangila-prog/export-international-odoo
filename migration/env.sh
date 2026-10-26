@@ -15,7 +15,7 @@ EI_ADDONS=$EI_R/odoo/addons,$EI_REPO/addons
 [ -d "$HOME/odoo20/wkhtml/usr/local/bin" ] && export PATH="$HOME/odoo20/wkhtml/usr/local/bin:$PATH"
 
 # every Export International module, in install order (one list for build, tests and CI)
-EI_MODULES=ei_legacy_master,ei_bank_operations,ei_cashbook,ei_contract_da,ei_daily_orders,ei_material_lifting,ei_invoice_extensions,ei_parent_reconciliation,ei_trade_lc,ei_management_dashboard,ei_ui_theme,ei_party360,ei_automation,ei_matching,ei_assistant,ei_reports
+EI_MODULES=ei_legacy_master,ei_bank_operations,ei_cashbook,ei_contract_da,ei_daily_orders,ei_material_lifting,ei_invoice_extensions,ei_parent_reconciliation,ei_trade_lc,ei_management_dashboard,ei_ui_theme,ei_party360,ei_automation,ei_matching,ei_assistant,ei_reports,ei_pin_login
 
 # run Odoo 20 with our addons and the persistent data dir:  ei_odoo -d DB -i module ...
 EI_ODOO_CMD=("$HOME/odoo20/odoo20" -c /dev/null --addons-path="$EI_ADDONS" --data-dir "$EI_DATA_DIR")

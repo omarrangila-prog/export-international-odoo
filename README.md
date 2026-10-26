@@ -1,6 +1,6 @@
 # Export International - Odoo (Odoovations)
 
-Fifteen installable Odoo 20.0 addons that replace the client's paper/FoxPro/Excel daily routines with one audited system.
+Seventeen installable Odoo 20.0 addons that replace the client's paper/FoxPro/Excel daily routines with one audited system.
 Audit and gap report: `AUDIT_AND_GAP_REPORT.md`. Status and honest limits: `docs/release_status.md`. Test evidence: `docs/test_results.md`. Open decisions: `docs/open_decisions.md`.
 
 | Addon | Purpose |
@@ -20,6 +20,7 @@ Audit and gap report: `AUDIT_AND_GAP_REPORT.md`. Status and honest limits: `docs
 | ei_matching | Match bank payments: one screen with the queue, the decision (who paid, which invoices) and the evidence and effect; suggestions stay suggestions until a bank officer confirms; nothing is approved or posted from it |
 | ei_assistant | Ask: a read-only, rule-based assistant (not a language model) in the top bar. Answers from your own records with sources and "how worked out"; refuses to change anything; questions logged for management |
 | ei_reports | Reports: a catalog (what each report answers, how it is worked out, its status) and six real reports: aged receivables, bank book against bank confirmation, bank lines not yet in the books, customer invoices and collections, contracts with expected gross spread, material lifting. Chart, pivot and list, filters and saved views, drill-through, spreadsheet export for the figures roles |
+| ei_pin_login | Second way to sign in: user name and a personal four-digit PIN, beside user name and password. Salted hash, pauses and locks after wrong tries (the password is never affected), a sign-in log, web page only (never the programming interfaces), the system administrator signs in with the password only. Set from the name menu with the password; an administrator can only remove a PIN or lift a lock. See `docs/pin_login.md` |
 | ei_ui_theme | Home Overview per role (period comparison, pipeline, what customers owe, who owes most, recent invoices, question box, figures, alerts, My Work with assign/snooze/escalate, grouped launcher), universal search + Ctrl+K, light and dark themes, plain-language labels, card views, next-step banners, menus |
 
 Open the staging site: see `docs/deployment_runbook.md` section 2 (admin/admin, demo.<role>/demo). Screenshots: `docs/ui/final/`.

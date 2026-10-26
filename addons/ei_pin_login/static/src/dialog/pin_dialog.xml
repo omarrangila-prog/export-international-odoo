@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="ei_pin_login.PinDialog">
+        <Dialog size="'md'" title="'Sign-in PIN'">
+            <div class="ei-pin-dialog">
+                <p t-if="this.state.loading" class="ei-pin-note">Loading...</p>
+                <t t-else="">
+                    <p class="ei-pin-note">A PIN is four digits you can use on the sign-in page <b>instead of your password</b>. Your password keeps working.
+                        <t t-if="this.state.info.has_pin"> A PIN is set<t t-if="this.setOnText"> (since <span t-out="this.setOnText"/>)</t>.</t>
+                        <t t-else=""> You have no PIN yet.</t></p>
+                    <div t-if="this.state.done" class="ei-pin-ok" role="status" t-out="this.state.done"/>
+                    <div t-if="this.state.error" class="ei-pin-bad" role="alert" t-out="this.state.error"/>
+                    <div class="ei-pin-row">
+                        <label for="ei_pin_password">Your password <small>(to confirm it is you)</small></label>
+                        <input id="ei_pin_password" type="password" class="o_input" autocomplete="current-password" t-att-value="this.state.password" t-on-input="(ev) => this.state.password = ev.target.value"/>
+                    </div>
+                    <div class="ei-pin-grid">
+                        <div class="ei-pin-row">
+                            <label for="ei_pin_new">New PIN</label>
+                            <input id="ei_pin_new" type="password" class="o_input ei-pin-digits" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="&#8226;&#8226;&#8226;&#8226;" t-att-value="this.state.pin" t-on-input="(ev) => this.digits('pin', ev)"/>
+                        </div>
+                        <div class="ei-pin-row">
+                            <label for="ei_pin_confirm">Repeat the PIN</label>
+                            <input id="ei_pin_confirm" type="password" class="o_input ei-pin-digits" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="&#8226;&#8226;&#8226;&#8226;" t-att-value="this.state.confirm" t-on-input="(ev) => this.digits('confirm', ev)"/>
+                        </div>
+                    </div>
+                    <p class="ei-pin-note">Not a PIN like 1234, 0000, a year, or digits in a row. Do not share it: anyone with your user name and PIN can sign in as you.</p>
+                </t>
+            </div>
+            <t t-set-slot="footer">
+                <button class="btn btn-primary" t-att-disabled="!this.canSave" t-on-click="() => this.save()">Save PIN</button>
+                <button t-if="this.state.info and this.state.info.has_pin" class="btn btn-secondary" t-att-disabled="this.state.busy" t-on-click="() => this.remove()">Remove my PIN</button>
+                <button class="btn btn-secondary" t-on-click="() => this.props.close()">Close</button>
+            </t>
+        </Dialog>
+    </t>
+</templates>
