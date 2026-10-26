@@ -4,7 +4,7 @@
 PORT=${1:-8381}
 LOG=/tmp/ei_tunnel.log; URLF=$HOME/.ei_tunnel.url
 : > "$LOG"; rm -f "$URLF"
-cloudflared tunnel --no-autoupdate --edge-ip-version 4 --url "http://127.0.0.1:$PORT" > "$LOG" 2>&1 &
+cloudflared tunnel --no-autoupdate --edge-ip-version 4 --protocol http2 --url "http://127.0.0.1:$PORT" > "$LOG" 2>&1 &
 CF=$!
 trap 'kill $CF 2>/dev/null' TERM INT EXIT
 URL=""
