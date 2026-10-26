@@ -37,7 +37,7 @@
    "what": "The first record of \"Money > Bank payments to check\": 2026-10-26 420,000.00 RAAST FROM REHMAN TRADERS KHI",
    "user": "demo.ceo",
    "scheme": "light",
-   "size": "1440x982 (whole page)",
+   "size": "1440x1026 (whole page)",
    "note": ""
   },
   {
@@ -53,15 +53,7 @@
    "what": "The first record of \"Money > Imported statements\": Bank statement, 26 Oct 2026 10:35",
    "user": "demo.ceo",
    "scheme": "light",
-   "size": "1440x1746 (whole page)",
-   "note": ""
-  },
-  {
-   "file": "menu-05-money-imported-statements-new.png",
-   "what": "Making a new record in \"Money > Imported statements\" (nothing is saved): fields are visible boxes",
-   "user": "demo.ceo",
-   "scheme": "light",
-   "size": "1440x900",
+   "size": "1440x1776 (whole page)",
    "note": ""
   },
   {
@@ -97,14 +89,6 @@
    "note": ""
   },
   {
-   "file": "menu-08-money-cash-vouchers-new.png",
-   "what": "Making a new record in \"Money > Cash vouchers\" (nothing is saved): fields are visible boxes",
-   "user": "demo.ceo",
-   "scheme": "light",
-   "size": "1440x900",
-   "note": ""
-  },
-  {
    "file": "menu-09-money-count-the-cash.png",
    "what": "Menu \"Money > Count the cash\": list \"Count the cash\"",
    "user": "demo.ceo",
@@ -125,15 +109,7 @@
    "what": "The first record of \"Orders & Trucks > Contracts\": CT/2026/0003",
    "user": "demo.ceo",
    "scheme": "light",
-   "size": "1440x1110 (whole page)",
-   "note": ""
-  },
-  {
-   "file": "menu-10-orders-and-trucks-contracts-new.png",
-   "what": "Making a new record in \"Orders & Trucks > Contracts\" (nothing is saved): fields are visible boxes",
-   "user": "demo.ceo",
-   "scheme": "light",
-   "size": "1440x900",
+   "size": "1440x1136 (whole page)",
    "note": ""
   },
   {
@@ -149,15 +125,7 @@
    "what": "The first record of \"Orders & Trucks > Delivery advices\": DA-DEMO-6601",
    "user": "demo.ceo",
    "scheme": "light",
-   "size": "1440x900",
-   "note": ""
-  },
-  {
-   "file": "menu-11-orders-and-trucks-delivery-advices-new.png",
-   "what": "Making a new record in \"Orders & Trucks > Delivery advices\" (nothing is saved): fields are visible boxes",
-   "user": "demo.ceo",
-   "scheme": "light",
-   "size": "1440x900",
+   "size": "1440x995 (whole page)",
    "note": ""
   },
   {
@@ -177,14 +145,6 @@
    "note": ""
   },
   {
-   "file": "menu-12-orders-and-trucks-daily-orders-new.png",
-   "what": "Making a new record in \"Orders & Trucks > Daily orders\" (nothing is saved): fields are visible boxes",
-   "user": "demo.ceo",
-   "scheme": "light",
-   "size": "1440x900",
-   "note": ""
-  },
-  {
    "file": "menu-13-orders-and-trucks-material-lifting-trucks.png",
    "what": "Menu \"Orders & Trucks > Material lifting (trucks)\": cards \"Material lifting (trucks)\", 1-11 / 11",
    "user": "demo.ceo",
@@ -197,15 +157,7 @@
    "what": "The first record of \"Orders & Trucks > Material lifting (trucks)\": LFT/2026/00003",
    "user": "demo.ceo",
    "scheme": "light",
-   "size": "1440x1120 (whole page)",
-   "note": ""
-  },
-  {
-   "file": "menu-13-orders-and-trucks-material-lifting-trucks-new.png",
-   "what": "Making a new record in \"Orders & Trucks > Material lifting (trucks)\" (nothing is saved): fields are visible boxes",
-   "user": "demo.ceo",
-   "scheme": "light",
-   "size": "1440x1246 (whole page)",
+   "size": "1440x1130 (whole page)",
    "note": ""
   },
   {
@@ -213,7 +165,7 @@
    "what": "Menu \"Reports > Report catalog\": page \"Reports\"",
    "user": "demo.ceo",
    "scheme": "light",
-   "size": "1440x2198 (whole page)",
+   "size": "1440x2230 (whole page)",
    "note": ""
   },
   {
@@ -269,15 +221,7 @@
    "what": "The first record of \"Bills & Invoices > Supplier invoices\": SIN/2026/00002",
    "user": "demo.ceo",
    "scheme": "light",
-   "size": "1440x1213 (whole page)",
-   "note": ""
-  },
-  {
-   "file": "menu-20-bills-and-invoices-supplier-invoices-new.png",
-   "what": "Making a new record in \"Bills & Invoices > Supplier invoices\" (nothing is saved): fields are visible boxes",
-   "user": "demo.ceo",
-   "scheme": "light",
-   "size": "1440x900",
+   "size": "1440x1257 (whole page)",
    "note": ""
   },
   {
@@ -293,7 +237,7 @@
    "what": "The first record of \"Bills & Invoices > Invoice delivered material\": LFT/2026/00002",
    "user": "demo.ceo",
    "scheme": "light",
-   "size": "1440x1103 (whole page)",
+   "size": "1440x1135 (whole page)",
    "note": ""
   },
   {
@@ -317,15 +261,7 @@
    "what": "The first record of \"Month-end > Parent statements\": PST/2026/0001",
    "user": "demo.ceo",
    "scheme": "light",
-   "size": "1440x1005 (whole page)",
-   "note": ""
-  },
-  {
-   "file": "menu-23-month-end-parent-statements-new.png",
-   "what": "Making a new record in \"Month-end > Parent statements\" (nothing is saved): fields are visible boxes",
-   "user": "demo.ceo",
-   "scheme": "light",
-   "size": "1440x900",
+   "size": "1440x1034 (whole page)",
    "note": ""
   },
   {
@@ -341,7 +277,7 @@
    "what": "The first record of \"Month-end > Open differences\": DEMO-SUP-9002",
    "user": "demo.ceo",
    "scheme": "light",
-   "size": "1440x2427 (whole page)",
+   "size": "1440x2461 (whole page)",
    "note": ""
   },
   {
@@ -357,7 +293,7 @@
    "what": "The first record of \"Approvals > Contracts\": CT/2026/0002",
    "user": "demo.ceo",
    "scheme": "light",
-   "size": "1440x1109 (whole page)",
+   "size": "1440x1134 (whole page)",
    "note": ""
   },
   {
@@ -373,7 +309,7 @@
    "what": "The first record of \"Approvals > Delivery Advices\": DA-DEMO-5503",
    "user": "demo.ceo",
    "scheme": "light",
-   "size": "1440x900",
+   "size": "1440x994 (whole page)",
    "note": ""
   },
   {
@@ -397,7 +333,7 @@
    "what": "The first record of \"Approvals > Liftings\": LFT/2026/00003",
    "user": "demo.ceo",
    "scheme": "light",
-   "size": "1440x1120 (whole page)",
+   "size": "1440x1130 (whole page)",
    "note": ""
   },
   {
@@ -429,7 +365,7 @@
    "what": "The first record of \"Approvals > Bank Imports\": Bank statement, 26 Oct 2026 10:35",
    "user": "demo.ceo",
    "scheme": "light",
-   "size": "1440x1211 (whole page)",
+   "size": "1440x1218 (whole page)",
    "note": ""
   },
   {
@@ -445,7 +381,7 @@
    "what": "The first record of \"Approvals > Supplier Invoices\": SIN/2026/00002",
    "user": "demo.ceo",
    "scheme": "light",
-   "size": "1440x1213 (whole page)",
+   "size": "1440x1257 (whole page)",
    "note": ""
   },
   {
@@ -469,7 +405,7 @@
    "what": "The first record of \"Setup > Old codes (all 639)\": 5.01 SAFE",
    "user": "demo.ceo",
    "scheme": "light",
-   "size": "1440x969 (whole page)",
+   "size": "1440x1001 (whole page)",
    "note": ""
   },
   {
@@ -493,7 +429,7 @@
    "what": "The first record of \"Setup > Automation rules\": Supplier invoice missing after an order was approved",
    "user": "demo.ceo",
    "scheme": "light",
-   "size": "1440x1156 (whole page)",
+   "size": "1440x1143 (whole page)",
    "note": ""
   },
   {
@@ -501,7 +437,7 @@
    "what": "The same record, second tab \"History\"",
    "user": "demo.ceo",
    "scheme": "light",
-   "size": "1440x1073 (whole page)",
+   "size": "1440x1118 (whole page)",
    "note": ""
   },
   {
@@ -517,15 +453,23 @@
    "what": "The first record of \"Setup > Import history\": IMP/20261026-103500",
    "user": "demo.ceo",
    "scheme": "light",
-   "size": "1440x1165 (whole page)",
+   "size": "1440x1210 (whole page)",
    "note": ""
   },
   {
    "file": "menu-37-setup-lc-register.png",
-   "what": "Menu \"Setup > LC register\": list \"LC Register\"",
+   "what": "Menu \"Setup > LC register\": list \"LC Register\", 1-58 / 58",
    "user": "demo.ceo",
    "scheme": "light",
    "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "menu-37-setup-lc-register-record.png",
+   "what": "The first record of \"Setup > LC register\": 16.01 L C NO.1 HR 8114",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x1110 (whole page)",
    "note": ""
   },
   {
@@ -541,7 +485,7 @@
    "what": "The first record of \"Setup > Formula register\": Mill rate = basic rate less deduction % (PDF example)",
    "user": "demo.ceo",
    "scheme": "light",
-   "size": "1440x995 (whole page)",
+   "size": "1440x1024 (whole page)",
    "note": ""
   },
   {
@@ -549,7 +493,7 @@
    "what": "The same record, second tab \"Signed tests\"",
    "user": "demo.ceo",
    "scheme": "light",
-   "size": "1440x995 (whole page)",
+   "size": "1440x1024 (whole page)",
    "note": ""
   },
   {
@@ -577,7 +521,15 @@
    "note": ""
   },
   {
-   "file": "menu-42-setup-connections-to-other-systems.png",
+   "file": "menu-42-setup-sign-in-pin-activity.png",
+   "what": "Menu \"Setup > Sign-in PIN activity\": list \"Sign-in PIN activity\", 1-2 / 2",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "menu-43-setup-connections-to-other-systems.png",
    "what": "Menu \"Setup > Connections to other systems\": list \"Connections to other systems\", 1-4 / 4",
    "user": "demo.ceo",
    "scheme": "light",
@@ -585,7 +537,7 @@
    "note": ""
   },
   {
-   "file": "menu-42-setup-connections-to-other-systems-record.png",
+   "file": "menu-43-setup-connections-to-other-systems-record.png",
    "what": "The first record of \"Setup > Connections to other systems\": Bank statement feed (API)",
    "user": "demo.ceo",
    "scheme": "light",
@@ -593,15 +545,15 @@
    "note": ""
   },
   {
-   "file": "menu-43-setup-detailed-report.png",
+   "file": "menu-44-setup-detailed-report.png",
    "what": "Menu \"Setup > Detailed report\": record \"Dashboard\", 1 / 1",
    "user": "demo.ceo",
    "scheme": "light",
-   "size": "1440x1999 (whole page)",
+   "size": "1440x2031 (whole page)",
    "note": ""
   },
   {
-   "file": "menu-44-money-import-a-bank-statement.png",
+   "file": "menu-45-money-import-a-bank-statement.png",
    "what": "Menu \"Money > Import a bank statement\": dialog \"Import bank statement\"",
    "user": "admin",
    "scheme": "light",
@@ -609,7 +561,7 @@
    "note": ""
   },
   {
-   "file": "menu-45-month-end-import-parent-statement.png",
+   "file": "menu-46-month-end-import-parent-statement.png",
    "what": "Menu \"Month-end > Import parent statement\": dialog \"Import parent statement\"",
    "user": "admin",
    "scheme": "light",
@@ -617,7 +569,7 @@
    "note": ""
   },
   {
-   "file": "menu-46-setup-import-old-codes.png",
+   "file": "menu-47-setup-import-old-codes.png",
    "what": "Menu \"Setup > Import old codes\": dialog \"Import legacy codes\"",
    "user": "admin",
    "scheme": "light",
@@ -629,7 +581,7 @@
    "what": "Home (the \"Overview\") as executive: what this role may see, nothing more",
    "user": "demo.ceo",
    "scheme": "light",
-   "size": "1440x3514 (whole page)",
+   "size": "1440x3690 (whole page)",
    "note": ""
   },
   {
@@ -637,7 +589,7 @@
    "what": "Home (the \"Overview\") as finance manager: what this role may see, nothing more",
    "user": "demo.finance",
    "scheme": "light",
-   "size": "1440x2822 (whole page)",
+   "size": "1440x3087 (whole page)",
    "note": ""
   },
   {
@@ -645,7 +597,7 @@
    "what": "Home (the \"Overview\") as accountant: what this role may see, nothing more",
    "user": "demo.accountant",
    "scheme": "light",
-   "size": "1440x3433 (whole page)",
+   "size": "1440x3632 (whole page)",
    "note": ""
   },
   {
@@ -653,7 +605,7 @@
    "what": "Home (the \"Overview\") as contract desk: what this role may see, nothing more",
    "user": "demo.contractapprover",
    "scheme": "light",
-   "size": "1440x3117 (whole page)",
+   "size": "1440x3144 (whole page)",
    "note": ""
   },
   {
@@ -661,7 +613,7 @@
    "what": "Home (the \"Overview\") as data entry (bank): what this role may see, nothing more",
    "user": "demo.bank",
    "scheme": "light",
-   "size": "1440x2825 (whole page)",
+   "size": "1440x2852 (whole page)",
    "note": ""
   },
   {
@@ -669,7 +621,7 @@
    "what": "Home (the \"Overview\") as data entry (cash): what this role may see, nothing more",
    "user": "demo.cash",
    "scheme": "light",
-   "size": "1440x1268 (whole page)",
+   "size": "1440x1271 (whole page)",
    "note": ""
   },
   {
@@ -677,7 +629,7 @@
    "what": "Home (the \"Overview\") as logistics: what this role may see, nothing more",
    "user": "demo.dispatch",
    "scheme": "light",
-   "size": "1440x2963 (whole page)",
+   "size": "1440x2990 (whole page)",
    "note": ""
   },
   {
@@ -685,119 +637,7 @@
    "what": "Home (the \"Overview\") as system administrator: what this role may see, nothing more",
    "user": "demo.sysadmin",
    "scheme": "light",
-   "size": "1440x1088 (whole page)",
-   "note": ""
-  },
-  {
-   "file": "dark-home-executive.png",
-   "what": "Home (executive), dark theme",
-   "user": "demo.ceo",
-   "scheme": "dark",
-   "size": "1440x3514 (whole page)",
-   "note": ""
-  },
-  {
-   "file": "dark-list.png",
-   "what": "A list (Export International > Setup > Old codes (all 639)), dark theme",
-   "user": "demo.ceo",
-   "scheme": "dark",
-   "size": "1440x900",
-   "note": ""
-  },
-  {
-   "file": "dark-cards.png",
-   "what": "Cards (Export International > Orders & Trucks > Contracts), dark theme",
-   "user": "demo.ceo",
-   "scheme": "dark",
-   "size": "1440x900",
-   "note": ""
-  },
-  {
-   "file": "dark-record.png",
-   "what": "A contract record, dark theme",
-   "user": "demo.ceo",
-   "scheme": "dark",
-   "size": "1440x1110 (whole page)",
-   "note": ""
-  },
-  {
-   "file": "dark-dialog.png",
-   "what": "A dialog, dark theme",
-   "user": "demo.ceo",
-   "scheme": "dark",
-   "size": "1440x900",
-   "note": ""
-  },
-  {
-   "file": "dark-ask.png",
-   "what": "Ask, dark theme",
-   "user": "demo.ceo",
-   "scheme": "dark",
-   "size": "1440x900",
-   "note": ""
-  },
-  {
-   "file": "dark-party360.png",
-   "what": "Party 360, dark theme",
-   "user": "demo.ceo",
-   "scheme": "dark",
-   "size": "1440x2588 (whole page)",
-   "note": ""
-  },
-  {
-   "file": "phone-home.png",
-   "what": "Home on a phone (390px wide): one column, the same cards",
-   "user": "demo.ceo",
-   "scheme": "light",
-   "size": "390x7000 (whole page)",
-   "note": ""
-  },
-  {
-   "file": "phone-list.png",
-   "what": "A list on a phone",
-   "user": "demo.ceo",
-   "scheme": "light",
-   "size": "390x844",
-   "note": ""
-  },
-  {
-   "file": "phone-cards.png",
-   "what": "Cards on a phone",
-   "user": "demo.ceo",
-   "scheme": "light",
-   "size": "390x844",
-   "note": ""
-  },
-  {
-   "file": "phone-record.png",
-   "what": "A record on a phone",
-   "user": "demo.ceo",
-   "scheme": "light",
-   "size": "390x1829 (whole page)",
-   "note": ""
-  },
-  {
-   "file": "phone-ask.png",
-   "what": "Ask on a phone",
-   "user": "demo.ceo",
-   "scheme": "light",
-   "size": "390x844",
-   "note": ""
-  },
-  {
-   "file": "phone-party360.png",
-   "what": "Party 360 on a phone (compact)",
-   "user": "demo.ceo",
-   "scheme": "light",
-   "size": "390x3299 (whole page)",
-   "note": ""
-  },
-  {
-   "file": "login.png",
-   "what": "The sign-in page (Odoo's own, not restyled yet)",
-   "user": "-",
-   "scheme": "light",
-   "size": "1440x900",
+   "size": "1440x1158 (whole page)",
    "note": ""
   },
   {
@@ -925,7 +765,7 @@
    "what": "Party 360 for one customer: every figure with its basis, the open items, the documents and the history on one page",
    "user": "demo.ceo",
    "scheme": "light",
-   "size": "1440x2588 (whole page)",
+   "size": "1440x2620 (whole page)",
    "note": ""
   },
   {
@@ -933,7 +773,7 @@
    "what": "Party 360: \"How is this worked out?\" opened on a figure",
    "user": "demo.ceo",
    "scheme": "light",
-   "size": "1440x2719 (whole page)",
+   "size": "1440x2751 (whole page)",
    "note": ""
   },
   {
@@ -999,7 +839,130 @@
    "scheme": "light",
    "size": "1440x900",
    "note": ""
+  },
+  {
+   "file": "dark-home-executive.png",
+   "what": "Home (executive), dark theme",
+   "user": "demo.ceo",
+   "scheme": "dark",
+   "size": "1440x3690 (whole page)",
+   "note": ""
+  },
+  {
+   "file": "dark-list.png",
+   "what": "A list (Export International > Setup > Old codes (all 639)), dark theme",
+   "user": "demo.ceo",
+   "scheme": "dark",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "dark-cards.png",
+   "what": "Cards (Export International > Orders & Trucks > Contracts), dark theme",
+   "user": "demo.ceo",
+   "scheme": "dark",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "dark-record.png",
+   "what": "A contract record, dark theme",
+   "user": "demo.ceo",
+   "scheme": "dark",
+   "size": "1440x1136 (whole page)",
+   "note": ""
+  },
+  {
+   "file": "dark-dialog.png",
+   "what": "A dialog, dark theme",
+   "user": "demo.ceo",
+   "scheme": "dark",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "dark-ask.png",
+   "what": "Ask, dark theme",
+   "user": "demo.ceo",
+   "scheme": "dark",
+   "size": "1440x900",
+   "note": ""
+  },
+  {
+   "file": "dark-party360.png",
+   "what": "Party 360, dark theme",
+   "user": "demo.ceo",
+   "scheme": "dark",
+   "size": "1440x2620 (whole page)",
+   "note": ""
+  },
+  {
+   "file": "phone-home.png",
+   "what": "Home on a phone (390px wide): one column, the same cards",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "390x1651 (whole page)",
+   "note": ""
+  },
+  {
+   "file": "phone-list.png",
+   "what": "A list on a phone",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "390x844",
+   "note": ""
+  },
+  {
+   "file": "phone-cards.png",
+   "what": "Cards on a phone",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "390x844",
+   "note": ""
+  },
+  {
+   "file": "phone-record.png",
+   "what": "A record on a phone",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "390x2030 (whole page)",
+   "note": ""
+  },
+  {
+   "file": "phone-ask.png",
+   "what": "Ask on a phone",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "390x844",
+   "note": ""
+  },
+  {
+   "file": "phone-party360.png",
+   "what": "Party 360 on a phone (compact)",
+   "user": "demo.ceo",
+   "scheme": "light",
+   "size": "390x3363 (whole page)",
+   "note": ""
+  },
+  {
+   "file": "login.png",
+   "what": "The sign-in page (Odoo's own, not restyled yet)",
+   "user": "-",
+   "scheme": "light",
+   "size": "1440x900",
+   "note": ""
   }
  ],
- "problems": []
+ "problems": [
+  "menu-06-money-morning-bank-balance: page.waitForSelector: Timeout 12000ms exceeded.",
+  "menu-16-reports-bank-book-against-bank-confirmation: page.waitForSelector: Timeout 12000ms exceeded.",
+  "menu-39-setup-party-name-aliases: page.waitForSelector: Timeout 12000ms exceeded.",
+  "menu-40-setup-cash-categories: page.waitForSelector: Timeout 12000ms exceeded.",
+  "menu-42-setup-sign-in-pin-activity: page.waitForSelector: Timeout 12000ms exceeded.",
+  "menu-45-money-import-a-bank-statement-new: page.waitForSelector: Timeout 30000ms exceeded.",
+  "menu-46-month-end-import-parent-statement-new: page.waitForSelector: Timeout 30000ms exceeded.",
+  "menu-47-setup-import-old-codes-new: page.waitForSelector: Timeout 30000ms exceeded.",
+  "menu-48-setup-load-lc-register-from-old-codes: page.waitForSelector: Timeout 30000ms exceeded.",
+  "menu-48-setup-load-lc-register-from-old-codes-new: page.waitForSelector: Timeout 30000ms exceeded."
+ ]
 }

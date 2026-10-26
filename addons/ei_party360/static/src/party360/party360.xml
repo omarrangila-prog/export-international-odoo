@@ -84,39 +84,76 @@
                         Your role cannot see these sections: <b t-out="d.hidden.join(', ')"/>. They are left out; they are not zero. Ask the team that owns them if you need a number.
                     </p>
 
-                    <!-- Figures -->
-                    <section t-foreach="d.groups" t-as="g" t-key="g.key" t-if="this.hasMetrics(g)" class="ei-p360-section">
-                        <h2 class="ei-p360-h2" t-out="g.label"/>
-                        <div class="ei-p360-grid">
-                            <article t-foreach="this.metricsOf(g)" t-as="m" t-key="m.key" t-att-class="'ei-p360-kpi ei-tone-' + m.tone">
-                                <div class="ei-p360-kpi-label" t-out="m.label"/>
-                                <div class="ei-p360-kpi-value" t-out="m.text"/>
-                                <div class="ei-p360-kpi-basis" t-out="m.basis"/>
-                                <div class="ei-p360-kpi-actions">
-                                    <button t-if="m.count" class="ei-p360-link" t-on-click="() => this.openFigure(m)" t-att-aria-label="'Show the records: ' + m.label"><span class="ei-long">Show the records</span><span class="ei-short">Records</span></button>
-                                    <button class="ei-p360-link" t-att-aria-expanded="this.state.explain[m.key] ? 'true' : 'false'"
-                                            t-att-aria-controls="'ei-p360-ex-' + m.key" t-on-click="() => this.toggleExplain(m.key)">
-                                        <svg class="ei-p360-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.icon('info')"/></svg>
-                                        <span class="ei-long">How is this worked out?</span><span class="ei-short">How?</span>
-                                    </button>
-                                </div>
-                                <p t-if="this.state.explain[m.key]" t-att-id="'ei-p360-ex-' + m.key" class="ei-p360-explain" t-out="m.explain"/>
-                            </article>
-                        </div>
-                    </section>
+                    <!-- Sections of the party: one tab each -->
+                    <div class="ei-p360-tabbar" role="tablist" aria-label="Sections of this party">
+                        <button t-foreach="this.tabs" t-as="tb" t-key="tb.key" type="button" role="tab" t-att-id="'ei-p360-tab-' + tb.key" aria-controls="ei-p360-panel"
+                                t-att-aria-selected="tb.key === this.tabKey ? 'true' : 'false'" t-att-tabindex="tb.key === this.tabKey ? 0 : -1"
+                                t-att-class="'ei-p360-tab' + (tb.key === this.tabKey ? ' is-on' : '')" t-on-click="() => this.setTab(tb.key)" t-on-keydown="(ev) => this.onTabKey(ev, tb_index)">
+                            <span t-out="tb.label"/><span t-if="tb.badge" class="ei-p360-tabn" t-att-aria-label="tb.badge + ' waiting'" t-out="tb.badge"/>
+                        </button>
+                    </div>
+                    <div id="ei-p360-panel" role="tabpanel" class="ei-p360-panel" t-att-aria-labelledby="'ei-p360-tab-' + this.tabKey" tabindex="0">
+                        <t t-if="this.tabKey === 'overview' or this.cards.length or this.panelQuiet.length">
+                            <h2 t-if="this.tabKey === 'overview' and this.cards.length" class="ei-p360-h2">The main figures</h2>
+                            <div t-if="this.cards.length" class="ei-p360-grid">
+                                <article t-foreach="this.cards" t-as="m" t-key="m.key" t-att-class="'ei-p360-kpi ei-tone-' + m.tone">
+                                    <div class="ei-p360-kpi-label" t-out="m.label"/>
+                                    <div class="ei-p360-kpi-value" t-out="m.text"/>
+                                    <div class="ei-p360-kpi-basis" t-out="m.basis"/>
+                                    <div class="ei-p360-kpi-actions">
+                                        <button t-if="m.count" class="ei-p360-link" t-on-click="() => this.openFigure(m)" t-att-aria-label="'Show the records: ' + m.label"><span class="ei-long">Show the records</span><span class="ei-short">Records</span></button>
+                                        <button class="ei-p360-link" t-att-aria-expanded="this.state.explain[m.key] ? 'true' : 'false'"
+                                                t-att-aria-controls="'ei-p360-ex-' + m.key" t-on-click="() => this.toggleExplain(m.key)">
+                                            <svg class="ei-p360-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="this.icon('info')"/></svg>
+                                            <span class="ei-long">How is this worked out?</span><span class="ei-short">How?</span>
+                                        </button>
+                                    </div>
+                                    <p t-if="this.state.explain[m.key]" t-att-id="'ei-p360-ex-' + m.key" class="ei-p360-explain" t-out="m.explain"/>
+                                </article>
+                            </div>
+                            <p t-if="!this.cards.length and this.tabKey !== 'overview'" class="ei-p360-muted">Nothing here for this party.</p>
+                        </t>
 
-                    <details t-if="this.quiet.length" class="ei-p360-quiet">
-                        <summary>Nothing to report <span class="ei-p360-quiet-n" t-out="this.quiet.length"/> <span class="ei-p360-muted">figures are zero</span></summary>
-                        <ul>
-                            <li t-foreach="this.quiet" t-as="m" t-key="m.key">
-                                <span class="ei-p360-quiet-label" t-out="m.label"/><b class="ei-p360-quiet-value" t-out="m.text"/>
-                                <small class="ei-p360-quiet-why" t-out="m.explain"/>
-                            </li>
-                        </ul>
-                    </details>
+                        <!-- overview: what needs a person, and what happened last -->
+                        <t t-if="this.tabKey === 'overview'">
+                            <section t-if="this.attention.length" class="ei-p360-section">
+                                <h2 class="ei-p360-h2">Waiting for a person</h2>
+                                <ul class="ei-p360-card ei-p360-attn">
+                                    <li t-foreach="this.attention" t-as="m" t-key="m.key">
+                                        <span class="ei-p360-attn-n" t-out="m.count"/>
+                                        <span class="ei-p360-attn-label" t-out="m.label"/>
+                                        <button class="ei-p360-link" t-on-click="() => this.openFigure(m)">Show the records</button>
+                                    </li>
+                                </ul>
+                            </section>
+                            <section t-if="this.latest.length" class="ei-p360-section">
+                                <h2 class="ei-p360-h2">What happened last</h2>
+                                <ul class="ei-p360-card ei-p360-timeline">
+                                    <li t-foreach="this.latest" t-as="e" t-key="e_index">
+                                        <button class="ei-p360-event" t-on-click="() => this.openRecord(e.model, e.res_id)">
+                                            <span class="ei-p360-event-date" t-out="e.date"/>
+                                            <span class="ei-p360-event-kind" t-out="this.kindLabel(e.kind)"/>
+                                            <span class="ei-p360-event-title" t-out="e.title"/>
+                                            <span class="ei-p360-event-detail" t-out="e.detail"/>
+                                        </button>
+                                    </li>
+                                </ul>
+                                <div class="ei-p360-morerow"><button class="ei-p360-btn ei-p360-btn-ghost" t-on-click="() => this.setTab('timeline', true)">See all the history</button></div>
+                            </section>
+                        </t>
+
+                        <details t-if="this.panelQuiet.length" class="ei-p360-quiet">
+                            <summary>Nothing to report <span class="ei-p360-quiet-n" t-out="this.panelQuiet.length"/> <span class="ei-p360-muted">figures are zero</span></summary>
+                            <ul>
+                                <li t-foreach="this.panelQuiet" t-as="m" t-key="m.key">
+                                    <span class="ei-p360-quiet-label" t-out="m.label"/><b class="ei-p360-quiet-value" t-out="m.text"/>
+                                    <small class="ei-p360-quiet-why" t-out="m.explain"/>
+                                </li>
+                            </ul>
+                        </details>
 
                     <!-- Chains -->
-                    <section class="ei-p360-section" t-if="d.chains !== null">
+                    <section class="ei-p360-section" t-if="d.chains !== null and this.tabKey === 'chains'">
                         <h2 class="ei-p360-h2">From contract to payment</h2>
                         <div t-if="!d.chains.length" class="ei-p360-card ei-p360-muted-card">No delivery advices for this party yet.</div>
                         <div t-else="" class="ei-p360-card ei-p360-chains">
@@ -143,7 +180,7 @@
                     </section>
 
                     <!-- Timeline -->
-                    <section class="ei-p360-section" t-if="d.timeline.length">
+                    <section class="ei-p360-section" t-if="d.timeline.length and this.tabKey === 'timeline'">
                         <h2 class="ei-p360-h2">What happened, newest first</h2>
                         <ul class="ei-p360-card ei-p360-timeline">
                             <li t-foreach="this.events" t-as="e" t-key="e_index">
@@ -159,6 +196,7 @@
                             <button class="ei-p360-btn ei-p360-btn-ghost" t-on-click="() => this.state.allEvents = !this.state.allEvents" t-att-aria-expanded="this.state.allEvents ? 'true' : 'false'"><t t-if="this.state.allEvents">Show fewer</t><t t-else="">Show all <t t-out="d.timeline.length"/> events</t></button>
                         </div>
                     </section>
+                    </div>
                 </t>
             </div>
         </div>

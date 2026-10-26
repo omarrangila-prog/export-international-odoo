@@ -2,6 +2,9 @@
 
 **Read this first.** The system is a **functional first build for UAT preparation, not production-ready** (`docs/release_status.md`). It can be hosted and used by the three senior people for a pilot, but before real money is entered the open decisions in `docs/open_decisions.md` need answers (the tax and commission bases, the chart of accounts and opening balances, who may see what, bank and FBR access). Nothing here has been run on a real server: the installer was written from what was exercised on the staging machine and checked with `--dry-run`, not executed.
 
+## Just to show it for an hour (no server)
+`migration/share.sh start` puts the staging copy on a temporary public web address (a Cloudflare quick tunnel; it changes every time and works only while this computer is on). `migration/share.sh stop` closes it. While it is shared the system administrator logins get random passwords nobody is told, there is no database manager page, and PIN sign-in is off (through a tunnel every visitor looks like this computer). Visitors use `demo.<role>` / `demo`. It shows the client's real code list: give the address only to the people meant to see it.
+
 ## What you need
 | | |
 |---|---|

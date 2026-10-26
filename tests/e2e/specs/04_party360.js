@@ -13,6 +13,21 @@ module.exports = {
     await p.waitForSelector('.ei-p360-party');
     ctx.check(/Rehman/i.test(await p.innerText('.ei-p360-name')), 'Enter opens the chosen party');
     ctx.check(await p.locator('.ei-p360-kpi').count() >= 3 && await p.isVisible('.ei-p360-asof'), 'figures and the "read at" time are shown');
+    // ---- the tabs: one view of the party at a time
+    const tabNames = await p.locator('.ei-p360-tab').allInnerTexts();
+    ctx.check(tabNames[0].trim() === 'Overview' && tabNames.length >= 4 && await p.locator('.ei-p360-tab[aria-selected=true]').count() === 1, 'the party has tabs, Overview first and selected', tabNames.join('|').replace(/\n/g, ' '));
+    ctx.check(await p.locator('.ei-p360-kpi').count() === 4 && await p.locator('.ei-p360-chains').count() === 0 && await p.locator('.ei-p360-timeline').count() <= 1, 'the overview leads with four figures and does not show the long tables');
+    await p.locator('.ei-p360-tab', { hasText: 'Money' }).click(); await p.waitForTimeout(300);
+    ctx.check(await p.locator('.ei-p360-tab[aria-selected=true]').innerText().then((t) => /Money/.test(t)) && await p.locator('.ei-p360-kpi').count() >= 1, 'Money shows the money figures of this party');
+    await p.locator('.ei-p360-tab[aria-selected=true]').press('ArrowRight'); await p.waitForTimeout(300);
+    ctx.check(/Material/.test(await p.locator('.ei-p360-tab[aria-selected=true]').innerText()), 'arrow keys move between tabs');
+    const chainsTab = p.locator('.ei-p360-tab', { hasText: 'Contract to payment' });
+    if (await chainsTab.count()) { await chainsTab.click(); await p.waitForTimeout(300); ctx.check(await p.locator('.ei-p360-chains').count() === 1, 'Contract to payment shows the chains'); }
+    await p.locator('.ei-p360-tab', { hasText: 'History' }).click(); await p.waitForTimeout(300);
+    ctx.check(await p.locator('.ei-p360-event').count() >= 1, 'History lists what happened');
+    const axt = await s.axe('.ei-p360-tabbar');
+    ctx.check(!axt || !axt.filter((v) => ['serious', 'critical'].includes(v.impact)).length, 'accessibility of the tab bar', JSON.stringify(axt));
+    await p.locator('.ei-p360-tab', { hasText: 'Overview' }).click(); await p.waitForTimeout(300);
     const w360 = await s.wheelScroll('.ei-p360');
     ctx.check(w360.max > 300 && w360.top >= w360.max - 2 && w360.win === 0 && w360.scrollbarWidth !== 'none', 'Party 360: the mouse wheel takes a person to the end of the page, and its scrollbar is not hidden', JSON.stringify(w360));
     await p.evaluate(() => { document.querySelector('.ei-p360').scrollTop = 0; });

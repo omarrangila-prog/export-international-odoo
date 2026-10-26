@@ -4,6 +4,21 @@ import { standardActionServiceProps } from "@web/webclient/actions/action_plugin
 import { Component, onWillStart, onWillUnmount, proxy, useProps } from "@odoo/owl";
 
 const RECENT_KEY = "ei_party360_recent";
+const TAB_KEY = "ei_party360_tab";
+// One page, seven views of the same party. A tab exists only when the person's role can see something in it.
+const TAB_DEFS = [
+    { key: "overview", label: "Overview" },
+    { key: "money", label: "Money", group: "money" },
+    { key: "material", label: "Material", group: "material" },
+    { key: "documents", label: "Documents", group: "documents", waiting: true },
+    { key: "bank", label: "Bank", group: "bank", waiting: true },
+    { key: "chains", label: "Contract to payment" },
+    { key: "timeline", label: "History" },
+];
+// the four figures the overview leads with: the first four of these that have something in them (all real figures, none invented)
+// the figures that mean "a person has something to do" (money received and confirmed is not one of them)
+const WAITING = new Set(["d_das", "d_orders", "d_intake", "b_suggested", "p_diff", "l_to_invoice"]);
+const SUMMARY_ORDER = ["f_ar", "f_ap", "m_remaining", "m_lifted", "l_to_invoice", "d_contracts", "d_das", "d_orders", "d_intake", "b_suggested", "p_diff"];
 const SEARCH_DELAY = 220;
 const CHAINS_SHOWN = 5;
 const EVENTS_SHOWN = 8;
@@ -35,7 +50,7 @@ export class EiParty360 extends Component {
         this.action = useService("action");
         this.state = proxy({
             query: "", results: [], active: -1, searching: false, open: false, searched: false,
-            loading: false, error: false, data: null, explain: {}, recent: this.readRecent(), allChains: false, allEvents: false,
+            loading: false, error: false, data: null, explain: {}, recent: this.readRecent(), allChains: false, allEvents: false, tab: this.readTab(),
         });
         this.timer = null;
         onWillUnmount(() => clearTimeout(this.timer));
@@ -65,6 +80,44 @@ export class EiParty360 extends Component {
         }
     }
 
+    readTab() { try { return window.sessionStorage.getItem(TAB_KEY) || "overview"; } catch { return "overview"; } }
+    setTab(key, focus) {
+        this.state.tab = key;
+        try { window.sessionStorage.setItem(TAB_KEY, key); } catch { /* the tab just is not remembered */ }
+        if (focus) { setTimeout(() => document.getElementById("ei-p360-tab-" + key)?.focus(), 0); }
+    }
+    onTabKey(ev, i) {
+        const tabs = this.tabs;
+        const go = { ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: tabs.length - 1 }[ev.key];
+        if (go === undefined) { return; }
+        ev.preventDefault();
+        this.setTab(tabs[(go + tabs.length) % tabs.length].key, true);
+    }
+    get tabs() {
+        const d = this.state.data;
+        if (!d) { return []; }
+        return TAB_DEFS.filter((t) => {
+            if (t.group) { return d.metrics.some((m) => m.group === t.group); }
+            if (t.key === "chains") { return d.chains !== null; }
+            if (t.key === "timeline") { return d.timeline.length > 0; }
+            return true;
+        }).map((t) => ({ ...t, badge: t.waiting ? d.metrics.filter((m) => m.group === t.group && WAITING.has(m.key)).reduce((n, m) => n + (m.count || 0), 0) : 0 }));
+    }
+    get tabKey() { return this.tabs.some((t) => t.key === this.state.tab) ? this.state.tab : "overview"; }
+    // the figure cards of the open tab: the overview leads with four, a figure tab shows its own group
+    get cards() {
+        const d = this.state.data, key = this.tabKey;
+        if (key === "overview") {
+            const by = Object.fromEntries(d.metrics.map((m) => [m.key, m]));
+            const present = SUMMARY_ORDER.map((k) => by[k]).filter(Boolean);
+            return present.filter((m) => m.count > 0).concat(present.filter((m) => !m.count)).slice(0, 4);
+        }
+        return d.metrics.filter((m) => m.group === key && m.count > 0);
+    }
+    get panelQuiet() { const key = this.tabKey; return key === "overview" ? [] : this.state.data.metrics.filter((m) => m.group === key && !m.count); }
+    // what needs a person: the document and bank figures with something in them
+    get attention() { return this.state.data.metrics.filter((m) => WAITING.has(m.key) && m.count > 0); }
+    get latest() { return this.state.data.timeline.slice(0, 4); }
     icon(name) { return ICONS[name] || ICONS.circle; }
     stageIcon(tone) { return ICONS[STAGE_ICON[tone] || "circle"]; }
     stageWord(tone) { return STAGE_WORD[tone] || ""; }
