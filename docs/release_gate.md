@@ -7,7 +7,7 @@ a bank, FBR or real data. They are not code that is missing.
 |---|---|---|---|
 | 1 | Rate formulas signed off with the books | Separate, versioned, draft formulas with signed tests from the PDF (`calculation_register.md`); contracts keep the version they were approved with | **Open**: the accountant must approve them (open decisions 31 and 32) |
 | 2 | Ledger balances signed off | Party balances vs control accounts (R3) with sign-off by a second person; month-end close; Odoo lock date | **Open**: opening balances (4) |
-| 3 | End-to-end tests pass for every role | 377 code tests; real-browser suite (about 1,100 checks) for every role, phone to large screen, light and dark, Chrome and Firefox | Passes on synthetic data |
+| 3 | End-to-end tests pass for every role | 372 code tests; real-browser suite (1,078 checks) for every role, phone to large screen, light and dark, Chrome and Firefox | Passes on synthetic data |
 | 4 | Bank events counted once | File fingerprints, line fingerprints, one posting per line; imports log | Passes on synthetic data |
 | 5 | Parent statements reconcile on approved examples | Matching by number, amount, tax and HS code; printed total must equal the rows imported; sign-off by a second person | **Open**: needs real parent statements |
 | 6 | Physical MTL checks work | Verified loadings (gate pass, weighbridge, maker-checker); quantity trail per DA line | **Open**: which evidence proves a lift (2) |
