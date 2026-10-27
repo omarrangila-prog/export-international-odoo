@@ -41,6 +41,7 @@ echo "== 3. configuration and secrets"
 MASTER=$(openssl rand -base64 24)
 PEPPER=$(openssl rand -base64 32)
 ADMINPW=$(openssl rand -base64 24 | tr -d '/+=' | cut -c1-18)
+[ "$DRY" = 0 ] || ADMINPW="(dry run: none set; the real run shows it here)"
 WORKERS=$(( $(nproc) > 1 ? $(nproc) * 2 - 1 : 0 ))
 if [ "$DRY" = 0 ]; then
   sed -e "s|@@MASTER_PASSWORD@@|$MASTER|" -e "s|@@DB_NAME@@|$DB|g" -e "s|@@WORKERS@@|$WORKERS|" "$REPO/deploy/odoo.conf.template" > /etc/odoo/odoo.conf
