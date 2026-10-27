@@ -45,6 +45,7 @@ class TestJourney(AccountTestInvoicingCommon):
         cls.rclerk = u('j_rclerk', 'ei_parent_reconciliation.group_ei_recon_user')
         cls.rapprover = u('j_rapprover', 'ei_parent_reconciliation.group_ei_recon_approver')
         cls.ceo = u('j_ceo', 'ei_management_dashboard.group_ei_management')
+        cls.auditor = u('j_auditor', 'ei_legacy_master.group_ei_auditor')
         cls.cashclerk = u('j_cash', 'ei_cashbook.group_ei_cash_clerk')
 
         # 1. legacy codes
@@ -311,5 +312,6 @@ class TestJourney(AccountTestInvoicingCommon):
             act = dash.with_context(kpi=kpi).action_open_kpi()
             n = self.env[act['res_model']].with_user(self.ceo).search_count(act['domain'])
             self.assertGreaterEqual(n, 0, kpi)
-        self.assertFalse(self.env['account.move.line'].with_user(self.ceo).has_access('write'),
+        # owner's decision (27 Oct 2026): the CEO may also prepare entries; the read-only role still cannot change the books
+        self.assertFalse(self.env['account.move.line'].with_user(self.auditor).has_access('write'),
                          "reading the books must not allow changing them")

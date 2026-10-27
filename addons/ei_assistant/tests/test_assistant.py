@@ -212,8 +212,8 @@ class TestAssistant(TestJourney):
         self.assertEqual(len(t['rows']), min(len(mine), engine.PER_TABLE))
         self.assertTrue(len(mine) >= 1)
         self.assertTrue(any(s['kind'] == 'task' for s in r['sources']))
-        ceo = self.ask('What is waiting for me?', self.ceo)               # management oversees, nothing for the CEO to do
-        self.assertIn('Nothing is waiting', ceo['blocks'][0]['text'])
+        reader = self.ask('What is waiting for me?', self.auditor)        # a read-only role has nothing to do
+        self.assertIn('Nothing is waiting', reader['blocks'][0]['text'])
 
     def test_a14_attention_and_key_figures_are_home(self):
         k = self.ask('Give me the key figures')

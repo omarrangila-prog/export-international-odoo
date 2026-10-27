@@ -537,7 +537,10 @@ class EiHome(models.AbstractModel):
         """Plain checks for the administrator. Each one is a real check, not a status light."""
         env = self.env
         from odoo.tools import find_in_path
-        pdf = bool(find_in_path('wkhtmltopdf'))
+        try:
+            pdf = bool(find_in_path('wkhtmltopdf'))
+        except OSError:                          # Odoo 20 raises when it is missing: that is exactly what this check reports
+            pdf = False
         mail = env['ir.mail_server'].sudo().search_count([('active', '=', True)])
         cron = env.ref('ei_management_dashboard.cron_ei_daily_summary', raise_if_not_found=False)
         cron = cron.sudo() if cron else None

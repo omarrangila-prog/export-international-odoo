@@ -45,9 +45,11 @@ class TestVisibleActions(TestJourney):
             self.assertTrue(self.env[model].with_user(user).has_access('create'), f'{model} {user.login}')
             self.assertNotIn(self.root_attrs(user, model, 'kanban').get('create', 'true').lower(), ('false', '0'), model)       # access rules unchanged: they still create
 
-    def test_v02_the_ceo_is_not_invited_to_create_what_the_policy_forbids(self):
+    def test_v02_a_reader_is_not_invited_to_create_and_the_ceo_may_prepare_entries(self):
+        for model in ('ei.contract', 'ei.da', 'ei.lifting', 'ei.cash.voucher', 'ei.bank.import'):    # owner's decision, 27 Oct 2026
+            self.assertTrue(self.env[model].with_user(self.ceo).has_access('create'), model)
         for model in CARD_MODELS:
-            self.assertFalse(self.env[model].with_user(self.ceo).has_access('create'), model)       # the CEO is view/approve-only on these
-            attrs = self.root_attrs(self.ceo, model, 'kanban')
+            self.assertFalse(self.env[model].with_user(self.auditor).has_access('create'), model)   # the auditor only reads
+            attrs = self.root_attrs(self.auditor, model, 'kanban')
             if attrs is not None:
                 self.assertIn(attrs.get('create', 'true').lower(), ('false', '0'), model)
