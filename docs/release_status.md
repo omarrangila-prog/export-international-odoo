@@ -62,6 +62,16 @@ AI assistants (M14), Urdu labels, Docker Compose, performance tests, external se
 
 **Verified:** 320 unit tests, 0 failed, on a fresh database (`docs/test_results.md`); the real-browser suite, 15 specs (`docs/e2e_results.md`).
 
-**Not done yet (the rest of the client order):** Party 360 re-organised into tabs, a sticky summary on the bank-matching screen, the approval-evidence dialog, the document split-screen viewer, the report workspace and Preview / Verified / Pending labels, trial balance / profit and loss / balance sheet / cash flow as labelled previews, PDF export and scheduled delivery, Firefox runs, the asset-bundle root-cause write-up, and the five-second test with real staff (a protocol and kit can be supplied; the test itself needs people).
-**Decisions needed:** `docs/open_decisions.md` 26 (which roles may use a PIN) and 27 (the PIN rules).
+## Remaining client milestones, 27 Oct 2026 (all built except the Urdu text and the test with real staff)
+* **Party 360 as tabs** (done 26 Oct).
+* **Bank matching:** the payment, who paid, what is allocated, what is not and the Save button stay in view while the invoices scroll (spec 08).
+* **Approval evidence:** every approve / verify / sign / post button (13 of them, `ei_app_shell/models/approval.py`) first opens a dialog: the facts and figures, who prepared it and when, every recorded change (before and after), the attached documents, what the approval will do, and whether this person holds the role; the maker is told plainly why not. The approval methods still enforce every rule (unit tests e01-e06, spec 17).
+* **Documents beside the record:** a Documents button opens PDFs and pictures in a panel beside the record (full screen on a phone); only what the person may already read (spec 17).
+* **Report workspace with labelled previews:** profit and loss, balance sheet, trial balance and cash flow from the posted books, one period picker, six headline figures, four agreement checks, the largest costs and customers, every row opening its entries; the catalog labels them Preview (not "delivered") with the reason (`ei_reports`, tests f01-f08, spec 17).
+* **PDF export and scheduled delivery:** each statement as a PDF marked PREVIEW; email delivery that starts off, is switched on by management only, goes only to colleagues allowed to see it, and logs every run with its PDF (tests s01-s05, spec 17).
+* **Firefox runs:** the whole browser suite also runs in Firefox (`EI_BROWSER=firefox tests/run_e2e.sh`).
+* **Asset-loss write-up and performance profile:** `docs/asset_loss_writeup.md`.
+
+**Not done (by decision or because it needs people):** Urdu text on screens (excluded by the owner, 27 Oct); the five-second test with real staff (`docs/ui/five_second_test.md`).
+**Decisions needed:** `docs/open_decisions.md` 26 (which roles may use a PIN), 27 (the PIN rules), 29 (who sees the financial previews) and 30 (scheduled email delivery).
 

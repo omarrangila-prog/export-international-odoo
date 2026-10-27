@@ -1,6 +1,6 @@
-// Shared helpers for the real-browser end-to-end suite (Playwright + axe-core, headless Chromium).
+// Shared helpers for the real-browser end-to-end suite (Playwright + axe-core; headless Chromium, or Firefox with EI_BROWSER=firefox).
 // A check that cannot fail proves nothing: every spec asserts on what the user actually sees.
-const { chromium } = require('playwright');
+const playwright = require('playwright');
 const fs = require('fs');
 const path = require('path');
 
@@ -136,5 +136,6 @@ class Session {
   async close() { await this.bctx.close(); }
 }
 
-async function launch() { return chromium.launch(); }
+// EI_BROWSER=firefox (or webkit) runs the same suite in another engine; Chromium is the default
+async function launch() { return playwright[process.env.EI_BROWSER || 'chromium'].launch(); }
 module.exports = { Ctx, Session, launch, VIEWPORTS };

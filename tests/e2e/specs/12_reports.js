@@ -24,7 +24,7 @@ module.exports = {
     ctx.check(hits.length >= 2 && hits.every(t => /bank/i.test(t) || cat.find(c => c.title === t && /bank/i.test(c.question + c.definition + c.source))), '1 the search finds reports by what they answer', hits.join(' | '));
     await p.locator('.ei-rc-search input').fill('');
     await p.locator('.ei-rc-check input').check(); await p.waitForTimeout(300);
-    ctx.check(await p.locator('.ei-rc-card').count() === cat.length && await p.locator('.ei-rc-card.is-warn .ei-rc-note').count() >= 3, '1 "also show" reveals the reports that are not built or blocked, each with its reason');
+    ctx.check(await p.locator('.ei-rc-card').count() === cat.length && await p.locator('.ei-rc-card.is-warn .ei-rc-note, .ei-rc-card.is-preview .ei-rc-note').count() >= 3, '1 "also show" reveals the reports that are not built or blocked, each with its reason');
     ctx.check(await p.locator('.ei-rc-card .ei-rc-open').count() === open.length && await p.locator('.ei-rc-unavail').count() === cat.length - open.length, '1 a report that is not available has no button that leads nowhere');
     await p.locator('.ei-rc-check input').uncheck();
     const star = p.locator('.ei-rc-card', { hasText: 'Aged receivables' }).locator('.ei-rc-star');
