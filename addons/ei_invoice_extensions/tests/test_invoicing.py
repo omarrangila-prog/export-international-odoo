@@ -224,6 +224,31 @@ class TestInvoicing(AccountTestInvoicingCommon):
         self.assertEqual(len(moves), 2)
         self.assertEqual(sorted(moves.mapped('amount_total')), [840000, 1050000])
 
+    def test_11b_customer_layout_and_output_log(self):
+        self.cust1.write({'ei_invoice_grouping': 'per_da', 'ei_show_contract_ref': True, 'ei_invoice_note': 'Synthetic PO wording'})
+        a, b = self.lifting(mtl=3), self.lifting(mtl=1)
+        inv = self.env['account.move'].browse(self.wizard(a + b).action_create()['domain'][0][2])
+        self.assertEqual(len(inv.invoice_line_ids), 1)                     # one line per DA and material, as this customer asked
+        line = inv.invoice_line_ids
+        self.assertEqual(line.quantity, 4)
+        self.assertIn('2 loadings', line.name)
+        self.assertIn('contract', line.name)
+        self.assertIn('Synthetic PO wording', str(inv.narration))
+        self.assertEqual(inv.ei_revision, 0)
+        inv.with_user(self.clerk).action_ei_export_excel()
+        inv.invalidate_recordset(['ei_output_ids', 'ei_revision'])
+        self.assertEqual((inv.ei_revision, inv.ei_output_ids.kind, inv.ei_output_ids.move_state), (1, 'excel', inv.state))
+        inv._ei_log_output('pdf')                                          # same lines: same revision
+        inv.invalidate_recordset(['ei_output_ids', 'ei_revision'])
+        self.assertEqual(inv.ei_revision, 1)
+        if inv.state == 'draft':
+            inv.invoice_line_ids.price_unit = 1
+            inv._ei_log_output('pdf')
+            inv.invalidate_recordset(['ei_output_ids', 'ei_revision'])
+            self.assertEqual(inv.ei_revision, 2)                           # the customer got a changed invoice: a new revision
+        with self.assertRaises(UserError):
+            inv.ei_output_ids[:1].write({'revision': 9})
+
     def test_12_price_adjustment_controls(self):
         l = self.lifting(mtl=1)
         w = self.wizard(l)

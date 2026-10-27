@@ -13,6 +13,7 @@
         'wizard/invoice_wizard_views.xml',
         'views/intake_views.xml',
         'views/compliance_views.xml',
+        'views/output_views.xml',
         'views/menus.xml',
     ],
     'installable': True,

@@ -10,41 +10,42 @@
                     </div>
                     <button type="button" class="btn btn-secondary" t-on-click="() => this.load()">Check again</button>
                 </header>
-                <div t-if="state.loading" class="ei-rx-msg" role="status">Working out the reconciliations...</div>
-                <div t-elif="state.error" class="alert alert-danger" role="alert" t-esc="state.error"/>
-                <t t-elif="state.data">
+                <div t-if="this.state.loading" class="ei-rx-msg" role="status">Working out the reconciliations...</div>
+                <div t-elif="this.state.error" class="alert alert-danger" role="alert" t-esc="this.state.error"/>
+                <t t-elif="this.state.data">
                     <p class="ei-rx-summary" role="status">
-                        <t t-if="state.data.attention"><b t-esc="state.data.attention"/> need attention today (<t t-esc="state.data.today"/>).</t>
-                        <t t-else="">Nothing needs attention today (<t t-esc="state.data.today"/>).</t>
+                        <t t-if="this.state.data.attention"><b t-esc="this.state.data.attention"/> need attention today (<t t-esc="this.state.data.today"/>).</t>
+                        <t t-else="">Nothing needs attention today (<t t-esc="this.state.data.today"/>).</t>
                     </p>
-                    <div t-if="!state.data.cards.length" class="ei-rx-msg">None of the reconciliations is part of your work.</div>
+                    <div t-if="!this.state.data.cards.length" class="ei-rx-msg">None of the reconciliations is part of your work.</div>
                     <div class="ei-rx-grid">
-                        <section t-foreach="state.data.cards" t-as="c" t-key="c.key" t-attf-class="ei-rx-card is-{{c.status}}" t-att-aria-label="c.title">
+                        <section t-foreach="this.state.data.cards" t-as="c" t-key="c.key" t-attf-class="ei-rx-card is-{{c.status}}" t-att-aria-label="c.title">
                             <div class="ei-rx-card-top">
                                 <span class="ei-rx-code" t-esc="c.code"/>
-                                <span t-attf-class="ei-rx-chip is-{{c.status}}" t-esc="label(c.status)"/>
+                                <span t-attf-class="ei-rx-chip is-{{c.status}}" t-esc="this.label(c.status)"/>
                             </div>
                             <h2 class="ei-rx-card-title" t-esc="c.title"/>
                             <p class="ei-rx-q" t-esc="c.question"/>
                             <dl class="ei-rx-figs">
                                 <t t-foreach="c.figures" t-as="f" t-key="f_index">
-                                    <dt t-esc="f.label"/><dd t-esc="value(f)"/>
+                                    <dt t-esc="f.label"/><dd t-esc="this.value(f)"/>
                                 </t>
                             </dl>
                             <p t-if="c.note" class="ei-rx-note" t-esc="c.note"/>
                             <p t-if="c.signed" class="ei-rx-signed">Last signed off by <b t-esc="c.signed.who"/>, <t t-esc="c.signed.when"/></p>
                             <div t-if="c.rows.length" class="ei-rx-rows">
-                                <button type="button" class="btn btn-link p-0" t-att-aria-expanded="state.open === c.key ? 'true' : 'false'"
+                                <button type="button" class="btn btn-link p-0" t-att-aria-expanded="this.state.open === c.key ? 'true' : 'false'"
                                         t-on-click="() => this.toggle(c.key)">
-                                    <t t-if="state.open === c.key">Hide each account</t><t t-else="">Show each account</t>
+                                    <t t-if="this.state.open === c.key">Hide each account</t><t t-else="">Show each account</t>
                                 </button>
-                                <div t-if="state.open === c.key" class="ei-rx-table-wrap" tabindex="0">
+                                <div t-if="this.state.open === c.key" class="ei-rx-table-wrap" tabindex="0">
                                     <table class="ei-rx-table">
-                                        <thead><tr><th>Account</th><th class="text-end">In our books</th><th class="text-end">Bank said</th><th>On</th><th class="text-end">Unexplained</th><th>Proof</th><th>Status</th></tr></thead>
+                                        <thead><tr><th>Account</th><th class="text-end">In our books</th><th class="text-end">In today</th><th class="text-end">Out today</th><th class="text-end">Lines waiting</th><th class="text-end">Bank said</th><th>On</th><th class="text-end">Unexplained</th><th>Proof</th><th>Status</th></tr></thead>
                                         <tbody>
                                             <tr t-foreach="c.rows" t-as="r" t-key="r_index">
-                                                <td t-esc="r.name"/><td class="text-end" t-esc="money(r.book)"/><td class="text-end" t-esc="money(r.bank)"/>
-                                                <td t-esc="r.date"/><td class="text-end" t-esc="money(r.unexplained)"/><td t-esc="r.proof"/><td t-esc="r.state"/>
+                                                <td t-esc="r.name"/><td class="text-end" t-esc="this.money(r.book)"/><td class="text-end" t-esc="this.money(r.in_today)"/><td class="text-end" t-esc="this.money(r.out_today)"/>
+                                                <td class="text-end" t-esc="r.waiting"/><td class="text-end" t-esc="this.money(r.bank)"/>
+                                                <td t-esc="r.date"/><td class="text-end" t-esc="this.money(r.unexplained)"/><td t-esc="r.proof"/><td t-esc="r.state"/>
                                             </tr>
                                         </tbody>
                                     </table>

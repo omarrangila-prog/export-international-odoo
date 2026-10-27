@@ -41,7 +41,12 @@ class EiReconCentre(models.AbstractModel):
                 book = j._ei_ledger_balance(today)
                 ok = last and last.date == today and last.state == 'signed'
                 open_n += not ok
-                rows.append({'name': j.name, 'book': book, 'bank': last.bank_balance if last else None, 'date': str(last.date) if last else '',
+                moves = env['account.move.line'].sudo()._read_group(
+                    [('account_id', '=', j.default_account_id.id), ('parent_state', '=', 'posted'), ('date', '=', today)], [], ['debit:sum', 'credit:sum'])[0]
+                waiting = env['ei.bank.import.line'].search_count([('import_id.journal_id', '=', j.id), ('state', 'in', ('new', 'proposed', 'verified', 'unidentified'))]) \
+                    if 'ei.bank.import.line' in env and env['ei.bank.import.line'].has_access('read') else 0
+                rows.append({'name': j.name, 'book': book, 'in_today': moves[0] or 0.0, 'out_today': moves[1] or 0.0, 'waiting': waiting,
+                             'bank': last.bank_balance if last else None, 'date': str(last.date) if last else '',
                              'unexplained': last.unexplained_difference if last else None,
                              'proof': dict(Chk._fields['evidence_state'].selection).get(last.evidence_state) if last else '',
                              'state': dict(Chk._fields['state'].selection).get(last.state) if last else _("Never confirmed")})
@@ -153,7 +158,7 @@ class EiReconCentre(models.AbstractModel):
             last = env['ei.close'].search([('state', '=', 'signed')], order='signed_at desc', limit=1)
             open_c = env['ei.close'].search([('state', '=', 'open'), ('company_id', 'in', co)])
             card('close', _("Close"), _("Day and month close"), _("Is the day or month closed, and what still blocks it?"),
-                 'attention' if open_c else 'ok', [{'label': _("Closes not signed off"), 'value': len(open_c)},
+                 'attention' if open_c or not last else 'ok', [{'label': _("Closes not signed off"), 'value': len(open_c)},
                                                     {'label': _("Last signed"), 'value': last.name or _("never")}],
                  'ei_close.ei_close_action', signed=fmt(last.signed_by, last.signed_at))
         cards.sort(key=lambda c: STATUS_ORDER.get(c['status'], 9))

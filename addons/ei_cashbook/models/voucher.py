@@ -22,6 +22,9 @@ class EiCashVoucher(models.Model):
     category_id = fields.Many2one('ei.cash.category', tracking=True)
     target_journal_id = fields.Many2one('account.journal', string='Transfer to', domain="[('type', 'in', ('bank', 'cash'))]")
     partner_id = fields.Many2one('res.partner')
+    party_code_id = fields.Many2one('ei.legacy.code', string='Party code (old system)',
+                                    help="The code written on the paper cash book, kept exactly (e.g. 4.20).")
+    reference_no = fields.Char('Cheque / slip no.', tracking=True)
     description = fields.Char(required=True)
     analytic_distribution = fields.Json()
     analytic_precision = fields.Integer(default=2)
@@ -63,7 +66,7 @@ class EiCashVoucher(models.Model):
         return super().create(vals_list)
 
     def write(self, vals):
-        locked = {'journal_id', 'date', 'kind', 'amount', 'category_id', 'target_journal_id', 'partner_id', 'description'}
+        locked = {'journal_id', 'date', 'kind', 'amount', 'category_id', 'target_journal_id', 'partner_id', 'description', 'party_code_id', 'reference_no'}
         if locked & set(vals) and any(r.state != 'draft' for r in self):
             raise UserError(_("Only a draft voucher can be edited. Reject or reverse it instead."))
         return super().write(vals)

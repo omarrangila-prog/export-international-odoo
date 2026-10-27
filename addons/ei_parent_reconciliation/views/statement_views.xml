@@ -57,7 +57,7 @@
                     <div class="alert alert-warning" role="status" invisible="not control_entered_by or completeness_diff == 0">
                         The total printed on the parent's statement differs from the imported rows: a row is missing or extra. It cannot be signed off like this.
                     </div>
-                    <group string="Where the parent's total goes">
+                    <group string="Where the parent's total goes" class="ei-sticky-totals">
                         <group><field name="currency_id" invisible="1"/>
                             <field name="control_total" readonly="state in ('signed', 'rejected')"/><field name="control_entered_by"/>
                             <field name="completeness_diff"/></group>

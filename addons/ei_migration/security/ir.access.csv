@@ -13,11 +13,11 @@ access_ei_mig_control_auditor,ei.migration.control auditor,ei.migration.control,
 access_ei_mig_control_management,ei.migration.control management,ei.migration.control,ei_management_dashboard.group_ei_management,r,
 access_ei_mig_wizard_user,ei.migration.import.wizard accountant,ei.migration.import.wizard,account.group_account_user,crud,
 access_ei_mig_wizard_manager,ei.migration.import.wizard manager,ei.migration.import.wizard,account.group_account_manager,crud,
-rule_ei_mig_extract_company,Extract: own companies,ei.migration.extract,,crud,"[('company_id', 'in', company_ids)]"
-rule_ei_mig_control_company,Control total: own companies,ei.migration.control,,crud,"[('company_id', 'in', company_ids)]"
-rule_ei_mig_table_company,Extract table: own companies,ei.migration.table,,crud,"[('company_id', 'in', company_ids)]"
 access_ei_integration_log_user,ei.integration.log accountant,ei.integration.log,account.group_account_user,r,
 access_ei_integration_log_manager,ei.integration.log manager,ei.integration.log,account.group_account_manager,r,
 access_ei_integration_log_auditor,ei.integration.log auditor,ei.integration.log,ei_legacy_master.group_ei_auditor,r,
 access_ei_integration_log_management,ei.integration.log management,ei.integration.log,ei_management_dashboard.group_ei_management,r,
+rule_ei_mig_extract_company,Extract: own companies,ei.migration.extract,,crud,"[('company_id', 'in', company_ids)]"
+rule_ei_mig_control_company,Control total: own companies,ei.migration.control,,crud,"[('company_id', 'in', company_ids)]"
+rule_ei_mig_table_company,Extract table: own companies,ei.migration.table,,crud,"[('company_id', 'in', company_ids)]"
 rule_ei_integration_log_company,Integration log: own companies,ei.integration.log,,crud,"[('company_id', 'in', company_ids)]"

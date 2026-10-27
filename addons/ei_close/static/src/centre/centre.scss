@@ -26,3 +26,7 @@
     th, td { padding: 5px 8px; border-bottom: 1px solid var(--ei-line); white-space: nowrap; text-align: start; }
     .text-end { text-align: end; } th { color: var(--ei-muted); font-weight: 700; background: var(--ei-surface-2); } }
 .ei-rx-foot { margin-top: auto; display: flex; justify-content: flex-end; }
+
+// totals that stay in view while a long list of lines scrolls (parent statements)
+.o_form_view .ei-sticky-totals { position: sticky; top: 0; z-index: 2; background: var(--ei-card); padding-block: 6px; border-bottom: 1px solid var(--ei-line);
+    box-shadow: 0 6px 12px -10px rgba(15, 27, 51, .25); }

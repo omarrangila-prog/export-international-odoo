@@ -62,6 +62,8 @@
                             <field name="category_id" readonly="state != 'draft'" invisible="kind not in ('payment', 'receipt')"/>
                             <field name="target_journal_id" readonly="state != 'draft'" invisible="kind not in ('bank_transfer', 'safe_transfer')"/>
                             <field name="partner_id" readonly="state != 'draft'"/>
+                            <field name="party_code_id" readonly="state != 'draft'" options="{'no_create': True}"/>
+                            <field name="reference_no" readonly="state != 'draft'"/>
                             <field name="description" readonly="state != 'draft'"/>
                             <field name="analytic_distribution" widget="analytic_distribution" readonly="state != 'draft'"
                                    options="{'product_field': 'product_id', 'account_field': 'account_id'}" invisible="1"/>

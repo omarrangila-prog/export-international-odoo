@@ -9,6 +9,10 @@ access_ei_submission_auditor,submission auditor,ei.compliance.submission,ei_lega
 access_ei_submission_inv,submission invoicing,ei.compliance.submission,group_ei_invoicing,cru,
 access_ei_invoice_wizard,invoice wizard,ei.invoice.wizard,group_ei_invoicing,crud,
 access_ei_invoice_wizard_line,invoice wizard line,ei.invoice.wizard.line,group_ei_invoicing,crud,
+access_ei_invoice_output_inv,ei.invoice.output invoicing,ei.invoice.output,group_ei_invoicing,r,
+access_ei_invoice_output_acct,ei.invoice.output accountant,ei.invoice.output,account.group_account_invoice,r,
+access_ei_invoice_output_auditor,ei.invoice.output auditor,ei.invoice.output,ei_legacy_master.group_ei_auditor,r,
 rule_ei_intake_company,Supplier intake: own companies,ei.supplier.intake,,crud,"[('company_id', 'in', company_ids)]"
 rule_ei_intake_line_company,Supplier intake line: own companies,ei.supplier.intake.line,,crud,"[('intake_id.company_id', 'in', company_ids)]"
 rule_ei_submission_company,Compliance submission: own companies,ei.compliance.submission,,crud,"[('company_id', 'in', company_ids)]"
+rule_ei_invoice_output_company,Invoice output: own companies,ei.invoice.output,,crud,"[('company_id', 'in', company_ids)]"

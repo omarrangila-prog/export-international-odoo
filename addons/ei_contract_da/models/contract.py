@@ -44,9 +44,17 @@ class EiContract(models.Model):
     da_ids = fields.One2many('ei.da', 'contract_id')
     notes = fields.Text()
     attachment_count = fields.Integer('Papers attached', compute='_compute_attachment_count')
+    usage = fields.Selection([('unused', 'Nothing promised yet'), ('partial', 'Partially used'), ('full', 'Fully promised on DAs')],
+                             compute='_compute_usage', help="How much of the ordered quantity is promised on approved delivery advices.")
 
     _uniq_ref = models.Constraint('unique(company_id, parent_partner_id, contract_ref, revision)',
                                   'This parent contract reference/revision already exists.')
+
+    @api.depends('line_ids.allocated_mtl', 'line_ids.ordered_mtl')
+    def _compute_usage(self):
+        for r in self:
+            ordered, used = sum(r.line_ids.mapped('ordered_mtl')), sum(r.line_ids.mapped('allocated_mtl'))
+            r.usage = 'unused' if used <= 0 else 'full' if used >= ordered - 1e-9 else 'partial'
 
     def _compute_attachment_count(self):
         data = dict(self.env['ir.attachment']._read_group(

@@ -62,7 +62,8 @@
                     <field name="state" widget="statusbar" statusbar_visible="draft,reviewed,approved,active,fulfilled,closed"/>
                 </header>
                 <sheet>
-                    <div class="oe_title"><h1><field name="name"/></h1></div>
+                    <div class="oe_title"><h1><field name="name"/></h1>
+                        <field name="usage" widget="badge" decoration-info="usage == 'partial'" decoration-success="usage == 'full'" invisible="state in ('draft', 'cancelled')"/></div>
                     <group>
                         <group>
                             <field name="parent_partner_id" readonly="state != 'draft'"/>

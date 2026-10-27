@@ -53,16 +53,34 @@ class EiInvoiceWizard(models.TransientModel):
         for (company_id, partner_id), wls in by_customer.items():
             partner = self.env['res.partner'].browse(partner_id)
             lines = []
+            # the customer's own layout: one line per truck, or one line per DA and material (same price only)
+            groups = defaultdict(list)
             for wl in wls:
-                l = wl.lifting_id
-                name = l.product_id.display_name
+                key = (wl.lifting_id.id,) if partner.ei_invoice_grouping != 'per_da' else (wl.lifting_id.da_line_id.id, wl.unit_price)
+                groups[key].append(wl)
+            for gwls in groups.values():
+                first = gwls[0].lifting_id
+                name = first.product_id.display_name
+                extra = []
+                if partner.ei_show_contract_ref and first.contract_line_id.contract_id.contract_ref:
+                    extra.append(_("contract %s", first.contract_line_id.contract_id.contract_ref))
+                if partner.ei_show_hs_code:
+                    hs = sorted({x.lifting_id.order_line_id.hs_code for x in gwls if x.lifting_id.order_line_id.hs_code})
+                    if hs:
+                        extra.append(_("HS %s", ', '.join(hs)))
                 if partner.ei_show_dispatch_details:
-                    name += _(" - DA %(d)s, gate pass %(g)s, vehicle %(v)s, %(dt)s", d=l.da_id.name, g=l.gate_pass_no,
-                              v=l.vehicle_no, dt=l.date)
-                lines.append(Command.create({'product_id': l.product_id.id, 'name': name, 'quantity': l.verified_mtl,
-                                             'price_unit': wl.unit_price, 'product_uom_id': l.contract_line_id.uom_id.id}))
+                    if len(gwls) == 1:
+                        extra.append(_("DA %(d)s, gate pass %(g)s, vehicle %(v)s, %(dt)s", d=first.da_id.name, g=first.gate_pass_no,
+                                       v=first.vehicle_no, dt=first.date))
+                    else:
+                        extra.append(_("DA %(d)s, %(n)s loadings: %(g)s", d=first.da_id.name, n=len(gwls),
+                                       g=', '.join(x.lifting_id.gate_pass_no for x in gwls)))
+                if extra:
+                    name += ' - ' + '; '.join(extra)
+                lines.append(Command.create({'product_id': first.product_id.id, 'name': name, 'quantity': sum(x.lifting_id.verified_mtl for x in gwls),
+                                             'price_unit': gwls[0].unit_price, 'product_uom_id': first.contract_line_id.uom_id.id}))
             move = self.env['account.move'].with_company(company_id).create({
-                'move_type': 'out_invoice', 'partner_id': partner_id, 'company_id': company_id,
+                'move_type': 'out_invoice', 'partner_id': partner_id, 'company_id': company_id, 'narration': partner.ei_invoice_note or False,
                 'invoice_date': self.invoice_date, 'invoice_line_ids': lines, 'ref': ', '.join(w.lifting_id.name for w in wls)})
             for wl in wls:
                 wl.lifting_id.sudo().with_context(ei_system=True).invoice_move_id = move.id

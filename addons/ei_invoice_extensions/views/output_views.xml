@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ei_partner_invoice_layout" model="ir.ui.view">
+        <field name="name">res.partner.ei.invoice.layout</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='sales_purchases']" position="inside">
+                <group string="How this customer wants its invoices" name="ei_invoice_layout" groups="ei_invoice_extensions.group_ei_invoicing">
+                    <field name="ei_invoice_grouping"/><field name="ei_show_dispatch_details"/><field name="ei_show_hs_code"/>
+                    <field name="ei_show_contract_ref"/><field name="ei_invoice_note"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+    <record id="ei_move_outputs" model="ir.ui.view">
+        <field name="name">account.move.ei.outputs</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_print_pdf']" position="after">
+                <button name="action_ei_export_excel" type="object" string="Spreadsheet" invisible="move_type not in ('out_invoice', 'out_refund')"
+                        groups="ei_invoice_extensions.group_ei_invoicing"/>
+            </xpath>
+            <xpath expr="//notebook" position="inside">
+                <page string="Given to the customer" name="ei_outputs" invisible="move_type not in ('out_invoice', 'out_refund')">
+                    <p class="text-muted">Every PDF, email/print and spreadsheet of this invoice. A new revision means the lines or total changed since the previous output.</p>
+                    <field name="ei_output_ids" readonly="1">
+                        <list><field name="at"/><field name="kind"/><field name="revision"/><field name="move_state"/>
+                            <field name="currency_id" column_invisible="1"/><field name="amount_total"/><field name="user_id"/></list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>
