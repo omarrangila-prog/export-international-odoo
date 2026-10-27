@@ -32,6 +32,7 @@ class TestHomeV2(TransactionCase):
         cls.plain = mk('v_plain')
         cls.importer = mk('v_importer', 'ei_legacy_master.group_ei_importer')
         cls.mapper = mk('v_mapper', 'ei_legacy_master.group_ei_mapping_approver')
+        cls.auditor = mk('v_auditor', 'ei_legacy_master.group_ei_auditor')
         prod = cls.env['product.product'].create({'name': 'V2 coil', 'uom_id': cls.env.ref('uom.product_uom_ton').id})
         cls.parent = cls.env['res.partner'].create({'name': 'V2 Parent Mill'})
 
@@ -89,7 +90,7 @@ class TestHomeV2(TransactionCase):
         self.assertTrue(d['empty'])
         self.assertEqual((d['kpis'], d['quick'], d['work']['items'], d['alerts']), ([], [], [], []))
 
-    def test_04_ceo_can_open_every_figure_and_cannot_change_the_books(self):
+    def test_04_ceo_can_open_every_figure_and_a_reader_cannot_change_the_books(self):
         """Regression (25 Oct 2026): the CEO saw the money figures but got an access error opening the records."""
         d = self.home(self.ceo)
         for k in d['kpis']:
@@ -97,7 +98,8 @@ class TestHomeV2(TransactionCase):
             self.assertEqual(act['type'], 'ir.actions.act_window', k['key'])
             self.assertTrue(act['views'], 'a window action without `views` crashes the Odoo 20 web client')
             self.env[act['res_model']].with_user(self.ceo).search_count(act['domain'] if 'domain' in act else [])
-        self.assertFalse(self.env['account.move.line'].with_user(self.ceo).has_access('write'))
+        # owner's decision (27 Oct 2026): the CEO may also prepare entries; the read-only role still cannot touch the books
+        self.assertFalse(self.env['account.move.line'].with_user(self.auditor).has_access('write'))
 
     def test_05_home_is_read_only(self):
         models = ('ei.contract', 'ei.da', 'ei.bank.import', 'ei.cash.voucher', 'account.move', 'ei.work.snooze', 'mail.activity')
@@ -160,12 +162,13 @@ class TestHomeV2(TransactionCase):
         self.assertTrue(t['overdue'])
         self.assertIn('Overdue', self.tasks(self.approver)['rules'])
 
-    def test_13_the_ceo_only_sees_what_is_stuck_and_cannot_act(self):
+    def test_13_the_ceo_sees_approvals_only_when_stuck_and_cannot_approve(self):
         self.assertIsNone(self.item(self.ceo, self.contract), 'a fresh task is not the CEO\'s business')
         self.age(self.contract, 5)
         t = self.item(self.ceo, self.contract)
         self.assertTrue(t and t['view_only'] and not t['can_act'] and t['overdue'])
-        self.assertTrue(self.tasks(self.ceo)['oversight'])
+        self.assertFalse(self.tasks(self.ceo)['oversight'], 'the CEO may prepare entries now, so Home is not "oversight only"')
+        self.assertTrue(self.tasks(self.auditor)['oversight'])
         self.assertFalse(t['can_assign'])
 
     def test_14_nothing_for_a_user_who_may_not_see_it(self):
@@ -203,7 +206,7 @@ class TestHomeV2(TransactionCase):
         with self.assertRaises(UserError):                                # never to someone who cannot complete the step
             self.Work.with_user(self.approver).assign('ei.contract', self.contract.id, self.cash.id)
         with self.assertRaises(AccessError):                              # a reader cannot hand out work on records they cannot change
-            self.Work.with_user(self.ceo).assign('ei.contract', self.contract.id, self.approver2.id)
+            self.Work.with_user(self.auditor).assign('ei.contract', self.contract.id, self.approver2.id)
 
     def test_16b_assigning_a_task_that_is_already_done_says_so(self):
         c = self.contract
