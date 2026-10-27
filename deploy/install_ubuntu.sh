@@ -3,10 +3,10 @@
 #
 #   sudo bash deploy/install_ubuntu.sh --domain erp.example.com --odoo-deb /path/to/odoo_20.0.deb [--email you@example.com] [--db ei] [--dry-run]
 #
-# STATUS: written from what was exercised on the staging machine (see docs/deployment_runbook.md) but NOT YET RUN ON A REAL SERVER.
-# Read it, run it with --dry-run first, and expect to fix a detail or two on the first real run.
+# STATUS: the Odoo part (settings file, modules, company, administrator password, PINs) was rehearsed on Odoo 20 with these exact files;
+# the whole script has NOT yet run on a real Ubuntu server. Run it with --dry-run first, and expect to fix a detail on the first real run.
 #
-# Use the SAME Odoo 20 package that the tests were run against (a nightly changes every day). On the build machine it is ~/odoo20/odoo20.deb.
+# Use the SAME Odoo 20 package that the tests were run against (a nightly changes every day) when you have it.
 set -euo pipefail
 
 DOMAIN=""; DEB=""; EMAIL=""; DB="ei"; DRY=0
@@ -27,7 +27,7 @@ REPO="$(cd "$(dirname "$0")/.." && pwd)"
 
 echo "== 1. packages"
 run apt-get update
-run apt-get install -y postgresql nginx certbot python3-certbot-nginx ufw fontconfig xfonts-75dpi xfonts-base libxrender1 libxext6 python3-pip curl
+run apt-get install -y postgresql nginx certbot python3-certbot-nginx ufw fontconfig xfonts-75dpi xfonts-base libxrender1 libxext6 python3-pip curl rsync openssl
 # the patched wkhtmltopdf Odoo needs for PDFs (orders, invoices, the dashboard)
 run bash -c 'curl -fsSL -o /tmp/wkhtml.deb https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-3/wkhtmltox_0.12.6.1-3.jammy_amd64.deb && apt-get install -y /tmp/wkhtml.deb'
 run apt-get install -y "$DEB"
@@ -67,7 +67,9 @@ run "${SUDO[@]}" odoo shell -c /etc/odoo/odoo.conf -d "$DB" < "$REPO/migration/s
 if [ "$DRY" = 0 ]; then
   printf "env.ref('base.user_admin').password = '%s'\nenv.cr.commit()\n" "$ADMINPW" | "${SUDO[@]}" odoo shell -c /etc/odoo/odoo.conf -d "$DB"
 fi
-run systemctl enable --now odoo
+# the Odoo package started the server with its own settings when it was installed: restart it so ours (and the PIN key) apply
+run systemctl enable odoo
+run systemctl restart odoo
 
 echo "== 5. web server and https"
 if [ "$DRY" = 0 ]; then
@@ -95,8 +97,10 @@ cat <<MSG
 Installed. Next (see deploy/README.md):
   1. open https://$DOMAIN and sign in as  admin  with the password shown below (change it at once; it is not shown again)
      administrator password: $ADMINPW
-  2. give the first people their PINs (people.json is kept OUT of git, see migration/provision_pins.py):
+  2. add the first people with a PIN (the file holds PINs: the odoo user must be able to read it; delete it afterwards):
+       install -o odoo -m 600 people.json /etc/odoo/people.json
        set -a; . /etc/odoo/ei.env; set +a
-       EI_PROVISION_FILE=/root/people.json sudo -u odoo --preserve-env=EI_PIN_PEPPER,EI_PROVISION_FILE,EI_PIN_ACCEPT_WEAK odoo shell -c /etc/odoo/odoo.conf -d $DB < migration/provision_pins.py
+       EI_PROVISION_FILE=/etc/odoo/people.json sudo -u odoo --preserve-env=EI_PIN_PEPPER,EI_PROVISION_FILE,EI_PIN_ACCEPT_WEAK odoo shell -c /etc/odoo/odoo.conf -d $DB < $REPO/migration/provision_pins.py
+       rm /etc/odoo/people.json
   3. restrict PINs to the office network:  System Parameters > ei.pin.allowed_networks
 MSG

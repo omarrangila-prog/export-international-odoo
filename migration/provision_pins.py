@@ -1,13 +1,13 @@
 """Create (or update) named people and give each a first sign-in PIN.  For the operator, on ANY database:
 
-    EI_PROVISION_FILE=/path/outside/the/repo/people.json  [EI_PIN_ACCEPT_WEAK=1]  ei_shell -d DB < migration/provision_pins.py
+    EI_PROVISION_FILE=/path/outside/the/repo/people.json  [EI_PIN_ACCEPT_WEAK=1]  odoo shell -c /etc/odoo/odoo.conf -d DB < migration/provision_pins.py
 
 people.json is a list kept OUT of git (it holds the PINs):
     [{"login": "a.director", "name": "A. Director", "role": "executive",      "pin": "...."},
      {"login": "it.lead",    "name": "IT Lead",     "role": "all_operations", "pin": "...."}]
 optional per person: "password" (otherwise a random one is made for a NEW person and printed once), "groups" (list of group ids, instead of "role").
 
-roles:  executive       = the CEO's view (management: sees everything, approves, never prepares)
+roles:  executive       = the CEO's view (management: sees everything, approves, and may also prepare entries; never approves their own)
         all_operations  = every Export International role plus accountant: runs all the operations. NOT the system administrator
                           (Settings, users and groups stay with the administrator account).
 

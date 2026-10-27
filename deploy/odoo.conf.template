@@ -1,4 +1,5 @@
 ; /etc/odoo/odoo.conf for the live Export International system. install_ubuntu.sh fills the @@ values.
+; Comments go on their own line: Odoo does not accept a comment after a value.
 [options]
 admin_passwd = @@MASTER_PASSWORD@@
 db_host = False
@@ -7,10 +8,12 @@ db_user = odoo
 db_password = False
 db_name = @@DB_NAME@@
 dbfilter = ^@@DB_NAME@@$
-list_db = False                 ; no database manager page on the sign-in screen
+; no database manager page on the sign-in screen
+list_db = False
 addons_path = /usr/lib/python3/dist-packages/odoo/addons,/opt/export-international/addons
 data_dir = /var/lib/odoo
-proxy_mode = True               ; nginx in front: the real address of the visitor is used (PIN network rule, sign-in limits)
+; nginx in front: the real address of the visitor is used (PIN network rule, sign-in limits)
+proxy_mode = True
 workers = @@WORKERS@@
 max_cron_threads = 1
 limit_memory_soft = 1342177280

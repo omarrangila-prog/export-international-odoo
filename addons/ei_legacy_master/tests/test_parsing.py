@@ -1,5 +1,6 @@
 import os
 import io
+import unittest
 
 from odoo.tests import TransactionCase, tagged
 
@@ -9,6 +10,8 @@ SRC = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'migration', 'so
 
 
 def source_bytes():
+    if not os.path.exists(SRC):                  # the client's code list is kept out of the source on purpose: skip, do not fail
+        raise unittest.SkipTest('the client code list (migration/source/EXI_legacy_codes.csv) is not here')
     with open(SRC, 'rb') as f:
         return f.read()
 
