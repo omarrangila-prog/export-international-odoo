@@ -69,6 +69,7 @@ module.exports = {
     ctx.check(await state() === 'none', '2 "1234" is refused in plain words and nothing is saved', await q.locator('.ei-pin-bad').innerText());
     s.discard(m);                                                                        // the two refusals above were provoked on purpose
     await q.fill('#ei_pin_new', ''); await q.locator('#ei_pin_new').pressSequentially(PIN); await q.fill('#ei_pin_confirm', ''); await q.locator('#ei_pin_confirm').pressSequentially('4828');
+    await q.waitForFunction(() => document.querySelector('#ei_pin_confirm')?.value.length === 4).catch(() => {}); await q.waitForTimeout(300);   // the screen updates after the last digit
     ctx.check(await save.isDisabled(), '2 two different PINs cannot be saved');
     await q.fill('#ei_pin_confirm', ''); await q.locator('#ei_pin_confirm').pressSequentially(PIN);
     await ctx.shot(q, 'pin_dialog');

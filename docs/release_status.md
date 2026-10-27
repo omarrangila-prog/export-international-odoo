@@ -69,7 +69,7 @@ AI assistants (M14), Urdu labels, Docker Compose, performance tests, external se
 * **Documents beside the record:** a Documents button opens PDFs and pictures in a panel beside the record (full screen on a phone); only what the person may already read (spec 17).
 * **Report workspace with labelled previews:** profit and loss, balance sheet, trial balance and cash flow from the posted books, one period picker, six headline figures, four agreement checks, the largest costs and customers, every row opening its entries; the catalog labels them Preview (not "delivered") with the reason (`ei_reports`, tests f01-f08, spec 17).
 * **PDF export and scheduled delivery:** each statement as a PDF marked PREVIEW; email delivery that starts off, is switched on by management only, goes only to colleagues allowed to see it, and logs every run with its PDF (tests s01-s05, spec 17).
-* **Firefox runs:** the whole browser suite also runs in Firefox (`EI_BROWSER=firefox tests/run_e2e.sh`).
+* **Firefox runs:** the whole browser suite runs in Firefox too (`EI_BROWSER=firefox tests/run_e2e.sh`): 27 Oct, 1048 passed, 0 failed, 2 skipped (installability is judged by Chromium only). Firefox-only console messages from pages left mid-request are ignored in that mode, and its scrollbar style cannot be measured there.
 * **Asset-loss write-up and performance profile:** `docs/asset_loss_writeup.md`.
 
 **Not done (by decision or because it needs people):** Urdu text on screens (excluded by the owner, 27 Oct); the five-second test with real staff (`docs/ui/five_second_test.md`).

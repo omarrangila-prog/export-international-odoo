@@ -22,9 +22,11 @@ module.exports = {
       const sw = await p.evaluate(async () => { const r = await navigator.serviceWorker.getRegistrations(); return r.length; });
       ctx.check(sw >= 1, '1 the offline page / service worker is registered', String(sw));
       await p.waitForTimeout(2500);
+      if (process.env.EI_BROWSER && process.env.EI_BROWSER !== 'chromium') { ctx.skip('1 installability is judged by Chromium itself (not available in this browser)'); } else {
       const cdp = await s.bctx.newCDPSession(p);                                         // Chromium itself says whether the page can be installed, and why not
       const inst = await cdp.send('Page.getInstallabilityErrors'), man = await cdp.send('Page.getAppManifest');
       ctx.check(!inst.installabilityErrors.length && !man.errors.length, '1 Chromium finds nothing in the way of installing it (no installability or manifest errors)', JSON.stringify({ inst: inst.installabilityErrors, man: man.errors }));
+      }
       await s.close();
     }
 

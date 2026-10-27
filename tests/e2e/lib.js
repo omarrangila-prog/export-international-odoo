@@ -26,7 +26,9 @@ class Session {
     const p = this.page = await this.bctx.newPage();
     p.setDefaultTimeout(this.opts.timeout || 10000);
     p.on('pageerror', e => this.problems.push({ kind: 'pageerror', text: e.message.slice(0, 200) }));
-    p.on('console', m => { if (m.type() === 'error') this.problems.push({ kind: 'console', text: m.text().slice(0, 200) }); });
+    // Firefox logs these itself when a page is left while a request is still loading (the tests navigate on purpose); nobody sees them
+    const engineNoise = process.env.EI_BROWSER === 'firefox' ? /^XML Parsing Error: (no root element found|junk after document element)|^downloadable font: download failed/ : null;
+    p.on('console', m => { if (m.type() === 'error' && !(engineNoise && engineNoise.test(m.text().replace(/^\[JavaScript Error: "/, '')))) this.problems.push({ kind: 'console', text: m.text().slice(0, 200) }); });
     p.on('response', async r => {
       const u = r.url();
       if (r.status() >= 500) this.problems.push({ kind: 'http' + r.status(), text: u.slice(-90) });
@@ -69,7 +71,10 @@ class Session {
     await p.waitForTimeout(250);
     return p.evaluate((sel) => {
       const el = document.querySelector(sel); const cs = getComputedStyle(el);
-      return { top: Math.round(el.scrollTop), max: Math.round(el.scrollHeight - el.clientHeight), win: Math.round(scrollY), overflowY: cs.overflowY, scrollbarWidth: cs.scrollbarWidth };
+      // Playwright's Firefox reports "none" for every scrollbar-width, even on a box set to "thin": there the value cannot be measured
+      const probe = document.createElement('div'); probe.style.scrollbarWidth = 'thin'; document.body.appendChild(probe);
+      const measurable = getComputedStyle(probe).scrollbarWidth === 'thin'; probe.remove();
+      return { top: Math.round(el.scrollTop), max: Math.round(el.scrollHeight - el.clientHeight), win: Math.round(scrollY), overflowY: cs.overflowY, scrollbarWidth: measurable ? cs.scrollbarWidth : 'not measurable in this browser' };
     }, root);
   }
   // top bar -> (optional) dropdown item, by visible text, like a person would
