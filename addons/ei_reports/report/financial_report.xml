@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_financial" model="ir.actions.report">
+        <field name="name">Financial statement (preview)</field>
+        <field name="model">ei.report.financials</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">ei_reports.report_financial</field>
+    </record>
+
+    <!-- A statement as the finance team would print it, with the PREVIEW label on every page. Rows are the same as on screen. -->
+    <template id="report_financial">
+        <t t-call="web.html_container">
+            <style>
+                .ei-pdf { font-family: Inter, Arial, sans-serif; color: #1E293B; font-size: 11px; }
+                .ei-pdf h1 { font-size: 20px; margin: 0; color: #0F1B33; }
+                .ei-pdf h2 { font-size: 13px; margin: 14px 0 4px; color: #0F1B33; border-bottom: 1px solid #CBD3DF; padding-bottom: 2px; }
+                .ei-pdf .sub { color: #566275; margin: 2px 0 8px; }
+                .ei-pdf .preview { border: 1.5px solid #9A4D06; background: #FEF3E2; color: #9A4D06; padding: 6px 10px; border-radius: 6px; margin: 8px 0 10px; font-size: 10.5px; }
+                .ei-pdf table { width: 100%; border-collapse: collapse; margin-bottom: 4px; }
+                .ei-pdf td, .ei-pdf th { padding: 2.5px 4px; border-bottom: 1px solid #E3E8EF; }
+                .ei-pdf th { text-align: left; font-size: 10px; color: #566275; text-transform: uppercase; letter-spacing: .04em; }
+                .ei-pdf .num { text-align: right; font-variant-numeric: tabular-nums; }
+                .ei-pdf tr.total td { font-weight: 700; border-top: 1.5px solid #0F1B33; border-bottom: 0; }
+                .ei-pdf .ok { color: #13692F; } .ei-pdf .bad { color: #B91C1C; font-weight: 700; }
+                .ei-pdf .foot { margin-top: 12px; color: #566275; font-size: 9.5px; }
+            </style>
+            <div class="ei-pdf">
+                <h1><t t-out="d['company']"/> - <t t-out="title"/> <span style="color:#9A4D06">(PREVIEW)</span></h1>
+                <p class="sub">
+                    <t t-if="statement == 'balance_sheet'">As at <t t-out="d['period']['date_to']"/></t>
+                    <t t-else="">Period <t t-out="d['period']['date_from']"/> to <t t-out="d['period']['date_to']"/></t>
+                    · amounts in <t t-out="currency"/> · printed <t t-out="d['generated']"/> UTC
+                </p>
+                <div class="preview"><b>Preview.</b> <t t-out="d['preview']['text']"/></div>
+
+                <t t-if="statement in ('pnl', 'summary')">
+                    <h2>Profit and loss</h2>
+                    <table>
+                        <t t-foreach="d['pnl']['sections']" t-as="s">
+                            <tr><th colspan="2"><t t-out="s['label']"/></th></tr>
+                            <tr t-foreach="s['rows']" t-as="r"><td><t t-out="r['code']"/> <t t-out="r['name']"/></td><td class="num"><t t-out="money(r['amount'])"/></td></tr>
+                            <tr class="total"><td>Total <t t-out="s['label']"/></td><td class="num"><t t-out="money(s['total'])"/></td></tr>
+                        </t>
+                        <tr class="total"><td>Result (income minus costs)</td><td class="num"><t t-out="money(d['pnl']['net'])"/></td></tr>
+                    </table>
+                </t>
+                <t t-if="statement in ('balance_sheet', 'summary')">
+                    <h2>Balance sheet</h2>
+                    <table>
+                        <t t-foreach="d['balance_sheet']['sections']" t-as="s">
+                            <tr><th colspan="2"><t t-out="s['label']"/></th></tr>
+                            <tr t-foreach="s['rows']" t-as="r"><td><t t-out="r['code']"/> <t t-out="r['name']"/></td><td class="num"><t t-out="money(r['amount'])"/></td></tr>
+                            <tr class="total"><td>Total <t t-out="s['label']"/></td><td class="num"><t t-out="money(s['total'])"/></td></tr>
+                        </t>
+                        <tr><td>Result so far (no year-end closing entry yet)</td><td class="num"><t t-out="money(d['balance_sheet']['earnings'])"/></td></tr>
+                        <tr class="total"><td>Total assets</td><td class="num"><t t-out="money(d['balance_sheet']['assets'])"/></td></tr>
+                        <tr class="total"><td>Liabilities plus equity plus result</td><td class="num"><t t-out="money(d['balance_sheet']['liabilities_and_equity'])"/></td></tr>
+                    </table>
+                </t>
+                <t t-if="statement in ('trial_balance', 'summary')">
+                    <h2>Trial balance</h2>
+                    <table>
+                        <tr><th>Account</th><th class="num">Debit</th><th class="num">Credit</th><th class="num">Balance</th></tr>
+                        <tr t-foreach="d['trial_balance']['rows']" t-as="r"><td><t t-out="r['code']"/> <t t-out="r['name']"/></td><td class="num"><t t-out="money(r['debit'])"/></td><td class="num"><t t-out="money(r['credit'])"/></td><td class="num"><t t-out="money(r['balance'])"/></td></tr>
+                        <tr class="total"><td>Total</td><td class="num"><t t-out="money(d['trial_balance']['debit'])"/></td><td class="num"><t t-out="money(d['trial_balance']['credit'])"/></td><td class="num"><t t-out="money(d['trial_balance']['debit'] - d['trial_balance']['credit'])"/></td></tr>
+                    </table>
+                </t>
+                <t t-if="statement in ('cash_flow', 'summary')">
+                    <h2>Cash flow (bank and cash)</h2>
+                    <table>
+                        <tr><td>Opening bank and cash</td><td class="num" colspan="3"><t t-out="money(d['cash_flow']['opening'])"/></td></tr>
+                        <tr><th></th><th class="num">In</th><th class="num">Out</th><th class="num">Net</th></tr>
+                        <tr t-foreach="d['cash_flow']['rows']" t-as="r"><td><t t-out="r['label']"/></td><td class="num"><t t-out="money(r['inflow'])"/></td><td class="num"><t t-out="money(r['outflow'])"/></td><td class="num"><t t-out="money(r['net'])"/></td></tr>
+                        <tr class="total"><td>Closing bank and cash</td><td class="num" colspan="3"><t t-out="money(d['cash_flow']['closing'])"/></td></tr>
+                    </table>
+                </t>
+
+                <h2>Checks</h2>
+                <table>
+                    <tr t-foreach="d['checks']" t-as="c"><td><span t-att-class="'ok' if c['ok'] else 'bad'"><t t-out="'OK' if c['ok'] else 'DOES NOT AGREE'"/></span> <t t-out="c['text']"/></td><td class="num"><t t-out="c['detail']"/></td></tr>
+                </table>
+                <p class="foot">Every figure is a sum of posted journal items; each row opens its items in the system. Not approved accounts: see the Preview note above.</p>
+            </div>
+        </t>
+    </template>
+</odoo>

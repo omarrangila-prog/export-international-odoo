@@ -7,6 +7,7 @@ import { Component, onWillStart, proxy, useProps } from "@odoo/owl";
 // whether it is delivered, partial, blocked or not built. A report that is not built is listed with the reason, never hidden.
 const STATUS = {
     delivered: { label: "Delivered", tone: "ok" },
+    preview: { label: "Preview", tone: "preview" },
     partial: { label: "Partly there", tone: "info" },
     pending_source: { label: "Blocked: needs an approval or data", tone: "warn" },
     not_built: { label: "Not built yet", tone: "muted" },
@@ -31,7 +32,7 @@ export class EiReportCatalog extends Component {
     }
     statusOf(i) { return STATUS[i.status] || STATUS.not_built; }
     get counts() {
-        const c = { delivered: 0, partial: 0, pending_source: 0, not_built: 0 };
+        const c = { delivered: 0, preview: 0, partial: 0, pending_source: 0, not_built: 0 };
         for (const i of this.state.items) { c[i.status] = (c[i.status] || 0) + 1; }
         return c;
     }

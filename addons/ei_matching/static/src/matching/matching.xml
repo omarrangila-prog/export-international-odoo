@@ -91,6 +91,21 @@
                         <div t-elif="!this.d" class="ei-mt-loading" role="status"><span class="ei-mt-spin"/> Opening the line...</div>
 
                         <t t-elif="this.d">
+                            <!-- the summary stays in view while the list of invoices scrolls: what was paid, by whom, what is allocated, what is left, and the save -->
+                            <div class="ei-mt-stickybar" role="region" aria-label="Summary of this payment">
+                                <span class="ei-mt-sb-amt" t-out="this.d.line.amount_text"/>
+                                <span class="ei-mt-sb-who">
+                                    <t t-if="this.d.party"><span class="ei-mt-tag is-ok">Confirmed</span> <t t-out="this.d.party.name"/></t>
+                                    <t t-elif="this.d.suggestion and this.d.suggestion.name"><span class="ei-mt-tag is-info">Suggested, not confirmed</span> <t t-out="this.d.suggestion.name"/></t>
+                                    <t t-else=""><span class="ei-mt-tag">No party yet</span></t>
+                                </span>
+                                <span class="ei-mt-chip" t-out="this.d.line.state_label"/>
+                                <span t-if="this.verified" class="ei-mt-sb-sum">
+                                    <span>Allocated <b t-out="this.money(this.typed)"/></span>
+                                    <span t-att-class="this.left &lt; 0 ? 'is-bad' : ''">Not allocated <b t-out="this.money(this.left)"/></span>
+                                </span>
+                                <button t-if="this.verified and this.d.can.allocate" type="button" class="ei-mt-btn is-small ei-mt-sb-save" t-att-disabled="!this.canSave" aria-label="Save the allocation, from the summary" t-on-click="() => this.saveAllocations()">Save</button>
+                            </div>
                             <!-- the line -->
                             <article class="ei-mt-card ei-mt-line">
                                 <div class="ei-mt-line-top">

@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <!-- one row of a statement: the account, its figure, and a press opens the posted items behind it -->
+    <t t-name="ei_reports.WsRow">
+        <tr class="ei-ws-row">
+            <th scope="row"><button type="button" class="ei-ws-acc" t-att-aria-label="'Open the posted items of ' + r.code + ' ' + r.name" t-on-click="() => this.openAccount(r, cumulative)"><span class="ei-ws-code" t-out="r.code"/> <t t-out="r.name"/></button></th>
+            <td class="ei-ws-num" t-out="this.money(r.amount)"/>
+        </tr>
+    </t>
+
+    <t t-name="ei_reports.Workspace">
+        <div class="o_action ei-ws">
+            <div class="ei-ws-inner">
+                <header class="ei-ws-head">
+                    <div class="ei-ws-titles">
+                        <h1 class="ei-ws-title">Financial reports</h1>
+                        <p class="ei-ws-lead">Profit and loss, balance sheet, trial balance and cash flow from the posted books, for one period. Press a row to see the entries behind it.</p>
+                    </div>
+                    <div class="ei-ws-actions">
+                        <a t-if="this.d" class="ei-ws-btn" t-att-href="this.pdfUrl" target="_blank" rel="noopener" t-att-aria-label="'Download ' + this.label + ' as a PDF'">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>
+                            PDF
+                        </a>
+                        <button type="button" class="ei-ws-btn is-quiet" t-on-click="() => this.openSchedule()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16v12H4zM4 7l8 6 8-6"/></svg>
+                            Email it on a schedule
+                        </button>
+                    </div>
+                </header>
+
+                <div class="ei-ws-preview" role="note">
+                    <span class="ei-ws-flag">Preview</span>
+                    <span>Worked out from posted entries as they stand today. The chart of accounts, opening balances and tax rules are not approved by the accountant yet, so do not use these for tax, statutory accounts or a lender.</span>
+                </div>
+
+                <div class="ei-ws-period" role="group" aria-label="Period">
+                    <div class="ei-ws-seg">
+                        <button t-foreach="this.state.choices" t-as="c" t-key="c.key" type="button" t-att-class="'ei-ws-pill' + (this.state.period === c.key ? ' is-on' : '')" t-att-aria-pressed="this.state.period === c.key ? 'true' : 'false'" t-on-click="() => this.choose(c)" t-out="c.label"/>
+                    </div>
+                    <form class="ei-ws-custom" t-on-submit.prevent="() => this.applyCustom()">
+                        <label><span>From</span><input type="date" t-att-value="this.state.from" t-on-change="(ev) => this.onFrom(ev)"/></label>
+                        <label><span>To</span><input type="date" t-att-value="this.state.to" t-on-change="(ev) => this.onTo(ev)"/></label>
+                        <button type="submit" class="ei-ws-btn is-small">Show</button>
+                    </form>
+                </div>
+
+                <div class="ei-ws-tabs" role="tablist" aria-label="Statement">
+                    <button t-foreach="this.tabs" t-as="t" t-key="t.key" type="button" role="tab" t-att-id="'ei-ws-tab-' + t.key" t-att-class="'ei-ws-tab' + (this.state.tab === t.key ? ' is-on' : '')"
+                            t-att-aria-selected="this.state.tab === t.key ? 'true' : 'false'" t-att-tabindex="this.state.tab === t.key ? '0' : '-1'" aria-controls="ei-ws-panel"
+                            t-on-click="() => this.setTab(t.key)" t-on-keydown="(ev) => this.onTabKey(ev, t_index)" t-out="t.label"/>
+                </div>
+                <p class="visually-hidden" role="status" aria-live="polite" t-out="this.state.note"/>
+                <p t-if="this.state.note" class="ei-ws-note" role="alert" t-out="this.state.note"/>
+
+                <section id="ei-ws-panel" class="ei-ws-panel" role="tabpanel" t-att-aria-labelledby="'ei-ws-tab-' + this.state.tab" tabindex="0">
+                    <div t-if="this.state.loading" class="ei-ws-skel" role="status" aria-label="Working out the figures"><span/><span/><span/></div>
+                    <p t-elif="this.state.error" class="ei-ws-error" role="alert"><t t-out="this.state.error"/> <button type="button" class="ei-ws-link" t-on-click="() => this.load()">Try again</button></p>
+                    <t t-elif="this.d">
+                        <p class="ei-ws-meta"><b t-out="this.label"/> · <t t-out="this.periodText"/> · amounts in <t t-out="this.d.currency"/> · <t t-out="this.d.company"/></p>
+
+                        <!-- ===================== summary -->
+                        <t t-if="this.state.tab === 'summary'">
+                            <div class="ei-ws-kpis">
+                                <article t-foreach="this.d.kpis" t-as="k" t-key="k.key" t-att-class="'ei-ws-kpi is-' + k.tone">
+                                    <h2 class="ei-ws-kpi-label" t-out="k.label"/>
+                                    <p class="ei-ws-kpi-value"><span class="ei-ws-cur" t-out="this.d.symbol"/> <t t-out="this.money(k.value)"/></p>
+                                    <p class="ei-ws-kpi-sub" t-out="k.sub"/>
+                                </article>
+                            </div>
+                            <div class="ei-ws-grid">
+                                <section class="ei-ws-card">
+                                    <h2 class="ei-ws-h2">Do the books agree?</h2>
+                                    <p class="ei-ws-sub"><t t-if="this.failedChecks">Something does not agree: look at the line in red before using these figures.</t><t t-else="">All four checks agree.</t></p>
+                                    <ul class="ei-ws-checks">
+                                        <li t-foreach="this.d.checks" t-as="c" t-key="c.key" t-att-class="c.ok ? 'is-ok' : 'is-bad'">
+                                            <span class="ei-ws-check-ico" aria-hidden="true" t-out="c.ok ? '✓' : '!'"/>
+                                            <span><b t-out="c.ok ? 'Agrees: ' : 'Does not agree: '"/><t t-out="c.text"/><br/><small t-out="c.detail"/></span>
+                                        </li>
+                                    </ul>
+                                </section>
+                                <section class="ei-ws-card">
+                                    <h2 class="ei-ws-h2">Where the money went</h2>
+                                    <p class="ei-ws-sub">The largest cost accounts in the period. Press one for its entries.</p>
+                                    <p t-if="!this.d.composition.length" class="ei-ws-empty">No posted costs in this period.</p>
+                                    <ul t-else="" class="ei-ws-bars">
+                                        <li t-foreach="this.d.composition" t-as="r" t-key="r.account_id">
+                                            <button type="button" class="ei-ws-bar" t-on-click="() => this.openAccount(r)" t-att-aria-label="r.label + ': ' + this.money(r.amount)">
+                                                <span class="ei-ws-bar-label" t-att-title="r.label" t-out="r.label"/>
+                                                <span class="ei-ws-bar-track"><span class="ei-ws-bar-fill" t-att-style="'width:' + this.pct(r.amount, this.d.composition[0].amount) + '%'"/></span>
+                                                <span class="ei-ws-bar-val" t-out="this.money(r.amount)"/>
+                                            </button>
+                                        </li>
+                                    </ul>
+                                </section>
+                                <section class="ei-ws-card">
+                                    <h2 class="ei-ws-h2">Biggest customers</h2>
+                                    <p class="ei-ws-sub">Posted customer invoices in the period. Press one for their Party 360.</p>
+                                    <p t-if="!this.d.ranking.length" class="ei-ws-empty">No posted customer invoices in this period.</p>
+                                    <ul t-else="" class="ei-ws-bars">
+                                        <li t-foreach="this.d.ranking" t-as="r" t-key="r_index">
+                                            <button type="button" class="ei-ws-bar" t-att-disabled="!r.partner_id" t-on-click="() => this.openCustomer(r)" t-att-aria-label="r.label + ': ' + this.money(r.amount)">
+                                                <span class="ei-ws-bar-label" t-att-title="r.label" t-out="r.label"/>
+                                                <span class="ei-ws-bar-track"><span class="ei-ws-bar-fill is-alt" t-att-style="'width:' + this.pct(r.amount, this.d.ranking[0].amount) + '%'"/></span>
+                                                <span class="ei-ws-bar-val" t-out="this.money(r.amount)"/>
+                                            </button>
+                                        </li>
+                                    </ul>
+                                </section>
+                            </div>
+                        </t>
+
+                        <!-- ===================== profit and loss -->
+                        <t t-if="this.state.tab === 'pnl'">
+                            <div class="ei-ws-card ei-ws-table-card">
+                                <table class="ei-ws-table">
+                                    <caption class="visually-hidden">Profit and loss, <t t-out="this.periodText"/></caption>
+                                    <t t-foreach="this.d.pnl.sections" t-as="s" t-key="s.key">
+                                        <tbody>
+                                            <tr class="ei-ws-sec"><th scope="rowgroup" colspan="2" t-out="s.label"/></tr>
+                                            <tr t-if="!s.rows.length" class="ei-ws-none"><td colspan="2">Nothing posted.</td></tr>
+                                            <t t-foreach="s.rows" t-as="r" t-key="r.account_id"><t t-call="ei_reports.WsRow"><t t-set="cumulative" t-value="false"/></t></t>
+                                            <tr class="ei-ws-total"><th scope="row">Total <t t-out="s.label"/></th><td class="ei-ws-num" t-out="this.money(s.total)"/></tr>
+                                        </tbody>
+                                    </t>
+                                    <tfoot><tr t-att-class="'ei-ws-grand' + (this.d.pnl.net &lt; 0 ? ' is-neg' : '')"><th scope="row">Result (income minus costs)</th><td class="ei-ws-num" t-out="this.money(this.d.pnl.net)"/></tr></tfoot>
+                                </table>
+                            </div>
+                        </t>
+
+                        <!-- ===================== balance sheet -->
+                        <t t-if="this.state.tab === 'balance_sheet'">
+                            <div class="ei-ws-two">
+                                <div class="ei-ws-card ei-ws-table-card" t-foreach="['assets', 'liabilities']" t-as="side" t-key="side">
+                                    <h2 class="ei-ws-h2" t-out="side === 'assets' ? 'What we own' : 'What we owe, and equity'"/>
+                                    <table class="ei-ws-table">
+                                        <t t-foreach="this.d.balance_sheet.sections.filter((s) => s.side === side)" t-as="s" t-key="s.key">
+                                            <tbody>
+                                                <tr class="ei-ws-sec"><th scope="rowgroup" colspan="2" t-out="s.label"/></tr>
+                                                <tr t-if="!s.rows.length" class="ei-ws-none"><td colspan="2">Nothing posted.</td></tr>
+                                                <t t-foreach="s.rows" t-as="r" t-key="r.account_id"><t t-call="ei_reports.WsRow"><t t-set="cumulative" t-value="true"/></t></t>
+                                                <tr class="ei-ws-total"><th scope="row">Total <t t-out="s.label"/></th><td class="ei-ws-num" t-out="this.money(s.total)"/></tr>
+                                            </tbody>
+                                        </t>
+                                        <tfoot t-if="side === 'assets'"><tr class="ei-ws-grand"><th scope="row">Total assets</th><td class="ei-ws-num" t-out="this.money(this.d.balance_sheet.assets)"/></tr></tfoot>
+                                        <tfoot t-else="">
+                                            <tr class="ei-ws-total"><th scope="row">Result so far (no year-end closing entry yet)</th><td class="ei-ws-num" t-out="this.money(this.d.balance_sheet.earnings)"/></tr>
+                                            <tr class="ei-ws-grand"><th scope="row">Liabilities, equity and result</th><td class="ei-ws-num" t-out="this.money(this.d.balance_sheet.liabilities_and_equity)"/></tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
+                        </t>
+
+                        <!-- ===================== trial balance -->
+                        <t t-if="this.state.tab === 'trial_balance'">
+                            <div class="ei-ws-card ei-ws-table-card">
+                                <div class="ei-ws-scroll" tabindex="0" role="region" aria-label="Trial balance, scrolls sideways on a small screen">
+                                    <table class="ei-ws-table is-wide">
+                                        <thead><tr><th scope="col">Account</th><th scope="col" class="ei-ws-num">Debit</th><th scope="col" class="ei-ws-num">Credit</th><th scope="col" class="ei-ws-num">Balance</th></tr></thead>
+                                        <tbody>
+                                            <tr t-if="!this.d.trial_balance.rows.length" class="ei-ws-none"><td colspan="4">Nothing posted in this period.</td></tr>
+                                            <tr t-foreach="this.d.trial_balance.rows" t-as="r" t-key="r.account_id" class="ei-ws-row">
+                                                <th scope="row"><button type="button" class="ei-ws-acc" t-on-click="() => this.openAccount(r)"><span class="ei-ws-code" t-out="r.code"/> <t t-out="r.name"/></button></th>
+                                                <td class="ei-ws-num" t-out="this.money(r.debit)"/><td class="ei-ws-num" t-out="this.money(r.credit)"/><td class="ei-ws-num" t-out="this.money(r.balance)"/>
+                                            </tr>
+                                        </tbody>
+                                        <tfoot><tr class="ei-ws-grand"><th scope="row">Total</th><td class="ei-ws-num" t-out="this.money(this.d.trial_balance.debit)"/><td class="ei-ws-num" t-out="this.money(this.d.trial_balance.credit)"/><td class="ei-ws-num" t-out="this.money(this.d.trial_balance.debit - this.d.trial_balance.credit)"/></tr></tfoot>
+                                    </table>
+                                </div>
+                            </div>
+                        </t>
+
+                        <!-- ===================== cash flow -->
+                        <t t-if="this.state.tab === 'cash_flow'">
+                            <div class="ei-ws-card ei-ws-table-card">
+                                <div class="ei-ws-scroll" tabindex="0" role="region" aria-label="Cash flow, scrolls sideways on a small screen">
+                                    <table class="ei-ws-table is-wide">
+                                        <thead><tr><th scope="col">Bank and cash</th><th scope="col" class="ei-ws-num">In</th><th scope="col" class="ei-ws-num">Out</th><th scope="col" class="ei-ws-num">Net</th></tr></thead>
+                                        <tbody>
+                                            <tr class="ei-ws-total"><th scope="row">Opening balance</th><td/><td/><td class="ei-ws-num" t-out="this.money(this.d.cash_flow.opening)"/></tr>
+                                            <tr t-foreach="this.d.cash_flow.rows" t-as="r" t-key="r.key"><th scope="row" t-out="r.label"/><td class="ei-ws-num" t-out="this.money(r.inflow)"/><td class="ei-ws-num" t-out="this.money(r.outflow)"/><td class="ei-ws-num" t-out="this.money(r.net)"/></tr>
+                                        </tbody>
+                                        <tfoot><tr class="ei-ws-grand"><th scope="row">Closing balance</th><td class="ei-ws-num" t-out="this.money(this.d.cash_flow.inflow)"/><td class="ei-ws-num" t-out="this.money(this.d.cash_flow.outflow)"/><td class="ei-ws-num" t-out="this.money(this.d.cash_flow.closing)"/></tr></tfoot>
+                                    </table>
+                                </div>
+                                <p class="ei-ws-sub">Each movement is classified by the other side of its entry: a customer, a supplier, or anything else.</p>
+                            </div>
+                        </t>
+                    </t>
+                </section>
+            </div>
+        </div>
+    </t>
+</templates>

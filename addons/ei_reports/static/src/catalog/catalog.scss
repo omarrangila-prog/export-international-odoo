@@ -9,7 +9,7 @@
     .ei-rc-lead { margin: 8px 0 0; max-width: 78ch; font-size: 15.5px; color: var(--ei-muted); }
     .ei-rc-sum { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 0; }
     .ei-rc-chip { display: inline-flex; align-items: center; gap: 5px; padding: 4px 11px; border-radius: 999px; font-size: 12.5px; font-weight: 600; background: var(--ei-surface-2); color: var(--ei-muted); border: 1px solid transparent;
-        &.is-ok { background: var(--ei-ok-soft); color: var(--ei-ok); } &.is-info { background: var(--ei-info-soft); color: var(--ei-info); } &.is-warn { background: var(--ei-warn-soft); color: var(--ei-warn); } }
+        &.is-ok { background: var(--ei-ok-soft); color: var(--ei-ok); } &.is-info { background: var(--ei-info-soft); color: var(--ei-info); } &.is-warn { background: var(--ei-warn-soft); color: var(--ei-warn); } &.is-preview { background: var(--ei-warn-soft); color: var(--ei-warn); border: 1px dashed var(--ei-warn-line); } }
     .ei-rc-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; margin: 22px 0 6px; }
     .ei-rc-search { position: relative; flex: 1 1 340px; max-width: 520px; input { width: 100%; height: 44px; border-radius: 16px; border: 1px solid var(--h-edge); background: var(--ei-card); box-shadow: var(--h-shadow); color: var(--ei-text); padding-inline: 42px 14px; font-size: 14.5px; } }
     .ei-rc-ico { position: absolute; inset-inline-start: 14px; top: 13px; width: 17px; height: 17px; color: var(--ei-muted); pointer-events: none; }

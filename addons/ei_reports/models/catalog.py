@@ -53,12 +53,18 @@ class EiReportCatalog(models.AbstractModel):
               _("Supplier invoice intake"), 'partial', 'ei_invoice_extensions.ei_intake_action', 'ei.supplier.intake', _("Variance impact and approver history are not summarised yet.")),
             R('parent_recon', trade, _("Parent-company ledger reconciliation"), _("Where do the parent's ledger and ours disagree?"), _("Parent statements and their open differences."),
               _("Parent statement lines"), 'partial', 'ei_parent_reconciliation.ei_parent_statement_action', 'ei.parent.statement', _("Aging of differences and period totals are not built.")),
-            R('pnl', fin, _("Profit and loss"), _("What did we earn and spend, by month?"), _("Needs the chart of accounts and the tax and commission basis approved. Odoo Community has no profit-and-loss report (it is an Enterprise feature)."),
-              _("Posted income and expense items"), 'pending_source', None, None, _("Blocked: no approved tax or commission rules and no signed opening balances.")),
-            R('balance_sheet', fin, _("Balance sheet"), _("What do we own and owe?"), _("Same dependency as profit and loss: approved accounts, opening balances from signed statements."),
-              _("Posted balances"), 'pending_source', None, None, _("Blocked: opening balances are not loaded.")),
-            R('trial_balance', fin, _("Trial balance"), _("Do the books balance?"), _("Debits against credits by account, with a balanced-totals check."), _("Posted journal items"), 'not_built'),
-            R('cash_flow', fin, _("Cash flow"), _("Money in and out by day or week."), _("Inflow and outflow from the bank and cash accounts."), _("Posted bank and cash items"), 'not_built'),
+            R('pnl', fin, _("Profit and loss"), _("What did we earn and spend, by account?"),
+              _("Posted income and costs in the period you choose: sales and other income, direct costs, expenses and depreciation, account by account, ending in the result. Revenue and costs use the same account types as the management summary, so the result agrees with it. Every row opens the posted items behind it."),
+              _("Posted income and expense items"), 'preview', 'ei_reports.action_report_pnl', 'ei.report.financials', _("Preview: the chart of accounts, opening balances and the tax and commission basis are not approved yet. Not for tax or statutory accounts.")),
+            R('balance_sheet', fin, _("Balance sheet"), _("What do we own and owe?"),
+              _("Posted balances as at the end date: bank and cash, customers, other assets, suppliers, other liabilities and equity, plus the result so far (there is no year-end closing entry yet) so that assets equal liabilities plus equity plus result. A check on the page says whether they agree."),
+              _("Posted balances"), 'preview', 'ei_reports.action_report_balance_sheet', 'ei.report.financials', _("Preview: opening balances from signed statements are not loaded, so earlier years are not in it.")),
+            R('trial_balance', fin, _("Trial balance"), _("Do the books balance?"),
+              _("Debits, credits and balance by account for the period, with a check that total debits equal total credits. Every row opens its posted items."),
+              _("Posted journal items"), 'preview', 'ei_reports.action_report_trial_balance', 'ei.report.financials', _("Preview: movements in the period; it does not carry opening balances forward.")),
+            R('cash_flow', fin, _("Cash flow"), _("Money in and out of the bank and cash accounts."),
+              _("Posted movements on bank and cash accounts in the period, classified by what is on the other side of the entry (customers, suppliers, everything else), from the opening balance to the closing balance, which agrees with the ledger."),
+              _("Posted bank and cash items"), 'preview', 'ei_reports.action_report_cash_flow', 'ei.report.financials', _("Preview: direct method, classified by the other side of each entry; no forecast.")),
             R('cash_book', fin, _("Cash book / petty cash"), _("What did the cash box open, receive, pay and count?"), _("Daily cash movements and the physical count variance."),
               _("Cash vouchers and counts"), 'not_built', None, None, _("Vouchers and counts exist as lists; the daily report is not built.")),
             R('expense', fin, _("Expenses by category"), _("Where does the money go?"), _("Spending by category with the supporting voucher."), _("Cash vouchers"), 'not_built'),
@@ -80,7 +86,10 @@ class EiReportCatalog(models.AbstractModel):
             can = False
             if e['action']:
                 try:
-                    can = e['model'] in env and env[e['model']].has_access('read')
+                    if e['model'] == 'ei.report.financials':
+                        can = env['ei.report.financials']._allowed()                 # an abstract model has no access rows: who may open it is a rule of its own
+                    else:
+                        can = e['model'] in env and env[e['model']].has_access('read')
                     if can and e['action']:
                         env.ref(e['action'])
                 except (AccessError, ValueError):

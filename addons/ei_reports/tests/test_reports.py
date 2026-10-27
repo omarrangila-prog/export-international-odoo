@@ -125,7 +125,7 @@ class TestReports(TestJourney):
     def test_r08_catalog_is_honest_about_what_exists(self):
         cat = self.env['ei.report.catalog'].with_user(self.ceo).get_catalog()
         self.assertEqual(len({e['key'] for e in cat}), len(cat))
-        self.assertTrue({e['status'] for e in cat} <= {'delivered', 'partial', 'pending_source', 'not_built'})
+        self.assertTrue({e['status'] for e in cat} <= {'delivered', 'preview', 'partial', 'pending_source', 'not_built'})
         delivered = [e for e in cat if e['status'] == 'delivered']
         self.assertGreaterEqual(len(delivered), 6)
         for e in delivered:
@@ -136,7 +136,9 @@ class TestReports(TestJourney):
                 self.assertFalse(e['can_open'], e['key'])                                           # never a button that leads nowhere
             self.assertTrue(e['definition'] and e['source'])
         blocked = {e['key'] for e in cat if e['status'] == 'pending_source'}
-        self.assertTrue({'pnl', 'balance_sheet', 'tax_fbr'} <= blocked)                             # needs approved rules / opening balances / FBR access
+        self.assertIn('tax_fbr', blocked)                                                            # needs FBR access
+        previews = {e['key'] for e in cat if e['status'] == 'preview'}
+        self.assertEqual(previews, {'pnl', 'balance_sheet', 'trial_balance', 'cash_flow'})           # worked out, but labelled: accounts not approved yet
         ops = {e['key']: e for e in self.env['ei.report.catalog'].with_user(self.dispatch).get_catalog()}
         self.assertTrue(ops['lifting']['can_open'])
         self.assertFalse(ops['ar_aging']['can_open'])

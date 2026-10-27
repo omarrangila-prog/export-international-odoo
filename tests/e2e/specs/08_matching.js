@@ -101,6 +101,16 @@ module.exports = {
     await amtInputs().nth(2).fill('60000'); await p.waitForTimeout(400);
     ctx.check(/more than the payment/.test(await decide().innerText()) || /Only .* is open/.test(await decide().innerText()), '4 more than the payment, or more than an invoice has open, is stopped on screen');
     ctx.check(await p.getByRole('button', { name: 'Save allocation' }).isDisabled(), '4 and Save allocation is disabled while it is wrong');
+    // the summary stays in view while the invoices scroll, and says what the invoices card says
+    const bar = p.locator('.ei-mt-stickybar');
+    const nums = (t) => (t.match(/-?[\d,]+(?:\.\d+)?/g) || []).map((x) => x.replace(/,/g, '')).join(' ');
+    ctx.check(await bar.isVisible() && /Allocated/.test(await bar.innerText()) && /Not allocated/.test(await bar.innerText()), '4 a summary bar shows the payment, who paid, what is allocated and what is not');
+    ctx.check(nums(await bar.locator('.ei-mt-sb-sum').innerText()) === nums(await decide().locator('.ei-mt-sum').innerText()).split(' ').slice(1).join(' '), '4 its allocated and left figures are the same as the invoices card', `${await bar.locator('.ei-mt-sb-sum').innerText()} | ${await decide().locator('.ei-mt-sum').innerText()}`);
+    ctx.check(await bar.getByRole('button').isDisabled() === await p.getByRole('button', { name: 'Save allocation' }).isDisabled(), '4 its Save button is as ready as the card\'s');
+    await p.evaluate(() => { for (const el of document.querySelectorAll('.ei-mt-decide, .ei-mt, .o_action')) { el.scrollTop = el.scrollHeight; } }); await p.waitForTimeout(300);
+    const bb = await bar.boundingBox();
+    ctx.check(!!bb && bb.y >= 0 && bb.y < 260 && await bar.isVisible(), 'the summary bar is still in view after scrolling to the end of the list', JSON.stringify(bb));
+    await p.evaluate(() => { for (const el of document.querySelectorAll('.ei-mt-decide, .ei-mt, .o_action')) { el.scrollTop = 0; } });
     await amtInputs().nth(2).fill(''); await p.waitForTimeout(400);
     const movesBefore = await moves();
     m = bank.mark();

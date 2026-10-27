@@ -1,0 +1,58 @@
+// Approval evidence dialog and documents beside the record. Shared --ei-* tokens: light, dark and right-to-left follow them.
+
+// ---------------------------------------------------------------- approval evidence
+.ei-ap {
+    .modal-body { padding-block: 14px; }
+    .ei-ap-body { display: grid; gap: 16px; color: var(--ei-text); font-size: 14.5px; }
+    .ei-ap-kind { margin: 0; color: var(--ei-muted); b { color: var(--ei-ink); } }
+    .ei-ap-h { margin: 0 0 8px; font-size: 13px; font-weight: 750; letter-spacing: .03em; text-transform: uppercase; color: var(--ei-muted); }
+    .ei-ap-facts { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 5px 18px; margin: 0;
+        dt { color: var(--ei-muted); font-weight: 600; } dd { margin: 0; color: var(--ei-ink); font-weight: 600; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; } }
+    .ei-ap-muted { color: var(--ei-muted); font-weight: 400; }
+    .ei-ap-warn { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 6px;
+        li { display: flex; gap: 10px; align-items: flex-start; padding: 8px 12px; border-radius: 12px; background: var(--ei-warn-soft); border: 1px solid var(--ei-warn-line); } }
+    .ei-ap-warn-ico { flex: none; width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; background: var(--ei-warn); color: var(--ei-on-primary); font-weight: 800; font-size: 12px; }
+    .ei-ap-scroll { max-height: 220px; overflow: auto; border: 1px solid var(--ei-line); border-radius: 12px; &:focus-visible { outline: 3px solid var(--ei-focus); outline-offset: 2px; } }
+    .ei-ap-table { width: 100%; border-collapse: collapse; font-size: 13.5px;
+        th, td { padding: 6px 10px; border-bottom: 1px solid var(--ei-line); text-align: start; vertical-align: top; overflow-wrap: anywhere; }
+        thead th { position: sticky; top: 0; background: var(--ei-surface-2); font-size: 12px; color: var(--ei-muted); font-weight: 700; }
+        .ei-ap-old { color: var(--ei-muted); text-decoration: line-through; } .ei-ap-new { color: var(--ei-ink); font-weight: 650; } }
+    .ei-ap-nowrap { white-space: nowrap; }
+    .ei-ap-docs { margin: 0; padding-inline-start: 18px; display: grid; gap: 4px; a { font-weight: 600; } }
+    .ei-ap-effect { padding: 10px 14px; border-radius: 12px; background: var(--ei-primary-soft); border: 1px solid var(--ei-primary-line); p { margin: 0; color: var(--ei-ink); } .ei-ap-h { color: var(--ei-primary); } }
+    .ei-ap-blocked { margin: 0; padding: 10px 14px; border-radius: 12px; background: var(--ei-bad-soft); color: var(--ei-ink); font-weight: 600; border: 1px solid var(--ei-bad-line); }
+    @media (max-width: 575.98px) { .ei-ap-facts { grid-template-columns: minmax(0, 1fr); dt { margin-top: 4px; } } }
+}
+
+// ---------------------------------------------------------------- documents beside the record
+.ei-dv-wrap { display: inline-flex; align-self: flex-end; margin-inline-end: 6px; }
+.ei-dv-toggle { appearance: none; display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--ei-line); background: var(--ei-card); color: var(--ei-ink); font-weight: 650; font-size: 13.5px; cursor: pointer; transition: background .15s, border-color .15s;
+    &:hover { background: var(--ei-primary-soft); border-color: var(--ei-primary-line); color: var(--ei-primary); }
+    &.is-on { background: var(--ei-primary); border-color: var(--ei-primary); color: var(--ei-on-primary); }
+    &:focus-visible { outline: 3px solid var(--ei-focus); outline-offset: 2px; } }
+.ei-dv-count { min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; background: var(--ei-surface-2); color: var(--ei-ink); font-size: 12px; display: inline-grid; place-items: center; }
+.ei-dv-toggle.is-on .ei-dv-count { background: var(--ei-on-primary); color: var(--ei-primary); }
+
+$ei-dv-w: #{"min(46vw, 820px)"};
+.ei-dv-panel { position: fixed; z-index: 30; inset-block: var(--ei-dv-top, 76px) 0; inset-inline-end: 0; width: $ei-dv-w; display: flex; flex-direction: column; background: var(--ei-card); border-inline-start: 1px solid var(--ei-line); box-shadow: -12px 0 32px rgba(15, 27, 51, .12); }
+.ei-dv-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px 10px 16px; border-bottom: 1px solid var(--ei-line); }
+.ei-dv-title { min-width: 0; display: grid; b { color: var(--ei-ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } }
+.ei-dv-muted { color: var(--ei-muted); font-size: 12.5px; }
+.ei-dv-tools { display: flex; gap: 4px; flex: none; }
+.ei-dv-btn { appearance: none; width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--ei-line); background: var(--ei-card); color: var(--ei-ink); display: grid; place-items: center; font-size: 18px; line-height: 1; cursor: pointer; text-decoration: none;
+    &:hover { background: var(--ei-surface-2); color: var(--ei-ink); } &:focus-visible { outline: 3px solid var(--ei-focus); outline-offset: 1px; } }
+.ei-dv-list { display: flex; gap: 6px; padding: 8px 12px; overflow-x: auto; border-bottom: 1px solid var(--ei-line); scrollbar-width: thin; }
+.ei-dv-chip { flex: none; max-width: 220px; height: 30px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--ei-line); background: var(--ei-card); color: var(--ei-text); font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer;
+    &.is-on { background: var(--ei-primary-soft); border-color: var(--ei-primary-line); color: var(--ei-primary); font-weight: 650; } }
+.ei-dv-view { flex: 1; min-height: 0; background: var(--ei-surface-2); display: flex; }
+.ei-dv-frame { flex: 1; width: 100%; border: 0; background: #fff; }
+.ei-dv-img { margin: auto; max-width: 100%; max-height: 100%; object-fit: contain; }
+.ei-dv-none { margin: auto; text-align: center; padding: 24px; color: var(--ei-text); }
+// the record makes room on the left: a real split, not a cover
+body.ei-docview-open .o_action_manager > .o_form_view .o_content { padding-inline-end: calc(#{$ei-dv-w} + 14px); }      // the record's controls keep the full width above
+body.ei-docview-open .ei-chatter-toggle { display: none; }          // the activity panel and the documents share the right side: one at a time
+@media (max-width: 767.98px) {
+    .ei-dv-label { display: none; }
+    .ei-dv-panel { inset: 0; width: auto; z-index: 1050; box-shadow: none; }
+    body.ei-docview-open .o_action_manager > .o_form_view .o_content { padding-inline-end: 0; }
+}

@@ -8,6 +8,7 @@
                     <p class="ei-rc-lead">Every report the business asked for: what it answers, how it is worked out, where the numbers come from, and whether it is ready. The figures are read from posted records and agree with Home.</p>
                     <p class="ei-rc-sum" t-if="!this.state.loading">
                         <span class="ei-rc-chip is-ok"><b t-out="this.counts.delivered"/> delivered</span>
+                        <span class="ei-rc-chip is-preview"><b t-out="this.counts.preview"/> previews</span>
                         <span class="ei-rc-chip is-info"><b t-out="this.counts.partial"/> partly there</span>
                         <span class="ei-rc-chip is-warn"><b t-out="this.counts.pending_source"/> blocked</span>
                         <span class="ei-rc-chip is-muted"><b t-out="this.counts.not_built"/> not built yet</span>

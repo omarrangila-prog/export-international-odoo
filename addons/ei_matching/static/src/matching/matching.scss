@@ -115,6 +115,12 @@
     .ei-mt-none { padding: 10px; color: var(--ei-muted); }
     .ei-mt-pick { margin-top: 12px; padding: 12px 14px; border: 1px solid var(--ei-primary-line); border-radius: 12px; background: var(--ei-primary-soft); }
 
+    // the summary that stays under the top of the decision while the invoices scroll
+    .ei-mt-stickybar { position: sticky; top: 0; z-index: 6; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; padding: 10px 14px; margin: 0 0 12px; background: var(--ei-card); border: 1px solid var(--ei-line); border-radius: 14px; box-shadow: 0 8px 20px rgba(15, 27, 51, .10); font-variant-numeric: tabular-nums;
+        .ei-mt-sb-amt { font-size: 20px; font-weight: 800; color: var(--ei-ink); }
+        .ei-mt-sb-who { flex: 1 1 160px; min-width: 0; font-weight: 600; overflow-wrap: anywhere; }
+        .ei-mt-sb-sum { display: inline-flex; flex-wrap: wrap; gap: 4px 16px; color: var(--ei-text); b { color: var(--ei-ink); } .is-bad b { color: var(--ei-bad); } }
+        .ei-mt-sb-save { margin-inline-start: auto; } }
     .ei-mt-sum { display: flex; flex-wrap: wrap; gap: 6px 22px; padding: 10px 12px; background: var(--ei-surface-2); border-radius: 10px; margin-bottom: 10px; font-variant-numeric: tabular-nums; .is-bad { color: var(--ei-bad); } }
     .ei-mt-items { list-style: none; margin: 0; padding: 0; }
     .ei-mt-item { display: flex; flex-wrap: wrap; gap: 8px 16px; justify-content: space-between; align-items: flex-start; padding: 12px 0; border-top: 1px solid var(--ei-line); &:first-child { border-top: 0; } }

@@ -1,0 +1,103 @@
+// Financial reports workspace: the same cards, radii and tokens as the Overview and the report catalog. Light, dark and right-to-left follow the
+// shared --ei-* tokens; on a phone the period, the tabs and the tables fit the width (wide tables scroll inside their own box).
+.o_web_client > .o_action_manager > .o_action.ei-ws:not(.o_action_delegate_scroll) { position: relative; overflow-x: hidden; overflow-y: auto; scrollbar-width: thin; }
+.ei-ws {
+    background: transparent; color: var(--ei-text); height: 100%; min-width: 0; width: 100%;           // a flex item: never wider than the screen because of the tab row
+    .ei-ws-inner { min-width: 0; width: 100%; box-sizing: border-box; max-width: 1360px; margin: 0 auto; padding: 22px var(--ei-gutter, 24px) 64px; }
+    button, input, a { font-family: inherit; }
+    button:focus-visible, input:focus-visible, a:focus-visible, .ei-ws-panel:focus-visible, .ei-ws-scroll:focus-visible { outline: 3px solid var(--ei-focus); outline-offset: 2px; }
+
+    .ei-ws-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 24px; }
+    .ei-ws-titles { min-width: 0; flex: 1 1 420px; }
+    .ei-ws-title { margin: 0; font-size: 44px; font-weight: 800; letter-spacing: -.04em; color: var(--ei-ink); line-height: 1.05; }
+    .ei-ws-lead { margin: 8px 0 0; max-width: 72ch; font-size: 15.5px; color: var(--ei-muted); }
+    .ei-ws-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    .ei-ws-btn { display: inline-flex; align-items: center; gap: 7px; min-height: 42px; padding: 0 16px; border-radius: 999px; border: 1px solid transparent; background: var(--ei-primary); color: var(--ei-on-primary);
+        font-weight: 650; font-size: 14px; text-decoration: none; cursor: pointer; transition: background .2s, transform .1s;
+        svg { width: 17px; height: 17px; }
+        &:hover { background: var(--ei-primary-hover); color: var(--ei-on-primary); }
+        &:active { transform: translateY(1px); }
+        &.is-quiet { background: var(--ei-card); color: var(--ei-ink); border-color: var(--ei-line); &:hover { background: var(--ei-surface-2); color: var(--ei-ink); } }
+        &.is-small { min-height: 38px; padding: 0 14px; } }
+
+    .ei-ws-preview { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; margin: 18px 0 0; padding: 10px 14px; border: 1px dashed var(--ei-warn-line); border-radius: 14px; background: var(--ei-warn-soft); color: var(--ei-text); font-size: 14px; max-width: 110ch; }
+    .ei-ws-flag { flex: none; padding: 2px 10px; border-radius: 999px; background: var(--ei-warn); color: var(--ei-on-primary); font-weight: 700; font-size: 12px; letter-spacing: .03em; text-transform: uppercase; }
+
+    .ei-ws-period { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; margin: 18px 0 0; }
+    .ei-ws-seg { display: flex; flex-wrap: wrap; gap: 6px; }
+    .ei-ws-pill { min-height: 38px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--ei-line); background: var(--ei-card); color: var(--ei-text); font-size: 13.5px; font-weight: 600; cursor: pointer;
+        &:hover { background: var(--ei-surface-2); }
+        &.is-on { background: var(--ei-primary-soft); border-color: var(--ei-primary-line); color: var(--ei-primary); } }
+    .ei-ws-custom { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px;
+        label { display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: var(--ei-muted); font-weight: 600; }
+        input { height: 38px; border-radius: 12px; border: 1px solid var(--ei-line); background: var(--ei-card); color: var(--ei-text); padding: 0 10px; font-size: 14px; } }
+
+    .ei-ws-tabs { display: flex; gap: 4px; margin: 22px 0 0; border-bottom: 1px solid var(--ei-line); overflow-x: auto; scrollbar-width: none; }
+    .ei-ws-tab { flex: none; min-height: 44px; padding: 0 16px; border: 0; border-bottom: 3px solid transparent; background: transparent; color: var(--ei-muted); font-weight: 650; font-size: 14.5px; cursor: pointer;
+        &:hover { color: var(--ei-ink); }
+        &.is-on { color: var(--ei-primary); border-bottom-color: var(--ei-primary); } }
+    .ei-ws-note { margin: 10px 0 0; color: var(--ei-bad); }
+    .ei-ws-panel { padding-top: 16px; }
+    .ei-ws-meta { margin: 0 0 14px; color: var(--ei-muted); font-size: 13.5px; b { color: var(--ei-ink); } }
+    .ei-ws-skel { display: grid; gap: 12px; span { display: block; height: 96px; border-radius: 18px; background: linear-gradient(90deg, var(--ei-surface-2), var(--ei-card), var(--ei-surface-2)); background-size: 200% 100%; animation: ei-ws-shine 1.4s linear infinite; } }
+    .ei-ws-error { padding: 14px 16px; border-radius: 14px; background: var(--ei-bad-soft); color: var(--ei-text); }
+    .ei-ws-link { border: 0; background: none; padding: 0; color: var(--ei-primary); font-weight: 650; text-decoration: underline; cursor: pointer; }
+
+    .ei-ws-kpis { display: grid; grid-template-columns: repeat(auto-fill, minmax(#{"min(100%, 250px)"}, 1fr)); gap: 12px; }
+    .ei-ws-kpi { padding: 14px 16px; border-radius: 18px; background: var(--ei-card); border: 1px solid var(--ei-line); border-top: 3px solid var(--ei-line-strong); min-width: 0;
+        &.is-ok { border-top-color: var(--ei-ok); } &.is-warning { border-top-color: var(--ei-warn); } &.is-danger { border-top-color: var(--ei-bad); } &.is-info { border-top-color: var(--ei-info); } }
+    .ei-ws-kpi-label { margin: 0; font-size: 13.5px; font-weight: 650; color: var(--ei-text); }
+    .ei-ws-kpi-value { margin: 6px 0 2px; font-size: clamp(17px, 1.7vw, 22px); font-weight: 800; color: var(--ei-ink); font-variant-numeric: tabular-nums; white-space: nowrap; letter-spacing: -.01em; }      // a money figure is never cut
+    .ei-ws-cur { font-size: 14px; font-weight: 700; color: var(--ei-muted); }
+    .ei-ws-kpi-sub { margin: 0; font-size: 12.5px; color: var(--ei-muted); }
+
+    .ei-ws-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; margin-top: 14px; }
+    .ei-ws-two { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 14px; }
+    .ei-ws-card { padding: 16px 18px; border-radius: 20px; background: var(--ei-card); border: 1px solid var(--ei-line); min-width: 0; }
+    .ei-ws-h2 { margin: 0; font-size: 17px; font-weight: 750; color: var(--ei-ink); }
+    .ei-ws-sub { margin: 4px 0 10px; font-size: 13px; color: var(--ei-muted); }
+    .ei-ws-empty { margin: 8px 0 0; color: var(--ei-muted); }
+
+    .ei-ws-checks { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px;
+        li { display: flex; gap: 10px; align-items: flex-start; padding: 8px 10px; border-radius: 12px; background: var(--ei-surface-2); font-size: 14px; small { color: var(--ei-muted); font-variant-numeric: tabular-nums; } }
+        .ei-ws-check-ico { flex: none; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; font-size: 13px; }
+        .is-ok .ei-ws-check-ico { background: var(--ei-ok-soft); color: var(--ei-ok); }
+        .is-bad { background: var(--ei-bad-soft); .ei-ws-check-ico { background: var(--ei-bad); color: var(--ei-on-primary); } } }
+
+    .ei-ws-bars { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+    .ei-ws-bar { width: 100%; display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(48px, 1fr) 14ch; align-items: center; gap: 10px; padding: 7px 8px; border: 0; border-radius: 10px; background: transparent; color: var(--ei-text); text-align: start; cursor: pointer;
+        &:hover:not(:disabled) { background: var(--ei-surface-2); }
+        &:disabled { cursor: default; } }
+    .ei-ws-bar-label { font-size: 13.5px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow-wrap: anywhere; }
+    .ei-ws-bar-track { height: 10px; border-radius: 4px; background: var(--ei-surface-2); overflow: hidden; }
+    .ei-ws-bar-fill { display: block; height: 100%; border-radius: 4px; background: var(--ei-primary); &.is-alt { background: var(--ei-info); } }
+    .ei-ws-bar-val { text-align: end; font-size: 13.5px; font-weight: 650; color: var(--ei-ink); font-variant-numeric: tabular-nums; }
+
+    .ei-ws-table-card { padding: 6px 4px 10px; .ei-ws-h2 { padding: 10px 14px 4px; } .ei-ws-sub { padding: 0 14px; } }
+    .ei-ws-scroll { overflow-x: auto; }
+    .ei-ws-table { width: 100%; border-collapse: collapse; font-size: 14px; font-variant-numeric: tabular-nums;
+        &.is-wide { min-width: 560px; }
+        th, td { padding: 7px 14px; border-bottom: 1px solid var(--ei-line); text-align: start; font-weight: 400; }
+        thead th { font-size: 12px; font-weight: 700; color: var(--ei-muted); text-transform: uppercase; letter-spacing: .04em; }
+        .ei-ws-num { text-align: end; white-space: nowrap; }
+        .ei-ws-sec th { padding-top: 16px; font-weight: 750; color: var(--ei-ink); border-bottom-color: var(--ei-line-strong); }
+        .ei-ws-none td { color: var(--ei-muted); font-style: italic; }
+        .ei-ws-total th, .ei-ws-total td { font-weight: 700; color: var(--ei-ink); }
+        .ei-ws-grand th, .ei-ws-grand td { font-weight: 800; color: var(--ei-ink); font-size: 15px; border-top: 2px solid var(--ei-ink); border-bottom: 0; }
+        .ei-ws-grand.is-neg td { color: var(--ei-bad); } }
+    .ei-ws-acc { border: 0; background: none; padding: 0; color: var(--ei-text); text-align: start; cursor: pointer; font: inherit;
+        &:hover { color: var(--ei-primary); text-decoration: underline; } }
+    .ei-ws-code { color: var(--ei-muted); font-variant-numeric: tabular-nums; }
+
+    @media (max-width: 767.98px) {
+        .ei-ws-title { font-size: 32px; }
+        .ei-ws-kpis { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+        .ei-ws-kpi { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 2px 10px; padding: 10px 14px; }
+        .ei-ws-kpi-value { font-size: 19px; margin: 0; }
+        .ei-ws-kpi-sub { flex-basis: 100%; }
+        .ei-ws-grid, .ei-ws-two { grid-template-columns: minmax(0, 1fr); }
+        .ei-ws-table th, .ei-ws-table td { padding: 7px 10px; }
+    }
+    @media (prefers-reduced-motion: reduce) { .ei-ws-skel span { animation: none; } }
+}
+@keyframes ei-ws-shine { from { background-position: 200% 0; } to { background-position: -200% 0; } }

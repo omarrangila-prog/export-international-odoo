@@ -42,3 +42,8 @@ access_ei_report_lift_group_ei_dispatch_officer,ei.report.lifting group_ei_dispa
 rule_ei_report_lift_company,ei.report.lifting: own companies,ei.report.lifting,,r,"[('company_id', 'in', company_ids)]"
 access_ei_report_favourite,ei.report.favourite own,ei.report.favourite,ei_legacy_master.group_ei_user,crud,
 rule_ei_report_favourite_own,ei.report.favourite: own,ei.report.favourite,ei_legacy_master.group_ei_user,crud,"[('user_id', '=', user.id)]"
+access_ei_report_schedule_management,ei.report.schedule management,ei.report.schedule,ei_management_dashboard.group_ei_management,crud,
+access_ei_report_schedule_manager,ei.report.schedule account manager,ei.report.schedule,account.group_account_manager,crud,
+rule_ei_report_schedule_company,ei.report.schedule: own companies,ei.report.schedule,,crud,"[('company_id', 'in', company_ids)]"
+access_ei_report_schedule_run_management,ei.report.schedule.run management,ei.report.schedule.run,ei_management_dashboard.group_ei_management,r,
+access_ei_report_schedule_run_manager,ei.report.schedule.run account manager,ei.report.schedule.run,account.group_account_manager,r,

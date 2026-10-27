@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <!-- ======================================================== approval evidence -->
+    <t t-name="ei_app_shell.ApprovalDialog">
+        <Dialog size="'lg'" title="this.ev.title" contentClass="'ei-ap'">
+            <div class="ei-ap-body">
+                <p class="ei-ap-kind"><t t-out="this.ev.kind"/> · <b t-out="this.ev.name"/></p>
+
+                <section class="ei-ap-sec" aria-labelledby="ei-ap-what">
+                    <h3 id="ei-ap-what" class="ei-ap-h">What you are approving</h3>
+                    <dl class="ei-ap-facts">
+                        <t t-foreach="this.ev.facts" t-as="f" t-key="f_index"><dt t-out="f.label"/><dd t-out="f.value"/></t>
+                    </dl>
+                    <ul t-if="this.ev.warnings.length" class="ei-ap-warn" role="list">
+                        <li t-foreach="this.ev.warnings" t-as="w" t-key="w_index"><span class="ei-ap-warn-ico" aria-hidden="true">!</span><span><b>Check this: </b><t t-out="w"/></span></li>
+                    </ul>
+                </section>
+
+                <section class="ei-ap-sec" aria-labelledby="ei-ap-who">
+                    <h3 id="ei-ap-who" class="ei-ap-h">Who and when</h3>
+                    <dl class="ei-ap-facts">
+                        <dt>Prepared by</dt><dd><t t-out="this.ev.maker.name or '-'"/><span t-if="this.ev.maker.when" class="ei-ap-muted"> · <t t-out="this.ev.maker.when"/></span></dd>
+                        <dt>Last changed by</dt><dd><t t-out="this.ev.last.name or '-'"/><span t-if="this.ev.last.when" class="ei-ap-muted"> · <t t-out="this.ev.last.when"/></span></dd>
+                        <dt>You</dt><dd><t t-out="this.ev.you.name"/><span class="ei-ap-muted"> · <t t-if="this.ev.you.has_role">holds the role "<t t-out="this.ev.you.role"/>"</t><t t-else="">does not hold the role "<t t-out="this.ev.you.role"/>"</t></span></dd>
+                    </dl>
+                </section>
+
+                <section class="ei-ap-sec" aria-labelledby="ei-ap-changes">
+                    <h3 id="ei-ap-changes" class="ei-ap-h">What changed since it was prepared</h3>
+                    <p t-if="!this.ev.changes.length" class="ei-ap-muted">No recorded changes.</p>
+                    <div t-else="" class="ei-ap-scroll" tabindex="0" role="region" aria-label="Changes, newest first">
+                        <table class="ei-ap-table">
+                            <thead><tr><th scope="col">When</th><th scope="col">Who</th><th scope="col">What</th><th scope="col">Before</th><th scope="col">After</th></tr></thead>
+                            <tbody>
+                                <tr t-foreach="this.ev.changes" t-as="c" t-key="c_index"><td class="ei-ap-nowrap" t-out="c.when"/><td t-out="c.who"/><td t-out="c.field"/><td class="ei-ap-old" t-out="c.old"/><td class="ei-ap-new" t-out="c.new"/></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section class="ei-ap-sec" aria-labelledby="ei-ap-docs">
+                    <h3 id="ei-ap-docs" class="ei-ap-h">Documents attached</h3>
+                    <p t-if="!this.ev.documents.length" class="ei-ap-muted">No document is attached. If one should be (a signed contract, a gate pass, the supplier's invoice), ask for it before approving.</p>
+                    <ul t-else="" class="ei-ap-docs">
+                        <li t-foreach="this.ev.documents" t-as="d" t-key="d.id">
+                            <a t-att-href="d.url or d.download" target="_blank" rel="noopener"><t t-out="d.name"/></a>
+                            <span class="ei-ap-muted"> · <t t-out="d.who"/> · <t t-out="d.when"/></span>
+                        </li>
+                    </ul>
+                </section>
+
+                <section class="ei-ap-effect" aria-labelledby="ei-ap-effect">
+                    <h3 id="ei-ap-effect" class="ei-ap-h">What happens when you press <t t-out="this.ev.verb"/></h3>
+                    <p t-out="this.ev.effect"/>
+                </section>
+                <p t-if="this.ev.blocked" class="ei-ap-blocked" role="alert" t-out="this.ev.blocked"/>
+            </div>
+            <t t-set-slot="footer">
+                <button class="btn btn-primary ei-ap-confirm" t-att-disabled="!!this.ev.blocked" t-on-click="() => this.confirm()" t-out="this.ev.verb"/>
+                <button class="btn btn-secondary" t-on-click="() => this.props.close()">Cancel</button>
+            </t>
+        </Dialog>
+    </t>
+
+    <!-- ======================================================== documents beside the record -->
+    <t t-name="ei_app_shell.DocViewer">
+        <span class="ei-dv-wrap" t-if="this.state.docs.length">
+            <button type="button" t-att-class="'ei-dv-toggle' + (this.state.open ? ' is-on' : '')" t-att-aria-expanded="this.state.open ? 'true' : 'false'" aria-controls="ei-dv-panel"
+                    t-att-title="this.state.open ? 'Hide the documents' : 'Show the documents beside the record'" t-on-click.stop="() => this.toggle()">
+                <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h7l5 5v13H7zM14 3v5h5M3 7v14h11"/></svg>
+                <span class="ei-dv-label">Documents</span> <span class="ei-dv-count" t-out="this.state.docs.length"/>
+            </button>
+            <aside t-if="this.state.open" id="ei-dv-panel" class="ei-dv-panel" t-att-style="'--ei-dv-top:' + this.state.top + 'px'" role="region" aria-label="Documents of this record">
+                <header class="ei-dv-head">
+                    <div class="ei-dv-title">
+                        <b t-out="this.doc ? this.doc.name : ''"/>
+                        <span class="ei-dv-muted" t-if="this.doc"><t t-out="this.state.index + 1"/> of <t t-out="this.state.docs.length"/> · <t t-out="this.size(this.doc.size)"/> · <t t-out="this.doc.who"/></span>
+                    </div>
+                    <div class="ei-dv-tools">
+                        <button t-if="this.state.docs.length &gt; 1" type="button" class="ei-dv-btn" aria-label="Previous document" t-on-click="() => this.step(-1)">‹</button>
+                        <button t-if="this.state.docs.length &gt; 1" type="button" class="ei-dv-btn" aria-label="Next document" t-on-click="() => this.step(1)">›</button>
+                        <a t-if="this.doc" class="ei-dv-btn" t-att-href="this.doc.download" aria-label="Download this document" title="Download">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>
+                        </a>
+                        <button type="button" class="ei-dv-btn" aria-label="Close the documents" title="Close (Esc)" t-on-click="() => this.close()">✕</button>
+                    </div>
+                </header>
+                <nav t-if="this.state.docs.length &gt; 1" class="ei-dv-list" aria-label="All documents">
+                    <button t-foreach="this.state.docs" t-as="d" t-key="d.id" type="button" t-att-class="'ei-dv-chip' + (d_index === this.state.index ? ' is-on' : '')" t-att-aria-current="d_index === this.state.index ? 'true' : 'false'" t-on-click="() => this.show(d_index)" t-out="d.name"/>
+                </nav>
+                <div class="ei-dv-view" t-if="this.doc">
+                    <iframe t-if="this.doc.kind === 'pdf' or this.doc.kind === 'text'" t-att-src="this.doc.url" t-att-title="this.doc.name" class="ei-dv-frame"/>
+                    <img t-elif="this.doc.kind === 'image'" t-att-src="this.doc.url" t-att-alt="this.doc.name" class="ei-dv-img"/>
+                    <div t-else="" class="ei-dv-none">
+                        <p>This kind of file (<t t-out="this.doc.mimetype or 'unknown'"/>) cannot be shown here.</p>
+                        <a class="btn btn-primary" t-att-href="this.doc.download">Download it</a>
+                    </div>
+                </div>
+            </aside>
+        </span>
+    </t>
+
+    <t t-inherit="web.FormView" t-inherit-mode="extension">
+        <xpath expr="//t[@t-set-slot='control-panel-status-indicator']/t" position="before">
+            <EiDocViewer t-if="!this.env.inDialog" record="this.model.root"/>
+        </xpath>
+    </t>
+</templates>
