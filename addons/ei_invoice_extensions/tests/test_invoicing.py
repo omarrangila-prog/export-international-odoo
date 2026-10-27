@@ -98,6 +98,14 @@ class TestInvoicing(AccountTestInvoicingCommon):
         no_doc.action_check()
         self.assertEqual(no_doc.state, 'mismatch')
 
+    def test_02b_side_by_side_shows_supplier_contract_da_and_lifting(self):
+        i = self.intake(number='SBS-1', rate=205000)
+        i.action_check()
+        html = str(i.comparison_html)
+        for words in ('Supplier says', 'Contract says', 'DA says', 'Actually lifted', 'Still to invoice', "needs an approver"):
+            self.assertIn(words, html)
+        self.assertIn('text-danger', html)                                 # the 5,000 rate difference is shown, in red
+
     def test_03_override_rules(self):
         i = self.intake(rate=205000)
         i.action_check()

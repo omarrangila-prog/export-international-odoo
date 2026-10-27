@@ -15,6 +15,13 @@ class EiReportFavourite(models.Model):
     _user_key = models.UniqueIndex("(user_id, key)")
 
 
+# How far each report is from being relied on for real money. Nothing is past 'demo_tested' until real books are loaded and the
+# accountant signs: the ladder is shown, so nobody reads "built" as "finance approved".
+READINESS = {'delivered': 'demo_tested', 'preview': 'demo_tested', 'partial': 'ui_available', 'pending_source': 'blocked', 'not_built': 'not_built'}
+READINESS_LADDER = [('ui_available', "Screen available"), ('demo_tested', "Tested on sample data"), ('data_validated', "Checked against real books"),
+                    ('finance_approved', "Approved by finance"), ('production_verified', "Verified in daily use")]
+
+
 class EiReportCatalog(models.AbstractModel):
     _name = 'ei.report.catalog'
     _description = "Report catalog"
@@ -94,8 +101,24 @@ class EiReportCatalog(models.AbstractModel):
                         env.ref(e['action'])
                 except (AccessError, ValueError):
                     can = False
-            out.append(dict(e, can_open=bool(can), favourite=e['key'] in fav))
+            readiness = READINESS.get(e['status'], 'not_built')
+            out.append(dict(e, can_open=bool(can), favourite=e['key'] in fav, readiness=readiness,
+                            contract=self._data_contract(e)))
         return out
+
+    def _data_contract(self, e):
+        """What every figure of a report rests on, stated the same way for all of them."""
+        return {
+            'company': ', '.join(self.env.companies.mapped('name')),
+            'currency': self.env.company.currency_id.name,
+            'as_of': _("Worked out when you open it, from the records as they are at that moment"),
+            'excludes': e.get('excludes') or _("Drafts, cancelled and rejected records"),
+            'owner': _("Finance") if e['area'] == _("Money") else _("Operations") if e['area'] == _("Trade and invoicing") else _("Management"),
+        }
+
+    @api.model
+    def readiness_ladder(self):
+        return [{'key': k, 'label': _(l)} for k, l in READINESS_LADDER]
 
     @api.model
     def toggle_favourite(self, key):

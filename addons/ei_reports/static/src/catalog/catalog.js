@@ -6,12 +6,17 @@ import { Component, onWillStart, proxy, useProps } from "@odoo/owl";
 // The report catalog: every report the business asked for, with what it answers, how it is worked out, where the numbers come from and
 // whether it is delivered, partial, blocked or not built. A report that is not built is listed with the reason, never hidden.
 const STATUS = {
-    delivered: { label: "Delivered", tone: "ok" },
+    delivered: { label: "Built, tested on sample data", tone: "ok" },
     preview: { label: "Preview", tone: "preview" },
     partial: { label: "Partly there", tone: "info" },
     pending_source: { label: "Blocked: needs an approval or data", tone: "warn" },
     not_built: { label: "Not built yet", tone: "muted" },
 };
+// The readiness ladder: nothing is past "Tested on sample data" until real books are loaded and finance signs.
+const LADDER = [
+    ["ui_available", "Screen available"], ["demo_tested", "Tested on sample data"], ["data_validated", "Checked against real books"],
+    ["finance_approved", "Approved by finance"], ["production_verified", "Verified in daily use"],
+];
 const AREAS = ["Money", "Trade and invoicing", "Management and controls"];
 
 export class EiReportCatalog extends Component {
@@ -31,6 +36,10 @@ export class EiReportCatalog extends Component {
         this.state.loading = false;
     }
     statusOf(i) { return STATUS[i.status] || STATUS.not_built; }
+    ladder(i) {
+        const at = LADDER.findIndex(([k]) => k === i.readiness);
+        return LADDER.map(([key, label], n) => ({ key, label, done: at >= 0 && n <= at }));
+    }
     get counts() {
         const c = { delivered: 0, preview: 0, partial: 0, pending_source: 0, not_built: 0 };
         for (const i of this.state.items) { c[i.status] = (c[i.status] || 0) + 1; }

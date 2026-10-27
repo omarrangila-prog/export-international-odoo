@@ -128,6 +128,8 @@ class TestReports(TestJourney):
         self.assertTrue({e['status'] for e in cat} <= {'delivered', 'preview', 'partial', 'pending_source', 'not_built'})
         delivered = [e for e in cat if e['status'] == 'delivered']
         self.assertGreaterEqual(len(delivered), 6)
+        self.assertTrue(all(e['readiness'] in ('ui_available', 'demo_tested', 'blocked', 'not_built') for e in cat))   # nothing claims real-data validation or finance approval
+        self.assertTrue(all(e['contract']['currency'] and e['contract']['excludes'] for e in cat))
         for e in delivered:
             self.assertTrue(self.env.ref(e['action']), e['key'])                                    # a delivered report has a real screen
             self.assertTrue(e['can_open'], e['key'])

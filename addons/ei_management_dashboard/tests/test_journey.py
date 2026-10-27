@@ -329,3 +329,12 @@ class TestJourney(AccountTestInvoicingCommon):
         self.assertEqual((other.status, other.difference), ('hs_difference', 0))  # amounts agree, the goods code does not
         with self.assertRaises(UserError):
             self.order.line_ids.write({'hs_code': 'steel coil'})
+
+    def test_quantity_trail_counts_each_step_from_its_own_records(self):
+        if 'trail_lifted' not in self.env['ei.da.line']._fields:
+            self.skipTest('ei_close not installed')
+        l = self.da.line_ids
+        self.assertEqual((l.mtl, l.trail_supplier_invoiced, l.trail_lifted, l.trail_customer_invoiced, l.trail_unlifted),
+                         (10, 4, 4, 4, 6))
+        self.assertEqual((l.trail_invoiced_not_lifted, l.trail_lifted_not_invoiced, l.trail_unbilled, l.trail_over_lifted, l.trail_flag),
+                         (0, 0, 0, 0, 'ok'))

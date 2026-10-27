@@ -45,7 +45,14 @@
                                 </header>
                                 <p class="ei-rc-status"><span t-att-class="'ei-rc-chip is-' + this.statusOf(i).tone" t-out="this.statusOf(i).label"/></p>
                                 <p class="ei-rc-q" t-out="i.question"/>
-                                <details class="ei-rc-how"><summary>How it is worked out</summary><p t-out="i.definition"/><p class="ei-rc-src"><b>Source:</b> <t t-out="i.source"/></p></details>
+                                <ol t-if="i.readiness !== 'not_built' and i.readiness !== 'blocked'" class="ei-rc-ladder" aria-label="How far it can be relied on">
+                                    <li t-foreach="this.ladder(i)" t-as="s" t-key="s.key" t-att-class="s.done ? 'is-done' : ''"><t t-out="s.label"/><span class="visually-hidden" t-out="s.done ? ': yes' : ': not yet'"/></li>
+                                </ol>
+                                <details class="ei-rc-how"><summary>How it is worked out</summary><p t-out="i.definition"/><p class="ei-rc-src"><b>Source:</b> <t t-out="i.source"/></p>
+                                    <dl class="ei-rc-contract">
+                                        <dt>Company</dt><dd t-out="i.contract.company"/><dt>Currency</dt><dd t-out="i.contract.currency"/>
+                                        <dt>As of</dt><dd t-out="i.contract.as_of"/><dt>Left out</dt><dd t-out="i.contract.excludes"/><dt>Owner</dt><dd t-out="i.contract.owner"/>
+                                    </dl></details>
                                 <p t-if="i.note" class="ei-rc-note" t-out="i.note"/>
                                 <footer class="ei-rc-foot">
                                     <button t-if="i.can_open" type="button" class="ei-rc-open" t-on-click="() => this.open(i)">Open the report</button>

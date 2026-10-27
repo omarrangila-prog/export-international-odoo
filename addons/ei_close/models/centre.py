@@ -121,7 +121,21 @@ class EiReconCentre(models.AbstractModel):
             card('r8', 'R8', _("Cash count"), _("Was every cash box counted and closed today?"), 'attention' if missing else 'ok',
                  [{'label': _("Cash boxes not closed today"), 'value': len(missing)}], 'ei_cashbook.ei_cash_count_action')
         # R9 migration
-        if self._can('ei.import.batch'):
+        if self._can('ei.migration.control'):
+            Ctl, Ext = env['ei.migration.control'], env['ei.migration.extract']
+            ctl = Ctl.search([('company_id', 'in', co)])
+            last = Ext.search([('company_id', 'in', co)], limit=1)
+            open_diff = ctl.filtered(lambda c: not c.signed_by)
+            card('r9', 'R9', _("Old system (FoxPro) to Odoo"), _("Does what was brought over agree with the old system's own totals?"),
+                 'blocked' if not last else 'attention' if open_diff or not ctl else 'ok',
+                 [{'label': _("Last extract"), 'value': last.name if last else _("none received")},
+                  {'label': _("Control totals compared"), 'value': len(ctl)},
+                  {'label': _("Not signed yet"), 'value': len(open_diff)},
+                  {'label': _("Differing"), 'value': len(ctl.filtered(lambda c: c.status == 'differs'))}],
+                 'ei_migration.ei_mig_control_action',
+                 _("The extract is read-only and hashed. Nothing is posted until opening balances are approved.") if last else
+                 _("Waiting for a copy of the FoxPro folder: run migration/foxpro_extract.py on it, then record the manifest."))
+        elif self._can('ei.import.batch'):
             B = env['ei.import.batch']
             last = B.search([('state', '!=', 'failed')], order='imported_at desc', limit=1)
             card('r9', 'R9', _("Old system (FoxPro) to Odoo"), _("Does what was brought over agree with the old system's own totals?"), 'blocked',

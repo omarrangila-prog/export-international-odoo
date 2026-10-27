@@ -67,7 +67,7 @@ LABELS = {
         received_on="Customer confirmed on", received_note="Customer note", ownership="Who owns the stock", stock_treatment="Stock treatment",
         invoice_status="Invoice status", invoice_move_id="Invoice", billing_warning="Invoice warning", order_line_id="Order line",
         attachment_count="Papers attached"),
-    'ei.supplier.intake': dict(name="Entry no.", kind="Type", partner_id="Supplier", invoice_number="Supplier's invoice no.", invoice_date="Invoice date",
+    'ei.supplier.intake': dict(comparison_html="Side by side", name="Entry no.", kind="Type", partner_id="Supplier", invoice_number="Supplier's invoice no.", invoice_date="Invoice date",
         original_id="Invoice being credited", tax_ids="Taxes", stated_tax="Tax on the invoice", stated_total="Total on the invoice",
         untaxed="Total of the lines", expected_tax="Tax we calculate", expected_total="Total we calculate", state="Status",
         issue_text="What does not match", review_note="Reason for accepting", reviewed_by="Accepted by", maker_id="Entered by",

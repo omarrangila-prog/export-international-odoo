@@ -1,45 +1,45 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
     <t t-name="ei_close.ReconCentre">
-        <div class="o_action ei-rc">
-            <div class="ei-rc-inner">
-                <header class="ei-rc-head">
+        <div class="o_action ei-rx">
+            <div class="ei-rx-inner">
+                <header class="ei-rx-head">
                     <div>
-                        <h1 class="ei-rc-title">Reconciliation centre</h1>
-                        <p class="ei-rc-sub">Every reconciliation in one place: does it agree, what is open, since when, who signed last.</p>
+                        <h1 class="ei-rx-title">Reconciliation centre</h1>
+                        <p class="ei-rx-sub">Every reconciliation in one place: does it agree, what is open, since when, who signed last.</p>
                     </div>
                     <button type="button" class="btn btn-secondary" t-on-click="() => this.load()">Check again</button>
                 </header>
-                <div t-if="state.loading" class="ei-rc-msg" role="status">Working out the reconciliations...</div>
+                <div t-if="state.loading" class="ei-rx-msg" role="status">Working out the reconciliations...</div>
                 <div t-elif="state.error" class="alert alert-danger" role="alert" t-esc="state.error"/>
                 <t t-elif="state.data">
-                    <p class="ei-rc-summary" role="status">
+                    <p class="ei-rx-summary" role="status">
                         <t t-if="state.data.attention"><b t-esc="state.data.attention"/> need attention today (<t t-esc="state.data.today"/>).</t>
                         <t t-else="">Nothing needs attention today (<t t-esc="state.data.today"/>).</t>
                     </p>
-                    <div t-if="!state.data.cards.length" class="ei-rc-msg">None of the reconciliations is part of your work.</div>
-                    <div class="ei-rc-grid">
-                        <section t-foreach="state.data.cards" t-as="c" t-key="c.key" t-attf-class="ei-rc-card is-{{c.status}}" t-att-aria-label="c.title">
-                            <div class="ei-rc-card-top">
-                                <span class="ei-rc-code" t-esc="c.code"/>
-                                <span t-attf-class="ei-rc-chip is-{{c.status}}" t-esc="label(c.status)"/>
+                    <div t-if="!state.data.cards.length" class="ei-rx-msg">None of the reconciliations is part of your work.</div>
+                    <div class="ei-rx-grid">
+                        <section t-foreach="state.data.cards" t-as="c" t-key="c.key" t-attf-class="ei-rx-card is-{{c.status}}" t-att-aria-label="c.title">
+                            <div class="ei-rx-card-top">
+                                <span class="ei-rx-code" t-esc="c.code"/>
+                                <span t-attf-class="ei-rx-chip is-{{c.status}}" t-esc="label(c.status)"/>
                             </div>
-                            <h2 class="ei-rc-card-title" t-esc="c.title"/>
-                            <p class="ei-rc-q" t-esc="c.question"/>
-                            <dl class="ei-rc-figs">
+                            <h2 class="ei-rx-card-title" t-esc="c.title"/>
+                            <p class="ei-rx-q" t-esc="c.question"/>
+                            <dl class="ei-rx-figs">
                                 <t t-foreach="c.figures" t-as="f" t-key="f_index">
                                     <dt t-esc="f.label"/><dd t-esc="value(f)"/>
                                 </t>
                             </dl>
-                            <p t-if="c.note" class="ei-rc-note" t-esc="c.note"/>
-                            <p t-if="c.signed" class="ei-rc-signed">Last signed off by <b t-esc="c.signed.who"/>, <t t-esc="c.signed.when"/></p>
-                            <div t-if="c.rows.length" class="ei-rc-rows">
+                            <p t-if="c.note" class="ei-rx-note" t-esc="c.note"/>
+                            <p t-if="c.signed" class="ei-rx-signed">Last signed off by <b t-esc="c.signed.who"/>, <t t-esc="c.signed.when"/></p>
+                            <div t-if="c.rows.length" class="ei-rx-rows">
                                 <button type="button" class="btn btn-link p-0" t-att-aria-expanded="state.open === c.key ? 'true' : 'false'"
                                         t-on-click="() => this.toggle(c.key)">
                                     <t t-if="state.open === c.key">Hide each account</t><t t-else="">Show each account</t>
                                 </button>
-                                <div t-if="state.open === c.key" class="ei-rc-table-wrap" tabindex="0">
-                                    <table class="ei-rc-table">
+                                <div t-if="state.open === c.key" class="ei-rx-table-wrap" tabindex="0">
+                                    <table class="ei-rx-table">
                                         <thead><tr><th>Account</th><th class="text-end">In our books</th><th class="text-end">Bank said</th><th>On</th><th class="text-end">Unexplained</th><th>Proof</th><th>Status</th></tr></thead>
                                         <tbody>
                                             <tr t-foreach="c.rows" t-as="r" t-key="r_index">
@@ -50,7 +50,7 @@
                                     </table>
                                 </div>
                             </div>
-                            <div class="ei-rc-foot">
+                            <div class="ei-rx-foot">
                                 <button t-if="c.action" type="button" class="btn btn-primary btn-sm" t-on-click="() => this.openCard(c)">Open</button>
                             </div>
                         </section>

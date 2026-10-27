@@ -48,6 +48,8 @@
                             <field name="currency_id" column_invisible="1"/>
                         </list>
                     </field>
+                    <separator string="Side by side: supplier, contract, DA and what was lifted"/>
+                    <field name="comparison_html" nolabel="1" readonly="1"/>
                     <group><field name="review_note"/><field name="reviewed_by"/><field name="maker_id"/></group>
                 </sheet>
                 <chatter/>

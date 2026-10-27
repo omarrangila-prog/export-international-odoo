@@ -1,3 +1,5 @@
+from markupsafe import Markup
+
 from odoo.tools.misc import format_amount
 from odoo import api, fields, models, _, Command
 from odoo.exceptions import AccessError, UserError
@@ -40,9 +42,48 @@ class EiSupplierIntake(models.Model):
     bill_id = fields.Many2one('account.move', readonly=True, copy=False)
     ocr_status = fields.Char(compute='_compute_ocr_status')
     attachment_count = fields.Integer('Papers attached', compute='_compute_attachment_count')
+    comparison_html = fields.Html('Side by side', compute='_compute_comparison', sanitize=False,
+                                  help="For each line: what the supplier says, what the contract and the DA say, what was actually lifted, and the difference.")
 
     _dup = models.UniqueIndex("(company_id, partner_id, invoice_number, kind) WHERE state != 'cancelled'",
                               "This supplier invoice number was already taken in.")
+
+    @api.depends('line_ids.received_mtl', 'line_ids.unit_rate', 'line_ids.hs_code', 'line_ids.expected_mtl', 'state', 'reviewed_by')
+    def _compute_comparison(self):
+        for r in self:
+            if not r.line_ids:
+                r.comparison_html = False
+                continue
+            cur = r.currency_id
+            money = lambda v: format_amount(self.env, v or 0.0, cur)
+            qty = lambda v: '%.3f' % (v or 0.0)
+            diff = lambda a, b, f: Markup('<span class="text-danger fw-bold">%s</span>') % f(a - b) if abs((a or 0) - (b or 0)) > 1e-9 else Markup('<span class="text-success">%s</span>') % _("agrees")
+            reviewer = r.reviewed_by.name if r.reviewed_by else {'draft': _("not checked yet"), 'mismatch': _("blocked: needs an approver's review")}.get(
+                r.state, dict(r._fields['state'].selection).get(r.state))
+            head = Markup('<tr><th>%s</th><th>%s</th><th class="text-end">%s</th><th class="text-end">%s</th><th class="text-end">%s</th>'
+                          '<th class="text-end">%s</th><th>%s</th><th>%s</th><th>%s</th></tr>') % (
+                _("DA / material"), _("Who says it"), _("MTL"), _("Rate / MTL"), _("Amount"), _("Lifted (verified)"), _("HS code"), _("Difference"), _("Who reviews"))
+            body = Markup('')
+            for l in r.line_ids:
+                cl = l.da_line_id.contract_line_id
+                rows = [
+                    (_("Supplier says"), l.received_mtl, l.unit_rate, l.amount, '', l.hs_code or '', ''),
+                    (_("Contract says"), cl.ordered_mtl, cl.purchase_rate, '', '', '', diff(l.unit_rate, cl.purchase_rate, money)),
+                    (_("DA says"), l.da_line_id.mtl, l.da_line_id.purchase_rate, '', '', '', diff(l.unit_rate, l.da_line_id.purchase_rate, money)),
+                    (_("Still to invoice"), l.expected_mtl, '', '', '', '', diff(l.received_mtl, l.expected_mtl, qty) if l.received_mtl > l.expected_mtl else Markup('<span class="text-success">%s</span>') % _("within")),
+                    (_("Actually lifted"), '', '', '', l.da_line_id.lifted_mtl, (l.order_line_id.hs_code or '') if l.order_line_id else '',
+                     diff(l.received_mtl, l.da_line_id.lifted_mtl, qty) if l.received_mtl > l.da_line_id.lifted_mtl else Markup('<span class="text-success">%s</span>') % _("covered")),
+                ]
+                for i, (who, q, rate, amt, lifted, hs, d) in enumerate(rows):
+                    body += Markup('<tr%s><td>%s</td><td>%s</td><td class="text-end">%s</td><td class="text-end">%s</td><td class="text-end">%s</td>'
+                                   '<td class="text-end">%s</td><td>%s</td><td>%s</td><td>%s</td></tr>') % (
+                        Markup(' class="border-top"') if i == 0 else '', ('%s / %s' % (l.da_id.name, l.product_id.display_name)) if i == 0 else '', who,
+                        qty(q) if q != '' else '', money(rate) if rate != '' else '', money(amt) if amt != '' else '',
+                        qty(lifted) if lifted != '' else '', hs, d, reviewer if i == 0 else '')
+            r.comparison_html = Markup('<div class="table-responsive"><table class="table table-sm align-middle"><thead>%s</thead><tbody>%s</tbody></table></div>'
+                                       '<p class="text-muted small">%s</p>') % (head, body, _(
+                "Invoiced quantity above the lifted quantity is shown, not blocked: supplier invoices may arrive before the trucks load. "
+                "A rate difference blocks the invoice until an approver reviews it."))
 
     def _compute_ocr_status(self):
         for r in self:

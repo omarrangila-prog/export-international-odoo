@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ei_trail_list" model="ir.ui.view">
+        <field name="name">ei.da.line.trail.list</field>
+        <field name="model">ei.da.line</field>
+        <field name="priority">90</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0" delete="0" decoration-warning="trail_flag == 'watch'">
+                <field name="da_id"/><field name="product_id"/><field name="customer_id"/>
+                <field name="mtl" string="Promised on DA"/><field name="trail_requested"/><field name="trail_supplier_invoiced"/>
+                <field name="trail_lifted"/><field name="trail_customer_invoiced"/>
+                <field name="trail_unlifted" optional="show"/><field name="trail_invoiced_not_lifted"/><field name="trail_lifted_not_invoiced"/>
+                <field name="trail_unbilled"/><field name="trail_over_lifted" optional="show"/><field name="trail_flag" widget="badge"/>
+            </list>
+        </field>
+    </record>
+    <record id="ei_trail_action" model="ir.actions.act_window">
+        <field name="name">Quantity trail</field>
+        <field name="res_model">ei.da.line</field>
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="ei_trail_list"/>
+        <field name="domain">[('state', 'in', ('approved', 'fulfilled', 'closed'))]</field>
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">No approved delivery advice yet</p>
+            <p>Each approved DA line from promised to requested, supplier-invoiced, lifted and customer-invoiced, counted from its own records.</p></field>
+    </record>
+    <menuitem id="menu_ei_trail" name="Quantity trail" parent="ei_contract_da.menu_ei_contracts" action="ei_trail_action" sequence="45"/>
+</odoo>
