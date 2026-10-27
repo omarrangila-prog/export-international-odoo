@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Owner's decision (27 Oct 2026): management (the CEO) may also PREPARE entries, not only check them. Maker-checker still holds per
+         record: whoever created a contract, delivery advice, order, voucher or bank line can never approve it themselves; a second person must. -->
+    <record id="ei_management_dashboard.group_ei_management" model="res.groups">
+        <field name="implied_ids" eval="[(4, ref('ei_contract_da.group_ei_contract_staff')), (4, ref('ei_material_lifting.group_ei_dispatch_officer')),
+                                         (4, ref('ei_cashbook.group_ei_cash_clerk')), (4, ref('ei_bank_operations.group_ei_bank_officer')),
+                                         (4, ref('ei_invoice_extensions.group_ei_invoicing'))]"/>
+    </record>
+</odoo>

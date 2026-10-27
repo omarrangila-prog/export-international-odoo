@@ -9,6 +9,7 @@
     'data': [
         'security/ir.access.csv',
         'data/params.xml',
+        'data/ceo_can_create.xml',
         'views/home_views.xml',
         'views/menus.xml',
         'views/cards.xml',
