@@ -17,7 +17,7 @@
                             | Status: <span t-field="o.state"/></p>
                         <table class="table table-sm">
                             <thead><tr><th>DA</th><th>Material</th><th>Customer</th><th class="text-end">Requested MTL</th>
-                                <th class="text-end">Rate / MTL</th><th class="text-end">Lifted</th><th class="text-end">Remaining</th><th>Supplier invoice no.</th></tr></thead>
+                                <th class="text-end">Rate / MTL</th><th class="text-end">Lifted</th><th class="text-end">Remaining</th><th>Supplier invoice no.</th><th>HS code</th></tr></thead>
                             <tbody>
                                 <tr t-foreach="o.line_ids" t-as="l">
                                     <td><span t-field="l.da_id.name"/></td><td><span t-field="l.product_id.display_name"/></td>
@@ -26,7 +26,7 @@
                                     <td class="text-end"><span t-field="l.sale_rate"/></td>
                                     <td class="text-end"><span t-field="l.lifted_mtl"/></td>
                                     <td class="text-end"><span t-field="l.remaining_mtl"/></td>
-                                    <td><span t-field="l.invoice_ref"/></td>
+                                    <td><span t-field="l.invoice_ref"/></td><td><span t-field="l.hs_code"/></td>
                                 </tr>
                             </tbody>
                         </table>

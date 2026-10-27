@@ -15,6 +15,10 @@ access_ei_bank_balance_check_auditor,ei.bank.balance.check auditor,ei.bank.balan
 access_ei_bank_balance_check_officer,ei.bank.balance.check officer,ei.bank.balance.check,group_ei_bank_officer,cru,
 access_ei_bank_balance_check_approver,ei.bank.balance.check approver,ei.bank.balance.check,group_ei_bank_approver,cru,
 access_ei_bank_balance_check_poster,ei.bank.balance.check poster,ei.bank.balance.check,group_ei_bank_poster,ru,
+access_ei_bank_balance_timing_auditor,ei.bank.balance.timing auditor,ei.bank.balance.timing,ei_legacy_master.group_ei_auditor,r,
+access_ei_bank_balance_timing_officer,ei.bank.balance.timing officer,ei.bank.balance.timing,group_ei_bank_officer,crud,
+access_ei_bank_balance_timing_approver,ei.bank.balance.timing approver,ei.bank.balance.timing,group_ei_bank_approver,crud,
+access_ei_bank_balance_timing_poster,ei.bank.balance.timing poster,ei.bank.balance.timing,group_ei_bank_poster,r,
 access_ei_bank_daily_close_auditor,ei.bank.daily.close auditor,ei.bank.daily.close,ei_legacy_master.group_ei_auditor,r,
 access_ei_bank_daily_close_officer,ei.bank.daily.close officer,ei.bank.daily.close,group_ei_bank_officer,cru,
 access_ei_bank_daily_close_approver,ei.bank.daily.close approver,ei.bank.daily.close,group_ei_bank_approver,cru,
@@ -33,5 +37,6 @@ rule_ei_bank_import_company,Bank import: own companies,ei.bank.import,,crud,"[('
 rule_ei_bank_line_company,Bank line: own companies,ei.bank.import.line,,crud,"[('company_id', 'in', company_ids)]"
 rule_ei_bank_alloc_company,Bank allocation: own companies,ei.bank.allocation,,crud,"[('line_id.company_id', 'in', company_ids)]"
 rule_ei_balance_check_company,Balance check: own companies,ei.bank.balance.check,,crud,"[('company_id', 'in', company_ids)]"
+rule_ei_balance_timing_company,Balance timing item: own companies,ei.bank.balance.timing,,crud,"[('company_id', 'in', company_ids)]"
 rule_ei_daily_close_company,Daily close: own companies,ei.bank.daily.close,,crud,"[('company_id', 'in', company_ids)]"
 rule_ei_alias_company,Partner alias: own companies,ei.partner.alias,,crud,"[('company_id', 'in', company_ids)]"

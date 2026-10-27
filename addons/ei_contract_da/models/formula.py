@@ -36,13 +36,17 @@ class EiFormulaDefinition(models.Model):
 
     _code_version = models.Constraint('unique(code, version)', 'This formula code already has that version.')
 
-    @api.depends('step_ids.param')
+    @api.depends('step_ids.param', 'step_ids.kind')
     def _compute_param_keys(self):
         for r in self:
-            r.param_keys = ', '.join(sorted({s.param for s in r.step_ids}))
+            r.param_keys = ', '.join(sorted(r._param_names()))
+
+    def _param_names(self):
+        """The values each contract line must supply (steps that combine two results need none)."""
+        return {s.param for s in self.step_ids if s.kind not in fe.REF_KINDS}
 
     def _steps(self):
-        return [{'key': s.key, 'kind': s.kind, 'base_ref': s.base_ref, 'param': s.param}
+        return [{'key': s.key, 'kind': s.kind, 'base_ref': s.base_ref, 'param': s.param, 'operand_ref': s.operand_ref}
                 for s in self.step_ids.sorted('sequence')]
 
     def compute(self, basic_rate, quantity=1, params=None, places=2):
@@ -109,14 +113,16 @@ class EiFormulaStep(models.Model):
     kind = fields.Selection([(k, '%s: %s' % (k, v)) for k, v in fe.KINDS.items()], required=True)
     base_ref = fields.Char('Works on', required=True, default='basic_rate',
                            help="'basic_rate' or the result name of an earlier step.")
-    param = fields.Char('Parameter', required=True, help="Name of the rate supplied on each contract line, e.g. deduction_pct.")
+    param = fields.Char('Parameter', help="Name of the rate supplied on each contract line, e.g. deduction_pct.")
+    operand_ref = fields.Char('Second result', help="For 'add_ref' and 'subtract_ref': the earlier result added to or taken from the base.")
 
     _uniq = models.Constraint('unique(definition_id, key)', 'Result names must be unique within a formula.')
 
-    @api.constrains('key', 'param', 'base_ref')
+    @api.constrains('key', 'param', 'base_ref', 'operand_ref', 'kind')
     def _check_names(self):
         for s in self:
-            for v in (s.key, s.param, s.base_ref):
+            needed = (s.key, s.base_ref) + ((s.operand_ref,) if s.kind in fe.REF_KINDS else (s.param,))
+            for v in needed + tuple(x for x in (s.param, s.operand_ref) if x):
                 if not re.fullmatch(r'[a-z][a-z0-9_]*', v or ''):
                     raise UserError(_("Names must be lower-case identifiers (got %r).", v))
             if s.key == 'basic_rate':

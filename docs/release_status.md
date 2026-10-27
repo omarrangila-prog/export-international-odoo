@@ -75,3 +75,20 @@ AI assistants (M14), Urdu labels, Docker Compose, performance tests, external se
 **Not done (by decision or because it needs people):** Urdu text on screens (excluded by the owner, 27 Oct); the five-second test with real staff (`docs/ui/five_second_test.md`).
 **Decisions needed:** `docs/open_decisions.md` 26 (which roles may use a PIN), 27 (the PIN rules), 29 (who sees the financial previews) and 30 (scheduled email delivery).
 
+
+## Business-process audit, first increment - 27 Oct 2026
+Driven by the client-side audit of the 11-page working document. Business correctness first, no visual redesign. Every row is traced in `docs/requirements_matrix.md`.
+* **Formula conflict kept safe:** the detailed ISL/ASML rule (18%, then 0.1% of the 18%-inclusive rate, then commission at 1.32% of the basic rate) is seeded as a separate draft `ISL_ASML_DEALER_NET`. It has 7 signed tests from the PDF examples, and all of them pass. The earlier "less 1.32%" rule is unchanged. The engine gained `add_ref`, `subtract_ref` and `input_amount`. Credit notes (CN) are entered per coil, and a CN amount must have its CN text. Both rounding modes give the PDF results. Decision 31 is open.
+* **R1 bank book vs bank:**
+  * timing items, with the amount still unexplained;
+  * the bank's proof is required: a typed balance shows "no proof yet";
+  * sign-off by a second bank approver, after which the confirmation is locked.
+* **R7 parent statement:**
+  * The total printed on the parent's statement is required on import. Sign-off is refused until it equals the imported rows.
+  * The parent total is split into five buckets: agrees, differs, only theirs, listed twice, only ours.
+* **HS code** (PDF p.8): entered on supplier-invoice lines, carried to the Daily Order Request and its PDF, and read from the statement. A different code is flagged "HS code differs" even when the amounts agree.
+* **Tests:** 359 code tests pass on a fresh database. Browser specs 01 and 05 pass after the check was updated: it now types the printed total and opens the approved formula.
+* **Not done in this increment:**
+  * R3: party subledger vs GL screen (waits for the chart of accounts).
+  * OCR, bank feeds, FBR and FoxPro extraction: blocked on outside parties.
+  * Client sign-off of any formula.

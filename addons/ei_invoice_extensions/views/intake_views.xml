@@ -44,7 +44,7 @@
                     <field name="line_ids">
                         <list editable="bottom" decoration-danger="received_mtl &gt; expected_mtl">
                             <field name="da_line_id"/><field name="order_line_id"/><field name="expected_mtl"/>
-                            <field name="received_mtl"/><field name="unit_rate"/><field name="expected_rate"/><field name="amount" sum="Total"/>
+                            <field name="received_mtl"/><field name="hs_code" optional="show"/><field name="unit_rate"/><field name="expected_rate"/><field name="amount" sum="Total"/>
                             <field name="currency_id" column_invisible="1"/>
                         </list>
                     </field>

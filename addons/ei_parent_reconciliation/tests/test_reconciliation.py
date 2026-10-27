@@ -122,12 +122,40 @@ class TestReconciliation(AccountTestInvoicingCommon):
         self.user.group_ids = [Command.link(self.env.ref('ei_parent_reconciliation.group_ei_recon_approver').id)]
         with self.assertRaises(AccessError):
             st.with_user(self.user).action_sign()    # importer cannot sign
+        with self.assertRaises(UserError):
+            st.with_user(self.appr).action_sign()    # nobody typed the total printed on the statement
+        st.with_user(self.user).control_total = 11300
         st.with_user(self.appr).action_sign()
         self.assertEqual(st.state, 'signed')
         with self.assertRaises(UserError):
             st.write({'date_to': '2026-12-31'})
         with self.assertRaises(UserError):
             dup.action_resolve('timing', 'late edit')
+
+    def test_09_printed_total_proves_completeness_and_the_parent_total_is_fully_accounted_for(self):
+        st = self.statement()
+        st.action_match()
+        self.assertEqual(st.statement_total, 11300)
+        # every rupee of the parent's total sits in exactly one class
+        self.assertEqual((st.amount_matched, st.amount_differences, st.amount_parent_only, st.amount_duplicates), (500, 5100, 4700, 1000))
+        self.assertEqual(st.amount_matched + st.amount_differences + st.amount_parent_only + st.amount_duplicates, st.statement_total)
+        self.assertEqual(st.amount_internal_only, 0)                          # ISL-009 is held by the possible match, not lost
+        ours = sum(st.line_ids.mapped('internal_amount'))
+        self.assertEqual(st.internal_total, ours)
+        # a row lost on import (printed 12,300, imported 11,300) blocks sign-off however clean the rest looks
+        st.with_user(self.user).control_total = 12300
+        self.assertEqual((st.completeness_diff, st.control_entered_by), (1000, self.user))
+        st.line_ids.filtered(lambda l: l.status != 'matched').action_assign(self.user)
+        st.action_check_assigned()
+        for l in st.line_ids.filtered(lambda l: l.status != 'matched'):
+            l.with_user(self.appr).action_resolve('duplicate_ignored' if l.status == 'duplicate' else 'timing', 'synthetic')
+        st.action_check_resolved()
+        with self.assertRaises(UserError):
+            st.with_user(self.appr).action_sign()
+        # the printed total can be given at import time too
+        st2 = self.env['ei.parent.statement'].with_user(self.user).import_file(
+            self.parent, '2026-11-01', '2026-11-30', 'n.csv', b"Invoice No,Date,Amount,Tax\nX-1,05/11/2026,100,0\n", control_total=100)
+        self.assertEqual((st2.control_total, st2.completeness_diff, st2.control_entered_by), (100, 0, self.user))
 
     def test_05_our_correction_links_adjusting_document(self):
         st = self.statement()

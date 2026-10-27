@@ -2,6 +2,8 @@ from odoo.tools.misc import format_amount
 from odoo import api, fields, models, _, Command
 from odoo.exceptions import AccessError, UserError
 
+from odoo.addons.ei_legacy_master.models.parsing import check_hs
+
 
 class EiSupplierIntake(models.Model):
     _name = 'ei.supplier.intake'
@@ -153,7 +155,8 @@ class EiSupplierIntake(models.Model):
                 for l in r.line_ids.filtered('order_line_id'):
                     ref = l.order_line_id.invoice_ref
                     refs = {x for x in (ref or '').split(', ') if x} | {r.invoice_number}
-                    l.order_line_id.with_context(ei_system=True).invoice_ref = ', '.join(sorted(refs))
+                    hs = {x for x in (l.order_line_id.hs_code or '').split(', ') if x} | ({l.hs_code} if l.hs_code else set())
+                    l.order_line_id.with_context(ei_system=True).write({'invoice_ref': ', '.join(sorted(refs)), 'hs_code': ', '.join(sorted(hs)) or False})
 
     def action_cancel(self):
         for r in self:
@@ -177,6 +180,7 @@ class EiSupplierIntakeLine(models.Model):
     product_id = fields.Many2one(related='da_line_id.product_id', store=True)
     order_line_id = fields.Many2one('ei.daily.order.line', domain="[('da_line_id', '=', da_line_id), ('state', '=', 'approved')]")
     received_mtl = fields.Float('Invoiced MTL', digits=(16, 3), required=True)
+    hs_code = fields.Char('HS code', help="As printed on the supplier invoice line, e.g. 7208.3990.")
     unit_rate = fields.Monetary('Rate / MTL', currency_field='currency_id', required=True)
     amount = fields.Monetary(compute='_compute_amount', store=True, currency_field='currency_id')
     expected_mtl = fields.Float(compute='_compute_expected', digits=(16, 3))
@@ -195,6 +199,14 @@ class EiSupplierIntakeLine(models.Model):
                 ('intake_id.kind', '=', 'in_invoice'), ('intake_id.state', 'in', ('matched', 'reviewed', 'billed'))]))
             cap = l.order_line_id.requested_mtl if l.order_line_id else l.da_line_id.mtl
             l.expected_mtl = max(cap - invoiced, 0.0) if l.intake_id.kind == 'in_invoice' else l.received_mtl
+
+    @api.constrains('hs_code')
+    def _check_hs(self):
+        for l in self:
+            try:
+                check_hs(l.hs_code)
+            except ValueError:
+                raise UserError(_("HS code %r: write it as on the invoice, digits with optional dots, e.g. 7208.3990.", l.hs_code))
 
     def _issues(self):
         self.ensure_one()

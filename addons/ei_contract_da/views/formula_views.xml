@@ -39,7 +39,7 @@
                         <page string="Steps">
                             <field name="step_ids" readonly="state != 'draft'">
                                 <list editable="bottom"><field name="sequence" widget="handle"/><field name="key"/>
-                                    <field name="kind"/><field name="base_ref"/><field name="param"/></list>
+                                    <field name="kind"/><field name="base_ref"/><field name="param"/><field name="operand_ref" optional="show"/></list>
                             </field>
                         </page>
                         <page string="Signed tests">

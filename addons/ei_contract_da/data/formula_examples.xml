@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Example from the client's "Daily Working Tasks" document. DRAFT: not usable until an accountant approves it.
-         No tax or commission formula is seeded: their bases are not established in the source documents. -->
+    <!-- Examples from the client's "Daily Working Tasks" document. Both are DRAFTS: unusable until an accountant approves them.
+         They are two DIFFERENT rules and stay separate formulas; neither replaces the other (docs/calculation_register.md). -->
     <data noupdate="1">
         <record id="formula_example_mill_rate" model="ei.formula.definition">
-            <field name="name">Mill rate = basic rate less deduction % (PDF example)</field>
+            <field name="name">Mill rate = basic rate less deduction % (earlier PDF narrative)</field>
             <field name="code">MILL_RATE_DEDUCTION</field>
-            <field name="rationale">PDF section 2: 210,000 less 1.32% gives the Mill Rate. Applies only where a contract states a deduction; not a universal rule.</field>
+            <field name="rationale">Earlier version of the working document (and the narrative on p.3 of the 11-page version): 210,000 less 1.32% gives the "Mill Rate". The detailed ISL/ASML examples on pp.3-4 use a different rule and call the pre-commission figure the Mill Rate: see ISL_ASML_DEALER_NET. Keep this one only for contracts that state a plain deduction; not a universal rule.</field>
             <field name="rounding_mode">final_only</field>
         </record>
         <record id="formula_example_mill_rate_step" model="ei.formula.step">
@@ -25,6 +25,155 @@
             <field name="params_json">{"deduction_pct": "1.32"}</field>
             <field name="expected_key">mill_rate</field>
             <field name="expected_value">207228.00</field>
+        </record>
+        <record id="formula_isl_asml_dealer_net" model="ei.formula.definition">
+            <field name="name">ISL / ASML dealer net purchase rate, optional CN per coil (PDF pp.3-5)</field>
+            <field name="code">ISL_ASML_DEALER_NET</field>
+            <field name="rationale">Daily Working Tasks (11 pages), pp.3-4: 18% of the basic rate is added; 0.1% of that 18%-inclusive rate is added again = Mill Rate; dealer commission is 1.32% of the BASIC rate; Dealer Net Purchase Rate = Mill Rate less commission. p.5: an optional credit note (CN) is entered separately for each coil; 1.32% of the CN is deducted from it and the net CN is taken from the Dealer Net Purchase Rate. Enter cn_amount 0 on a coil without CN. Applies to ISL and ASML contracts as described; not to direct local purchase, End Coils or other mills. NOT SIGNED OFF: the labels (p.3 narrative calls the after-commission figure "Mill Rate"), effective dates, whether CN is per MTL or per coil in total, rounding, and the tax/accounting treatment of the 18%, 0.1%, commission and CN all need the accountant's written approval. The worked examples give the same results under both rounding modes.</field>
+            <field name="rounding_mode">final_only</field>
+        </record>
+        <record id="formula_isl_asml_step_sales_tax_18" model="ei.formula.step">
+            <field name="definition_id" ref="formula_isl_asml_dealer_net"/>
+            <field name="sequence">10</field>
+            <field name="key">sales_tax_18</field>
+            <field name="kind">tax_amount</field>
+            <field name="base_ref">basic_rate</field>
+            <field name="param">sales_tax_pct</field>
+        </record>
+        <record id="formula_isl_asml_step_after_sales_tax" model="ei.formula.step">
+            <field name="definition_id" ref="formula_isl_asml_dealer_net"/>
+            <field name="sequence">20</field>
+            <field name="key">after_sales_tax</field>
+            <field name="kind">add_ref</field>
+            <field name="base_ref">basic_rate</field>
+            <field name="operand_ref">sales_tax_18</field>
+        </record>
+        <record id="formula_isl_asml_step_additional_0_1" model="ei.formula.step">
+            <field name="definition_id" ref="formula_isl_asml_dealer_net"/>
+            <field name="sequence">30</field>
+            <field name="key">additional_0_1</field>
+            <field name="kind">tax_amount</field>
+            <field name="base_ref">after_sales_tax</field>
+            <field name="param">additional_pct</field>
+        </record>
+        <record id="formula_isl_asml_step_mill_rate" model="ei.formula.step">
+            <field name="definition_id" ref="formula_isl_asml_dealer_net"/>
+            <field name="sequence">40</field>
+            <field name="key">mill_rate</field>
+            <field name="kind">add_ref</field>
+            <field name="base_ref">after_sales_tax</field>
+            <field name="operand_ref">additional_0_1</field>
+        </record>
+        <record id="formula_isl_asml_step_dealer_commission" model="ei.formula.step">
+            <field name="definition_id" ref="formula_isl_asml_dealer_net"/>
+            <field name="sequence">50</field>
+            <field name="key">dealer_commission</field>
+            <field name="kind">commission_amount</field>
+            <field name="base_ref">basic_rate</field>
+            <field name="param">commission_pct</field>
+        </record>
+        <record id="formula_isl_asml_step_dealer_net_purchase_rate" model="ei.formula.step">
+            <field name="definition_id" ref="formula_isl_asml_dealer_net"/>
+            <field name="sequence">60</field>
+            <field name="key">dealer_net_purchase_rate</field>
+            <field name="kind">subtract_ref</field>
+            <field name="base_ref">mill_rate</field>
+            <field name="operand_ref">dealer_commission</field>
+        </record>
+        <record id="formula_isl_asml_step_cn_amount" model="ei.formula.step">
+            <field name="definition_id" ref="formula_isl_asml_dealer_net"/>
+            <field name="sequence">70</field>
+            <field name="key">cn_amount</field>
+            <field name="kind">input_amount</field>
+            <field name="base_ref">basic_rate</field>
+            <field name="param">cn_amount</field>
+        </record>
+        <record id="formula_isl_asml_step_cn_commission" model="ei.formula.step">
+            <field name="definition_id" ref="formula_isl_asml_dealer_net"/>
+            <field name="sequence">80</field>
+            <field name="key">cn_commission</field>
+            <field name="kind">commission_amount</field>
+            <field name="base_ref">cn_amount</field>
+            <field name="param">cn_commission_pct</field>
+        </record>
+        <record id="formula_isl_asml_step_net_cn" model="ei.formula.step">
+            <field name="definition_id" ref="formula_isl_asml_dealer_net"/>
+            <field name="sequence">90</field>
+            <field name="key">net_cn</field>
+            <field name="kind">subtract_ref</field>
+            <field name="base_ref">cn_amount</field>
+            <field name="operand_ref">cn_commission</field>
+        </record>
+        <record id="formula_isl_asml_step_final_net_purchase_rate" model="ei.formula.step">
+            <field name="definition_id" ref="formula_isl_asml_dealer_net"/>
+            <field name="sequence">100</field>
+            <field name="key">final_net_purchase_rate</field>
+            <field name="kind">subtract_ref</field>
+            <field name="base_ref">dealer_net_purchase_rate</field>
+            <field name="operand_ref">net_cn</field>
+        </record>
+        <record id="formula_isl_asml_test_isl_mill" model="ei.formula.test">
+            <field name="definition_id" ref="formula_isl_asml_dealer_net"/>
+            <field name="name">ISL p.3: basic 239,950 - Mill Rate</field>
+            <field name="basic_rate">239950</field>
+            <field name="quantity">1</field>
+            <field name="params_json">{"sales_tax_pct": "18", "additional_pct": "0.1", "commission_pct": "1.32", "cn_amount": "0", "cn_commission_pct": "1.32"}</field>
+            <field name="expected_key">mill_rate</field>
+            <field name="expected_value">283424.14</field>
+        </record>
+        <record id="formula_isl_asml_test_isl_net" model="ei.formula.test">
+            <field name="definition_id" ref="formula_isl_asml_dealer_net"/>
+            <field name="name">ISL p.3: basic 239,950 - Dealer Net Purchase Rate</field>
+            <field name="basic_rate">239950</field>
+            <field name="quantity">1</field>
+            <field name="params_json">{"sales_tax_pct": "18", "additional_pct": "0.1", "commission_pct": "1.32", "cn_amount": "0", "cn_commission_pct": "1.32"}</field>
+            <field name="expected_key">dealer_net_purchase_rate</field>
+            <field name="expected_value">280256.80</field>
+        </record>
+        <record id="formula_isl_asml_test_isl_nocn" model="ei.formula.test">
+            <field name="definition_id" ref="formula_isl_asml_dealer_net"/>
+            <field name="name">ISL without CN: final rate equals Dealer Net</field>
+            <field name="basic_rate">239950</field>
+            <field name="quantity">1</field>
+            <field name="params_json">{"sales_tax_pct": "18", "additional_pct": "0.1", "commission_pct": "1.32", "cn_amount": "0", "cn_commission_pct": "1.32"}</field>
+            <field name="expected_key">final_net_purchase_rate</field>
+            <field name="expected_value">280256.80</field>
+        </record>
+        <record id="formula_isl_asml_test_asml_mill" model="ei.formula.test">
+            <field name="definition_id" ref="formula_isl_asml_dealer_net"/>
+            <field name="name">ASML p.4: basic 244,450 - Mill Rate</field>
+            <field name="basic_rate">244450</field>
+            <field name="quantity">1</field>
+            <field name="params_json">{"sales_tax_pct": "18", "additional_pct": "0.1", "commission_pct": "1.32", "cn_amount": "0", "cn_commission_pct": "1.32"}</field>
+            <field name="expected_key">mill_rate</field>
+            <field name="expected_value">288739.45</field>
+        </record>
+        <record id="formula_isl_asml_test_asml_net" model="ei.formula.test">
+            <field name="definition_id" ref="formula_isl_asml_dealer_net"/>
+            <field name="name">ASML p.4: basic 244,450 - Dealer Net Purchase Rate</field>
+            <field name="basic_rate">244450</field>
+            <field name="quantity">1</field>
+            <field name="params_json">{"sales_tax_pct": "18", "additional_pct": "0.1", "commission_pct": "1.32", "cn_amount": "0", "cn_commission_pct": "1.32"}</field>
+            <field name="expected_key">dealer_net_purchase_rate</field>
+            <field name="expected_value">285512.71</field>
+        </record>
+        <record id="formula_isl_asml_test_asml_cn" model="ei.formula.test">
+            <field name="definition_id" ref="formula_isl_asml_dealer_net"/>
+            <field name="name">ASML p.5: CN 1,000 on the coil - final net purchase rate</field>
+            <field name="basic_rate">244450</field>
+            <field name="quantity">1</field>
+            <field name="params_json">{"sales_tax_pct": "18", "additional_pct": "0.1", "commission_pct": "1.32", "cn_amount": "1000", "cn_commission_pct": "1.32"}</field>
+            <field name="expected_key">final_net_purchase_rate</field>
+            <field name="expected_value">284525.91</field>
+        </record>
+        <record id="formula_isl_asml_test_asml_netcn" model="ei.formula.test">
+            <field name="definition_id" ref="formula_isl_asml_dealer_net"/>
+            <field name="name">ASML p.5: CN 1,000 less 1.32% = net CN</field>
+            <field name="basic_rate">244450</field>
+            <field name="quantity">1</field>
+            <field name="params_json">{"sales_tax_pct": "18", "additional_pct": "0.1", "commission_pct": "1.32", "cn_amount": "1000", "cn_commission_pct": "1.32"}</field>
+            <field name="expected_key">net_cn</field>
+            <field name="expected_value">986.80</field>
         </record>
     </data>
 </odoo>

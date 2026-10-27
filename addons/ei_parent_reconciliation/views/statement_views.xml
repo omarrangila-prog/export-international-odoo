@@ -6,7 +6,8 @@
         <field name="arch" type="xml">
             <form>
                 <group><field name="partner_id"/><field name="date_from"/><field name="date_to"/>
-                    <field name="file" filename="filename"/><field name="filename" invisible="1"/></group>
+                    <field name="file" filename="filename"/><field name="filename" invisible="1"/>
+                        <field name="currency_id" invisible="1"/><field name="control_total" required="1"/></group>
                 <p class="text-muted">CSV or XLSX with Invoice No and Amount columns (Tax, Date, Contract, DA, Qty optional).
                     Matching never changes a posted entry.</p>
                 <footer>
@@ -53,11 +54,22 @@
                         <group><field name="statement_total"/><field name="internal_total"/><field name="n_matched"/>
                             <field name="n_exceptions"/><field name="n_open"/><field name="imported_by"/><field name="signed_by"/></group>
                     </group>
+                    <div class="alert alert-warning" role="status" invisible="not control_entered_by or completeness_diff == 0">
+                        The total printed on the parent's statement differs from the imported rows: a row is missing or extra. It cannot be signed off like this.
+                    </div>
+                    <group string="Where the parent's total goes">
+                        <group><field name="currency_id" invisible="1"/>
+                            <field name="control_total" readonly="state in ('signed', 'rejected')"/><field name="control_entered_by"/>
+                            <field name="completeness_diff"/></group>
+                        <group><field name="amount_matched"/><field name="amount_differences"/><field name="amount_parent_only"/>
+                            <field name="amount_duplicates"/><field name="amount_internal_only"/></group>
+                    </group>
                     <field name="line_ids">
-                        <list editable="bottom" decoration-success="status == 'matched'" decoration-danger="status in ('amount_difference', 'tax_difference')"
+                        <list editable="bottom" decoration-success="status == 'matched'" decoration-danger="status in ('amount_difference', 'tax_difference', 'hs_difference')"
                               decoration-warning="status in ('missing_internal', 'missing_supplier', 'possible_match', 'duplicate')">
                             <field name="invoice_no" readonly="1"/><field name="date" readonly="1"/><field name="status" readonly="1"/>
                             <field name="statement_amount" readonly="1"/><field name="internal_amount" readonly="1"/><field name="difference"/>
+                            <field name="hs_code" readonly="1" optional="hide"/><field name="our_hs_codes" optional="hide"/>
                             <field name="internal_move_id" readonly="1"/><field name="owner_id"/>
                             <field name="adjustment_move_id"/><field name="resolution" readonly="1"/><field name="resolution_state"/>
                             <field name="currency_id" column_invisible="1"/>

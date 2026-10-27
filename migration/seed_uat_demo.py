@@ -141,7 +141,7 @@ if not env['ei.bank.import'].search([('filename', '=', 'demo_statement.csv')]):
 # --- parent statement
 if not env['ei.parent.statement'].search([('filename', '=', 'demo_parent_stmt.csv')]):
     s = "Invoice No,Date,Amount,Tax\nDEMO-SUP-9001,%s,2400000,0\nDEMO-SUP-9002,%s,1640000,0\nDEMO-SUP-9003,%s,500000,0\n" % ((today.strftime('%d/%m/%Y'),) * 3)
-    st = env['ei.parent.statement'].with_user(U['recon']).import_file(parent, today.replace(day=1), today, 'demo_parent_stmt.csv', s.encode())
+    st = env['ei.parent.statement'].with_user(U['recon']).import_file(parent, today.replace(day=1), today, 'demo_parent_stmt.csv', s.encode(), control_total=4540000)
     st.with_user(U['recon']).action_match()
 env.cr.commit()
 print('DEMO data ready. Demo logins (password demo):', ', '.join(sorted(ROLES)))

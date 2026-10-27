@@ -335,3 +335,52 @@ class TestBanking(AccountTestInvoicingCommon):
         text = ' '.join(line.message_ids.mapped('body'))
         self.assertIn('Allocated by', text)
         self.assertIn('Allocation removed by', text)
+
+    # --- R1 book vs bank, with timing items, proof and a second person's sign-off (synthetic figures)
+    def book(self, date, amount):
+        acc = self.journal.default_account_id
+        other = self.company_data['default_account_revenue']
+        m = self.env['account.move'].create({'move_type': 'entry', 'journal_id': self.journal.id, 'date': date, 'line_ids': [
+            Command.create({'account_id': acc.id, 'debit': max(amount, 0), 'credit': max(-amount, 0), 'name': 'synthetic'}),
+            Command.create({'account_id': other.id, 'debit': max(-amount, 0), 'credit': max(amount, 0), 'name': 'synthetic'})]})
+        m.action_post()
+
+    def test_24_book_vs_bank_timing_items_and_sign_off(self):
+        start = self.journal._ei_ledger_balance('2026-09-30')
+        self.book('2026-09-30', 500000 - start)                               # opening book balance 500,000
+        self.book('2026-10-01', 100000)                                        # receipts posted
+        self.book('2026-10-01', -20000)                                        # payment posted
+        Chk = self.env['ei.bank.balance.check'].with_user(self.officer)
+        ok = Chk.create({'journal_id': self.journal.id, 'bank_balance': 580000, 'date': '2026-10-01'})
+        self.assertEqual((ok.ledger_balance, ok.difference, ok.state), (580000, 0, 'matched'))
+        c = Chk.create({'journal_id': self.journal.id, 'bank_balance': 575000, 'date': '2026-10-01'})
+        self.assertEqual((c.difference, c.unexplained_difference, c.state), (-5000, -5000, 'difference'))
+        with self.assertRaises(UserError):
+            c.action_explain()                                                 # nothing explains it yet
+        c.write({'timing_ids': [Command.create({'kind': 'bank_debit_not_booked', 'reference': 'charges SMS 01/10', 'amount': 3000})]})
+        self.assertEqual(c.unexplained_difference, -2000)                     # 2,000 still unexplained stays visible
+        c.write({'timing_ids': [Command.create({'kind': 'deposit_in_transit', 'reference': 'slip 4471', 'amount': 2000})]})
+        self.assertEqual((c.timing_total, c.unexplained_difference), (-5000, 0))
+        c.action_explain()
+        self.assertEqual(c.state, 'explained')
+        with self.assertRaises(UserError):
+            c.with_user(self.approver).action_sign_off()                       # typed in: no bank proof yet
+        self.assertEqual(c.evidence_state, 'stated')
+        self.env['ir.attachment'].with_user(self.officer).create({'name': 'statement.pdf', 'res_model': c._name, 'res_id': c.id, 'raw': b'%PDF-1.4'})
+        c.invalidate_recordset(['evidence_state', 'evidence_count'])
+        self.assertEqual(c.evidence_state, 'evidenced')
+        with self.assertRaises(AccessError):
+            c.with_user(self.officer).action_sign_off()                       # not an approver
+        same = self.env['ei.bank.balance.check'].with_user(self.approver).create({'journal_id': self.journal.id, 'bank_balance': 580000, 'date': '2026-10-01'})
+        self.env['ir.attachment'].with_user(self.approver).create({'name': 'p.pdf', 'res_model': same._name, 'res_id': same.id, 'raw': b'%PDF-1.4'})
+        with self.assertRaises(AccessError):
+            same.with_user(self.approver).action_sign_off()                   # maker-checker
+        c.with_user(self.approver).action_sign_off()
+        self.assertEqual((c.state, c.signed_by), ('signed', self.approver))
+        for op in (lambda: c.with_user(self.officer).write({'note': 'later'}), lambda: c.timing_ids[0].with_user(self.officer).unlink(),
+                   lambda: c.with_user(self.officer).write({'timing_ids': [Command.create({'kind': 'uncleared_cheque', 'reference': 'x', 'amount': 1})]})):
+            with self.assertRaises(UserError):
+                op()
+        with self.assertRaises(UserError):
+            Chk.create({'journal_id': self.journal.id, 'bank_balance': 1, 'date': '2026-10-01'}).write(
+                {'timing_ids': [Command.create({'kind': 'uncleared_cheque', 'reference': 'neg', 'amount': -5})]})

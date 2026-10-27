@@ -43,7 +43,7 @@
                             <field name="da_line_id" readonly="parent.state != 'draft'"/><field name="product_id"/><field name="customer_id"/>
                             <field name="requested_mtl" readonly="parent.state != 'draft'"/><field name="sale_rate"/>
                             <field name="lifted_mtl"/><field name="remaining_mtl"/>
-                            <field name="invoice_ref" readonly="parent.state != 'approved'"/><field name="currency_id" column_invisible="1"/>
+                            <field name="invoice_ref" readonly="parent.state != 'approved'"/><field name="hs_code" readonly="parent.state != 'approved'" optional="show"/><field name="currency_id" column_invisible="1"/>
                         </list>
                     </field>
                 </sheet>

@@ -8,6 +8,8 @@ from decimal import Decimal, InvalidOperation
 from odoo import api, fields, models, _
 from odoo.exceptions import AccessError, UserError
 
+from odoo.addons.ei_legacy_master.models.parsing import norm_hs
+
 DATE_FORMATS = ('%Y-%m-%d', '%d/%m/%Y', '%d-%m-%Y', '%d-%b-%Y', '%d/%m/%y')
 HEAD = {
     'invoice_no': ('invoice no', 'invoice no.', 'invoice number', 'invoice', 'inv no', 'document no', 'doc no'),
@@ -17,6 +19,7 @@ HEAD = {
     'contract_ref': ('contract', 'contract no', 'contract ref'),
     'da_ref': ('da', 'da no', 'da ref', 'delivery advice'),
     'quantity': ('quantity', 'qty', 'mtl', 'quantity (mtl)'),
+    'hs_code': ('hs code', 'hs', 'pct code', 'hs/pct code'),
 }
 
 
@@ -72,7 +75,7 @@ def parse_rows(filename, data):
             rec = {'seq': n, 'invoice_no': get('invoice_no'), 'date': _date(get('date')) if get('date') else False,
                    'amount': _dec(get('amount')), 'tax': _dec(get('tax')) or Decimal(0),
                    'contract_ref': get('contract_ref'), 'da_ref': get('da_ref'),
-                   'quantity': _dec(get('quantity')) or Decimal(0)}
+                   'quantity': _dec(get('quantity')) or Decimal(0), 'hs_code': get('hs_code')}
             if not rec['invoice_no'] or rec['amount'] is None:
                 raise ValueError('missing invoice number or amount')
             rows.append(rec)
@@ -105,23 +108,39 @@ class EiParentStatement(models.Model):
     n_open = fields.Integer(compute='_compute_counts')
     statement_total = fields.Monetary(compute='_compute_counts', currency_field='currency_id')
     internal_total = fields.Monetary(compute='_compute_counts', currency_field='currency_id')
+    control_total = fields.Monetary("Total printed on the parent's statement", currency_field='currency_id', tracking=True,
+                                    help="Typed from the paper/PDF. Proves every row of the statement was imported: sign-off needs it to equal the imported rows.")
+    control_entered_by = fields.Many2one('res.users', readonly=True)
+    completeness_diff = fields.Monetary('Printed total less imported rows', compute='_compute_counts', currency_field='currency_id')
+    amount_matched = fields.Monetary('Agrees with our books', compute='_compute_counts', currency_field='currency_id')
+    amount_differences = fields.Monetary('In both, amounts differ (parent side)', compute='_compute_counts', currency_field='currency_id')
+    amount_parent_only = fields.Monetary('Only on the parent statement', compute='_compute_counts', currency_field='currency_id')
+    amount_duplicates = fields.Monetary('Listed twice by the parent', compute='_compute_counts', currency_field='currency_id')
+    amount_internal_only = fields.Monetary('Only in our books', compute='_compute_counts', currency_field='currency_id')
     imported_by = fields.Many2one('res.users', readonly=True, default=lambda s: s.env.user)
     signed_by = fields.Many2one('res.users', readonly=True)
     signed_at = fields.Datetime(readonly=True)
 
-    @api.depends('line_ids.status', 'line_ids.resolution_state', 'line_ids.statement_amount', 'line_ids.internal_amount')
+    @api.depends('line_ids.status', 'line_ids.resolution_state', 'line_ids.statement_amount', 'line_ids.internal_amount', 'control_total')
     def _compute_counts(self):
         for s in self:
+            parent = lambda *st: sum(s.line_ids.filtered(lambda l: l.source == 'statement' and l.status in st).mapped('statement_amount'))
+            s.amount_matched = parent('matched')
+            s.amount_differences = parent('amount_difference', 'tax_difference', 'hs_difference')
+            s.amount_parent_only = parent('missing_internal', 'possible_match', False)
+            s.amount_duplicates = parent('duplicate')
+            s.amount_internal_only = sum(s.line_ids.filtered(lambda l: l.source == 'internal').mapped('internal_amount'))
             s.n_matched = len(s.line_ids.filtered(lambda l: l.status == 'matched'))
             exc = s.line_ids.filtered(lambda l: l.status != 'matched')
             s.n_exceptions = len(exc)
             s.n_open = len(exc.filtered(lambda l: l.resolution_state != 'resolved'))
             s.statement_total = sum(s.line_ids.mapped('statement_amount'))
             s.internal_total = sum(s.line_ids.mapped('internal_amount'))
+            s.completeness_diff = s.control_total - s.statement_total
 
     # ---------------------------------------------------------------- import
     @api.model
-    def import_file(self, partner, date_from, date_to, filename, data):
+    def import_file(self, partner, date_from, date_to, filename, data, control_total=None):
         if not self.env.user.has_group('ei_parent_reconciliation.group_ei_recon_user'):
             raise AccessError(_("Only reconciliation users can import statements."))
         sha = hashlib.sha256(data).hexdigest()
@@ -134,11 +153,13 @@ class EiParentStatement(models.Model):
             'name': self.env['ir.sequence'].next_by_code('ei.parent.statement'), 'partner_id': partner.id,
             'date_from': date_from, 'date_to': date_to, 'filename': filename, 'file_sha256': sha,
             'issues': '\n'.join(errors) or False, 'state': 'rejected' if errors else 'imported'})
+        if control_total is not None:
+            st.write({'control_total': control_total})
         if not errors:
             self.env['ei.parent.statement.line'].create([{
                 'statement_id': st.id, 'sequence': r['seq'], 'invoice_no': r['invoice_no'], 'date': r['date'],
                 'statement_amount': float(r['amount']), 'statement_tax': float(r['tax']),
-                'contract_ref': r['contract_ref'], 'da_ref': r['da_ref'], 'statement_qty': float(r['quantity']),
+                'contract_ref': r['contract_ref'], 'da_ref': r['da_ref'], 'statement_qty': float(r['quantity']), 'hs_code': r['hs_code'] or False,
                 'source': 'statement'} for r in rows])
         return st
 
@@ -160,7 +181,7 @@ class EiParentStatement(models.Model):
             cur = st.currency_id
             for l in st.line_ids.filtered(lambda x: x.source == 'statement').sorted('sequence'):
                 key = norm_no(l.invoice_no)
-                vals = {'internal_move_id': False, 'internal_amount': 0.0, 'internal_tax': 0.0, 'status': 'missing_internal'}
+                vals = {'internal_move_id': False, 'internal_amount': 0.0, 'internal_tax': 0.0, 'status': 'missing_internal', 'our_hs_codes': False}
                 if key in seen:
                     vals['status'] = 'duplicate'
                 else:
@@ -171,10 +192,14 @@ class EiParentStatement(models.Model):
                         used.add(b.id)
                         sign = 1 if b.move_type == 'in_invoice' else -1
                         vals.update(internal_move_id=b.id, internal_amount=sign * b.amount_total, internal_tax=sign * b.amount_tax)
+                        ours = st._our_hs_codes(b)
+                        vals['our_hs_codes'] = ', '.join(sorted(ours)) or False
                         if not cur.is_zero(vals['internal_amount'] - l.statement_amount):
                             vals['status'] = 'amount_difference'
                         elif not cur.is_zero(vals['internal_tax'] - l.statement_tax):
                             vals['status'] = 'tax_difference'
+                        elif l.hs_code and ours and norm_hs(l.hs_code) not in {norm_hs(x) for x in ours}:
+                            vals['status'] = 'hs_difference'
                         else:
                             vals['status'] = 'matched'
                 l.write(vals)
@@ -196,6 +221,11 @@ class EiParentStatement(models.Model):
             st.state = 'classified'
             for l in st.line_ids.filtered(lambda x: x.status == 'matched'):
                 l.resolution_state = 'resolved'
+
+    def _our_hs_codes(self, bill):
+        """HS codes entered on the supplier invoice when it was taken in (intake lines of that bill)."""
+        intake = self.env['ei.supplier.intake'].sudo().search([('bill_id', '=', bill.id), ('company_id', '=', bill.company_id.id)])
+        return {c for c in intake.line_ids.mapped('hs_code') if c}
 
     def action_check_assigned(self):
         for st in self:
@@ -222,12 +252,23 @@ class EiParentStatement(models.Model):
                 raise UserError(_("Only a fully resolved statement can be signed."))
             if st.imported_by == self.env.user and not self.env.su:
                 raise AccessError(_("Maker-checker: the importer cannot sign off the statement."))
+            if not st.control_entered_by:
+                raise UserError(_("Type the total printed on the parent's statement first: it proves every row was imported."))
+            if not st.currency_id.is_zero(st.completeness_diff):
+                raise UserError(_("The printed total differs from the imported rows by %s: a row is missing or extra. "
+                                  "Re-import the statement; do not sign an incomplete one.", st.completeness_diff))
             st.write({'state': 'signed', 'signed_by': self.env.user.id, 'signed_at': fields.Datetime.now()})
 
     def write(self, vals):
         if any(r.state == 'signed' for r in self) and set(vals) - {'message_follower_ids'} and not self.env.context.get('ei_system'):
             raise UserError(_("A signed statement is final."))
-        return super().write(vals)
+        if 'control_total' in vals:
+            vals = dict(vals, control_entered_by=self.env.user.id)
+        res = super().write(vals)
+        if 'control_total' in vals:
+            for st in self.filtered(lambda r: r.state != 'rejected' and r.line_ids and not r.currency_id.is_zero(r.completeness_diff)):
+                st.message_post(body=_("The printed total %(c)s differs from the imported rows %(t)s.", c=st.control_total, t=st.statement_total))
+        return res
 
 
 class EiParentStatementLine(models.Model):
@@ -256,7 +297,10 @@ class EiParentStatementLine(models.Model):
         ('matched', 'Matched'), ('possible_match', 'Possible match'), ('missing_internal', 'Missing in our books'),
         ('missing_supplier', 'Missing on parent statement'), ('duplicate', 'Duplicate on statement'),
         ('amount_difference', 'Amount difference'), ('tax_difference', 'Tax difference'),
+        ('hs_difference', 'HS code differs'),
     ], index=True, tracking=True)
+    hs_code = fields.Char('HS code (statement)')
+    our_hs_codes = fields.Char('HS codes on our invoice', readonly=True)
     owner_id = fields.Many2one('res.users', tracking=True)
     comment = fields.Text()
     resolution = fields.Selection([

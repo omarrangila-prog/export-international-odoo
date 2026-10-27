@@ -56,7 +56,9 @@ module.exports = {
     });
     // 3 formula -> New version
     await flow('3 Formula > New version opens the new version', async () => {
-      await s.menu('Setup', 'Formula register'); await s.firstRow(); await s.button('New version');
+      // the approved (staging) formula: a draft such as ISL_ASML_DEALER_NET has no New version button
+      await s.menu('Setup', 'Formula register'); await p.locator('.o_data_row', { hasText: 'MILL_RATE_DEDUCTION' }).first().click();
+      await p.waitForSelector('.o_form_view'); await s.button('New version');
       ctx.check(await resultIsForm('ei.formula.definition'), '3 ... and shows a formula form');
     });
     // 4 daily order -> Send by email (composer with the PDF attached)
@@ -115,6 +117,7 @@ module.exports = {
       await p.locator('.modal .o_field_widget[name=date_from] input').fill('10/01/2026'); await p.keyboard.press('Enter');
       await p.locator('.modal .o_field_widget[name=date_to] input').fill('10/31/2026'); await p.keyboard.press('Enter');
       await upload('parent.csv', `Invoice No,Date,Amount,Tax\nE2E-INV-${stamp},06/10/2026,1000,0\n`);
+      await fillNum('control_total', 1000);   // the total printed on the parent's statement is required
       await p.locator('.modal button', { hasText: 'Import and match' }).click(); await p.waitForTimeout(2500);
       ctx.check(/ei\.parent\.statement/.test(p.url()) || (await p.locator('.o_form_view').count()) > 0, '8 ... and shows the statement form', p.url());
     });

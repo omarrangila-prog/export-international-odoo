@@ -126,6 +126,33 @@ class TestContracts(TransactionCase):
         with self.assertRaises(UserError):
             c.action_review()
 
+    def test_16_detailed_isl_asml_formula_is_a_separate_draft_whose_signed_tests_pass(self):
+        old = self.env.ref('ei_contract_da.formula_example_mill_rate')
+        f = self.env.ref('ei_contract_da.formula_isl_asml_dealer_net')
+        self.assertNotEqual(f.code, old.code)                                   # two rules, never one overwriting the other
+        self.assertEqual(f.state, 'draft')                                      # nobody has signed it off yet
+        self.assertEqual(len(f.test_ids), 7)
+        self.assertTrue(all(ok for _t, ok in f.run_tests()), [(t.name, t.actual_value) for t, ok in f.run_tests() if not ok])
+        self.assertEqual(set(f.param_keys.split(', ')), {'sales_tax_pct', 'additional_pct', 'commission_pct', 'cn_amount', 'cn_commission_pct'})
+
+    def test_17_credit_note_is_entered_per_coil_with_its_text(self):
+        f = self.env.ref('ei_contract_da.formula_isl_asml_dealer_net')
+        f.with_user(self.acct).action_approve()
+        prm = lambda cn: [Command.create({'key': k, 'value': v}) for k, v in (
+            ('sales_tax_pct', '18'), ('additional_pct', '0.1'), ('commission_pct', '1.32'), ('cn_amount', cn), ('cn_commission_pct', '1.32'))]
+        line = lambda lot, cn, text=False: Command.create({'product_id': self.prod.id, 'lot': lot, 'ordered_mtl': 5, 'purchase_rate': 1, 'sale_rate': 2,
+                                                          'formula_id': f.id, 'basic_rate': 244450, 'param_ids': prm(cn), 'cn_text': text})
+        c = self.Contract.create({'parent_partner_id': self.isl.id, 'contract_ref': 'ASML-CN', 'line_ids': [
+            line('COIL-1', '1000'), line('COIL-2', '0')]})
+        self.env['ir.attachment'].sudo().create({'name': 'c.pdf', 'res_model': 'ei.contract', 'res_id': c.id, 'raw': b'x'})
+        with self.assertRaises(UserError):
+            c.action_review()                                                   # CN amount without its text
+        c.line_ids[0].cn_text = 'CN against coil 1 (surface defect)'
+        self.activate(c)
+        c1, c2 = c.line_ids.sorted('id')
+        self.assertEqual((c1.snapshot['values']['final_net_purchase_rate'], c2.snapshot['values']['final_net_purchase_rate']),
+                         ('284525.91', '285512.71'))                            # only coil 1 carries the CN
+
     # ---- contract workflow
     def test_07_contract_workflow_and_controls(self):
         c = self.contract()

@@ -1,6 +1,8 @@
 from odoo import api, fields, models, _
 from odoo.exceptions import AccessError, UserError
 
+from odoo.addons.ei_legacy_master.models.parsing import check_hs
+
 
 class EiDailyOrder(models.Model):
     _name = 'ei.daily.order'
@@ -144,6 +146,9 @@ class EiDailyOrderLine(models.Model):
     remaining_mtl = fields.Float('Remaining to lift', compute='_compute_lifted', digits=(16, 3))
     invoice_ref = fields.Char('Supplier invoice no.', copy=False,
                               help="Recorded when the supplier invoice arrives. It does NOT mean the material was lifted.")
+    hs_code = fields.Char('HS code', copy=False,
+                          help="HS / PCT code printed on the supplier invoice (e.g. 7208.3990), entered with the invoice number. "
+                               "Used to match the parent company's month-end statement.")
 
     _uniq = models.Constraint('unique(order_id, da_line_id)', 'This DA line is already on the order request.')
 
@@ -166,6 +171,14 @@ class EiDailyOrderLine(models.Model):
                 raise UserError(_("Requests for DA %(d)s total %(t)s MTL, above the DA quantity %(q)s.",
                                   d=l.da_id.name, t=l.requested_mtl + others, q=l.da_line_id.mtl))
 
+    @api.constrains('hs_code')
+    def _check_hs(self):
+        for l in self:
+            try:
+                check_hs(l.hs_code)
+            except ValueError:
+                raise UserError(_("HS code %r: write it as on the invoice, digits with optional dots, e.g. 7208.3990.", l.hs_code))
+
     @api.constrains('requested_mtl')
     def _check_positive(self):
         for l in self:
@@ -183,9 +196,9 @@ class EiDailyOrderLine(models.Model):
     def write(self, vals):
         if self.env.context.get('ei_system'):
             return super().write(vals)
-        if set(vals) - {'invoice_ref', 'sequence'} and any(r.order_id.state != 'draft' for r in self):
+        if set(vals) - {'invoice_ref', 'hs_code', 'sequence'} and any(r.order_id.state != 'draft' for r in self):
             raise UserError(_("The request is not a draft; its lines are locked."))
-        if 'invoice_ref' in vals and any(r.order_id.state != 'approved' for r in self):
+        if {'invoice_ref', 'hs_code'} & set(vals) and any(r.order_id.state != 'approved' for r in self):
             raise UserError(_("Record the invoice number only on an approved request."))
         return super().write(vals)
 

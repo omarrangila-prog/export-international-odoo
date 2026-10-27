@@ -25,6 +25,21 @@ CSV_COLUMNS = ('source_sheet', 'source_row', 'legacy_code', 'legacy_name', 'lega
 FORMULA_PREFIXES = ('=', '+', '-', '@', '\t', '\r')
 
 
+HS_RE = re.compile(r'^\d{4}(?:[.\s]?\d{2}){0,3}$')
+
+
+def check_hs(value):
+    """HS / PCT code as written on the supplier invoice (e.g. 7208.3990). Kept as typed; compared on its digits."""
+    v = (value or '').strip()
+    if v and not HS_RE.match(v):
+        raise ValueError(v)
+    return v
+
+
+def norm_hs(value):
+    return re.sub(r'\D', '', value or '')
+
+
 def sheet_key(name):
     """Sheet names are compared stripped ('PROFIT & LOSS ' has a trailing space in the source)."""
     return (name or '').strip()

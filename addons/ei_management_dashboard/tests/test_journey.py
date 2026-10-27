@@ -101,7 +101,7 @@ class TestJourney(AccountTestInvoicingCommon):
         cls.intake = cls.env['ei.supplier.intake'].with_user(cls.invoicer).create({
             'partner_id': cls.parent.id, 'invoice_number': 'SUP-9001', 'invoice_date': '2026-10-06', 'stated_total': 800000,
             'line_ids': [Command.create({'da_line_id': cls.da.line_ids.id, 'order_line_id': cls.order.line_ids.id,
-                                         'received_mtl': 4, 'unit_rate': 200000})]})
+                                         'received_mtl': 4, 'unit_rate': 200000, 'hs_code': '7208.3990'})]})
         cls.env['ir.attachment'].create({'name': 'sup.pdf', 'res_model': 'ei.supplier.intake', 'res_id': cls.intake.id, 'raw': b'x'})
         cls.intake.action_check()
         cls.intake.with_user(cls.invoicer).action_create_bill()
@@ -126,7 +126,7 @@ class TestJourney(AccountTestInvoicingCommon):
         cls.env['ei.bank.balance.check'].with_user(cls.bapprover).create({'journal_id': cls.bank.id, 'bank_balance': 840000, 'date': fields.Date.today()})
         # 9. parent statement matches our bill
         stm = "Invoice No,Date,Amount,Tax\nSUP-9001,06/10/2026,800000,0\n".encode()
-        cls.stmt = cls.env['ei.parent.statement'].with_user(cls.rclerk).import_file(cls.parent, '2026-10-01', '2026-10-31', 'isl_oct.csv', stm)
+        cls.stmt = cls.env['ei.parent.statement'].with_user(cls.rclerk).import_file(cls.parent, '2026-10-01', '2026-10-31', 'isl_oct.csv', stm, control_total=800000)
         cls.stmt.with_user(cls.rclerk).action_match()
         cls.stmt.with_user(cls.rclerk).action_check_assigned()
         cls.stmt.with_user(cls.rclerk).action_check_resolved()
@@ -144,7 +144,7 @@ class TestJourney(AccountTestInvoicingCommon):
         self.assertEqual((l.spread_per_mtl, l.expected_gross_spread), (10000, 1000000))
         self.assertEqual((self.lift.state, self.lift.weighed_mtl, self.lift.verified_mtl), ('verified', 4.0, 4.0))
         self.assertEqual((self.da.lifted_mtl, self.da.remaining_to_lift), (4, 6))
-        self.assertEqual(self.order.line_ids.invoice_ref, 'SUP-9001')
+        self.assertEqual((self.order.line_ids.invoice_ref, self.order.line_ids.hs_code), ('SUP-9001', '7208.3990'))
         self.assertEqual((self.bill.state, self.bill.amount_total, self.bill.payment_state), ('posted', 800000, 'not_paid'))
         self.assertEqual((self.invoice.state, self.invoice.amount_total, self.invoice.payment_state), ('posted', 840000, 'paid'))
         self.assertEqual(self.imp.state, 'posted')
@@ -294,7 +294,8 @@ class TestJourney(AccountTestInvoicingCommon):
         with self.assertRaises(AccessError):
             asout('ei.bank.import.line').browse(self.bline.id).action_reject('x')
         d = asout('ei.dashboard').create({'date_from': '2000-01-01', 'date_to': '2099-12-31'})
-        self.assertEqual((d.revenue, d.ar_open, d.mtl_ordered, d.approvals_total), (0, 0, 0, 0))
+        shared = self.env['ei.formula.definition'].search_count([('state', '=', 'draft'), ('company_id', '=', False)])
+        self.assertEqual((d.revenue, d.ar_open, d.mtl_ordered, d.approvals_total), (0, 0, 0, shared))   # only the register shared by all companies
         self.assertFalse(d.bank_html and 'B593' in d.bank_html)
 
     def test_14_nobody_approves_own_high_risk_items(self):
@@ -315,3 +316,16 @@ class TestJourney(AccountTestInvoicingCommon):
         # owner's decision (27 Oct 2026): the CEO may also prepare entries; the read-only role still cannot change the books
         self.assertFalse(self.env['account.move.line'].with_user(self.auditor).has_access('write'),
                          "reading the books must not allow changing them")
+
+    def test_hs_code_from_the_invoice_is_checked_against_the_parent_statement(self):
+        St = self.env['ei.parent.statement'].with_user(self.rclerk)
+        def run(hs, name):
+            st = St.import_file(self.parent, '2026-10-01', '2026-10-31', name, ("Invoice No,Date,Amount,Tax,HS Code\nSUP-9001,06/10/2026,800000,0,%s\n" % hs).encode())
+            st.action_match()
+            return st.line_ids.filtered(lambda l: l.source == 'statement')
+        same = run('72083990', 'hs_same.csv')                                   # same code, written without the dot
+        self.assertEqual((same.status, same.our_hs_codes), ('matched', '7208.3990'))
+        other = run('7209.1000', 'hs_other.csv')
+        self.assertEqual((other.status, other.difference), ('hs_difference', 0))  # amounts agree, the goods code does not
+        with self.assertRaises(UserError):
+            self.order.line_ids.write({'hs_code': 'steel coil'})

@@ -104,6 +104,7 @@
                             </group>
                             <group string="Formula (only approved formulas)">
                                 <field name="formula_id"/><field name="basic_rate"/>
+                                <field name="cn_text" placeholder="Only when this coil has a credit note"/>
                             </group>
                             <field name="param_ids"><list editable="bottom"><field name="key"/><field name="value"/></list></field>
                             <separator string="Calculation (inputs, version, steps)"/>

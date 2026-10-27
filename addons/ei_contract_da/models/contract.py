@@ -178,6 +178,8 @@ class EiContractLine(models.Model):
                                    ('other', 'Other')], string='Cost classification')
     target_customer_id = fields.Many2one('res.partner', string='Target customer')
     formula_id = fields.Many2one('ei.formula.definition', domain="[('state', '=', 'approved')]", string='Approved formula')
+    cn_text = fields.Char('Credit note (CN) text', copy=True,
+                          help="The CN wording for THIS coil, as written on the parent's paper. A CN is entered per coil, never once for a whole invoice.")
     formula_version = fields.Integer(related='formula_id.version', string='Formula version')
     param_ids = fields.One2many('ei.contract.line.param', 'line_id', copy=True)
     spread_per_mtl = fields.Monetary(compute='_compute_spread', currency_field='currency_id',
@@ -225,11 +227,15 @@ class EiContractLine(models.Model):
             if l.formula_id:
                 if l.formula_id.state != 'approved':
                     raise UserError(_("Formula %s is not approved.", l.formula_id.display_name))
-                missing = {s.param for s in l.formula_id.step_ids} - set(l._params())
+                missing = l.formula_id._param_names() - set(l._params())
                 if missing:
                     raise UserError(_("Line '%(l)s' lacks formula parameter(s): %(m)s", l=l.product_id.display_name, m=', '.join(sorted(missing))))
                 if not l.basic_rate:
                     raise UserError(_("Line '%s' uses a formula and needs a basic rate.", l.product_id.display_name))
+                entered = [s.param for s in l.formula_id.step_ids if s.kind == 'input_amount' and Decimal(l._params()[s.param] or 0)]
+                if entered and not (l.cn_text or '').strip():
+                    raise UserError(_("Line '%(l)s' has a credit-note amount (%(p)s); write the CN text for this coil too.",
+                                      l=l.product_id.display_name, p=', '.join(entered)))
                 try:
                     l.formula_id.compute(l.basic_rate, l.ordered_mtl, l._params(), l.currency_id.decimal_places)
                 except (fe.FormulaError, ValueError) as e:
