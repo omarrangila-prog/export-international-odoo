@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ei_close_waive_form" model="ir.ui.view">
+        <field name="name">ei.close.waive.wizard.form</field>
+        <field name="model">ei.close.waive.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <p>A waiver lets the close be signed with this blocker open. It is written on the close and kept with the sign-off.</p>
+                <group><field name="item_id" readonly="1"/><field name="reason" placeholder="Why this may be closed with the blocker open"/></group>
+                <footer><button name="action_waive" type="object" string="Waive" class="btn-primary"/><button special="cancel" string="Cancel"/></footer>
+            </form>
+        </field>
+    </record>
+    <record id="ei_close_waive_action" model="ir.actions.act_window">
+        <field name="name">Waive a blocker</field>
+        <field name="res_model">ei.close.waive.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="help" type="html"><p>Write why the close may be signed with this blocker open.</p></field>
+    </record>
+    <record id="ei_close_list" model="ir.ui.view">
+        <field name="name">ei.close.list</field>
+        <field name="model">ei.close</field>
+        <field name="arch" type="xml">
+            <list decoration-success="state == 'signed'" decoration-danger="state == 'open' and n_blockers &gt; 0">
+                <field name="name"/><field name="kind"/><field name="date_from"/><field name="date_to"/>
+                <field name="n_blockers"/><field name="n_waived" optional="show"/><field name="n_warnings"/>
+                <field name="state" widget="badge"/><field name="signed_by"/><field name="books_locked_to" optional="show"/>
+            </list>
+        </field>
+    </record>
+    <record id="ei_close_form" model="ir.ui.view">
+        <field name="name">ei.close.form</field>
+        <field name="model">ei.close</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_refresh" type="object" string="Check again" class="btn-primary" invisible="state != 'open'"/>
+                    <button name="action_sign" type="object" string="Sign off (second person)" invisible="state != 'open' or not refreshed_at"
+                            groups="account.group_account_manager"/>
+                    <button name="action_lock_books" type="object" string="Lock the books to this month end" invisible="state != 'signed' or kind != 'month' or books_locked_to"
+                            groups="account.group_account_manager" confirm="Nobody will be able to post into this month afterwards. Lock?"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_title"><h1><field name="name" readonly="1"/></h1></div>
+                    <div class="alert alert-danger" role="status" invisible="state != 'open' or n_blockers == 0">
+                        <field name="n_blockers" class="fw-bold" nolabel="1"/> blockers are open. Clear them, or an accounting manager waives each with a written reason.
+                    </div>
+                    <group>
+                        <group><field name="kind" readonly="state != 'open' or refreshed_at"/><field name="date" readonly="state != 'open' or refreshed_at"/>
+                            <field name="date_from"/><field name="date_to"/><field name="company_id" groups="base.group_multi_company" readonly="refreshed_at"/></group>
+                        <group><field name="n_warnings"/><field name="n_waived"/><field name="refreshed_by"/><field name="refreshed_at"/>
+                            <field name="signed_by"/><field name="signed_at"/><field name="books_locked_to"/></group>
+                    </group>
+                    <field name="item_ids">
+                        <list create="0" delete="0" decoration-success="status == 'ok'" decoration-warning="status == 'warning' or waived_by"
+                              decoration-danger="status == 'blocker' and not waived_by">
+                            <field name="status" widget="badge"/><field name="label"/><field name="count"/><field name="detail"/>
+                            <field name="waiver_reason" optional="show"/><field name="waived_by" optional="show"/>
+                            <button name="action_open" type="object" string="Open" icon="fa-external-link" invisible="not res_model or count == 0"/>
+                            <button name="%(ei_close_waive_action)d" type="action" string="Waive" icon="fa-check-square-o"
+                                    invisible="status != 'blocker' or waived_by or parent.state != 'open'" groups="account.group_account_manager"
+                                    context="{'default_item_id': id}"/>
+                        </list>
+                    </field>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    <record id="ei_close_action" model="ir.actions.act_window">
+        <field name="name">Day and month close</field>
+        <field name="res_model">ei.close</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">Close a day or a month</p>
+            <p>The checklist is worked out from the records: bank confirmations, bank lines, cash counts, vouchers, loadings, supplier invoices,
+                parent statements and party balances. A second person signs it off; a signed month can lock the books.</p></field>
+    </record>
+</odoo>

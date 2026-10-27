@@ -1,0 +1,22 @@
+id,name,model_id,group_id/id,operation,domain
+access_ei_close_user,ei.close accountant,ei.close,account.group_account_user,cru,
+access_ei_close_manager,ei.close manager,ei.close,account.group_account_manager,crud,
+access_ei_close_management,ei.close management,ei.close,ei_management_dashboard.group_ei_management,r,
+access_ei_close_auditor,ei.close auditor,ei.close,ei_legacy_master.group_ei_auditor,r,
+access_ei_close_item_user,ei.close.item accountant,ei.close.item,account.group_account_user,r,
+access_ei_close_item_manager,ei.close.item manager,ei.close.item,account.group_account_manager,r,
+access_ei_close_item_management,ei.close.item management,ei.close.item,ei_management_dashboard.group_ei_management,r,
+access_ei_close_item_auditor,ei.close.item auditor,ei.close.item,ei_legacy_master.group_ei_auditor,r,
+access_ei_close_waive_manager,ei.close.waive.wizard manager,ei.close.waive.wizard,account.group_account_manager,crud,
+access_ei_subledger_user,ei.subledger.check accountant,ei.subledger.check,account.group_account_user,cru,
+access_ei_subledger_manager,ei.subledger.check manager,ei.subledger.check,account.group_account_manager,crud,
+access_ei_subledger_management,ei.subledger.check management,ei.subledger.check,ei_management_dashboard.group_ei_management,r,
+access_ei_subledger_auditor,ei.subledger.check auditor,ei.subledger.check,ei_legacy_master.group_ei_auditor,r,
+access_ei_subledger_line_user,ei.subledger.check.line accountant,ei.subledger.check.line,account.group_account_user,r,
+access_ei_subledger_line_manager,ei.subledger.check.line manager,ei.subledger.check.line,account.group_account_manager,r,
+access_ei_subledger_line_management,ei.subledger.check.line management,ei.subledger.check.line,ei_management_dashboard.group_ei_management,r,
+access_ei_subledger_line_auditor,ei.subledger.check.line auditor,ei.subledger.check.line,ei_legacy_master.group_ei_auditor,r,
+rule_ei_close_company,Close: own companies,ei.close,,crud,"[('company_id', 'in', company_ids)]"
+rule_ei_close_item_company,Close item: own companies,ei.close.item,,crud,"[('close_id.company_id', 'in', company_ids)]"
+rule_ei_subledger_company,Subledger check: own companies,ei.subledger.check,,crud,"[('company_id', 'in', company_ids)]"
+rule_ei_subledger_line_company,Subledger line: own companies,ei.subledger.check.line,,crud,"[('check_id.company_id', 'in', company_ids)]"

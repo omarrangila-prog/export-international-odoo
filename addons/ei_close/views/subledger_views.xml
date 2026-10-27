@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ei_subledger_list" model="ir.ui.view">
+        <field name="name">ei.subledger.check.list</field>
+        <field name="model">ei.subledger.check</field>
+        <field name="arch" type="xml">
+            <list decoration-success="state == 'signed'" decoration-warning="state == 'checked' and (difference != 0 or manual_amount != 0)">
+                <field name="date"/><field name="kind"/><field name="currency_id" column_invisible="1"/>
+                <field name="control_balance"/><field name="party_total"/><field name="difference"/><field name="manual_count"/>
+                <field name="wrong_way_count"/><field name="state" widget="badge"/><field name="signed_by"/>
+            </list>
+        </field>
+    </record>
+    <record id="ei_subledger_form" model="ir.ui.view">
+        <field name="name">ei.subledger.check.form</field>
+        <field name="model">ei.subledger.check</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_run" type="object" string="Run the check" class="btn-primary" invisible="state == 'signed'"/>
+                    <button name="action_sign" type="object" string="Sign off (second person)" invisible="state != 'checked'"
+                            groups="account.group_account_manager"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="alert alert-info" role="note">
+                        Read from posted journal items only. Nothing here changes the accounts: a difference is explained and corrected through normal entries, never balanced away.
+                    </div>
+                    <group>
+                        <group><field name="kind" readonly="state != 'draft'"/><field name="date" readonly="state != 'draft'"/>
+                            <field name="company_id" groups="base.group_multi_company" readonly="state != 'draft'"/><field name="currency_id" invisible="1"/></group>
+                        <group><field name="control_balance"/><field name="party_total"/><field name="difference"/></group>
+                    </group>
+                    <group string="What explains a difference">
+                        <group><field name="no_party_amount"/>
+                            <button name="action_open_no_party" type="object" string="Open those items" class="btn-link" invisible="no_party_amount == 0"/>
+                            <field name="manual_amount"/><field name="manual_count"/>
+                            <button name="action_open_manual" type="object" string="Open the hand entries" class="btn-link" invisible="manual_count == 0"/></group>
+                        <group><field name="wrong_way_count"/><field name="wrong_way_amount"/>
+                            <button name="action_open_all" type="object" string="All control-account items" class="btn-link"/></group>
+                    </group>
+                    <field name="line_ids">
+                        <list><field name="account_id"/><field name="currency_id" column_invisible="1"/><field name="balance" sum="Total"/>
+                            <field name="no_party_amount" sum="Total"/><field name="manual_amount" sum="Total"/><field name="manual_count"/></list>
+                    </field>
+                    <field name="note" readonly="state == 'signed'" placeholder="What the items with no party and the hand entries are"/>
+                    <group><group><field name="checked_by"/><field name="checked_at"/></group><group><field name="signed_by"/><field name="signed_at"/></group></group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    <record id="ei_subledger_action" model="ir.actions.act_window">
+        <field name="name">Party balances vs control accounts</field>
+        <field name="res_model">ei.subledger.check</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">Check that customers' and suppliers' balances add up to the control accounts</p>
+            <p>Choose customers or suppliers and a date, then run the check. A second person signs it off.</p></field>
+    </record>
+</odoo>
