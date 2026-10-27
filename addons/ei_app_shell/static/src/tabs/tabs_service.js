@@ -56,6 +56,7 @@ export const tabsService = {
         const stored = readStore();
         const state = proxy({ tabs: stored ? stored.tabs.slice(0, MAX_TABS) : [], activeId: stored ? stored.activeId : null });
         let pendingNew = null;          // a tab made with "+": it takes the place of the next screen instead of merging with an existing tab of the same place
+        let pendingFrom = null;         // the address "+" was pressed on (unless that already was Home)
         let timer = null;
 
         const persist = () => writeStore(JSON.parse(JSON.stringify(state.tabs)), state.activeId);
@@ -69,6 +70,7 @@ export const tabsService = {
             if (!key) { return; }
             const cur = { key, title: currentTitle(router.current), url: currentUrl() };
             let tab = null;
+            if (pendingNew && cur.url === pendingFrom) { return; }    // "+" was pressed but Home is still loading: this is the page we left
             if (pendingNew) {
                 tab = state.tabs.find((t) => t.id === pendingNew);
                 pendingNew = null;
@@ -111,6 +113,7 @@ export const tabsService = {
                 const at = state.tabs.findIndex((t) => t.id === state.activeId);
                 state.tabs.splice(at < 0 ? state.tabs.length : at + 1, 0, tab);
                 pendingNew = tab.id;
+                pendingFrom = currentUrl() === url ? null : currentUrl();
                 state.activeId = tab.id;
                 persist();
                 followLink(url);

@@ -1,6 +1,6 @@
 import { Component, onMounted, onWillUnmount, proxy } from "@odoo/owl";
 import { registry } from "@web/core/registry";
-import { useService } from "@web/core/utils/hooks";
+import { useBus, useService } from "@web/core/utils/hooks";
 import { _t } from "@web/core/l10n/translation";
 
 // Phone: the main sections as a bar at the bottom (thumb reach), the rest under "More" in a sheet. Built from the person's own menus, so a
@@ -49,7 +49,9 @@ export class EiBottomNav extends Component {
             window.visualViewport?.addEventListener("resize", this.onViewport);
             document.addEventListener("keydown", this.onKey);
             this.sync();
+            this.onUi();                                                 // the first screen may have opened before the bar was listening
         });
+        useBus(this.env.bus, "WEB_CLIENT_READY", () => this.onUi());
         onWillUnmount(() => {
             this.mq.removeEventListener("change", this.onMq);
             this.env.bus.removeEventListener("ACTION_MANAGER:UI-UPDATED", this.onUi);

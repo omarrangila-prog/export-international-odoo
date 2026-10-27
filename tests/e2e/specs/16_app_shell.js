@@ -32,7 +32,7 @@ module.exports = {
     for (const [login, label] of ROLES) {
       const s = await new Session(ctx, browser, login, 'demo', PHONE, { timeout: 30000 }).start();
       const p = s.page, m = s.mark();
-      await p.goto(ctx.base + '/odoo'); await p.waitForSelector('.ei-bn', { timeout: 30000 }); await p.waitForTimeout(800);
+      await p.goto(ctx.base + '/odoo'); await p.waitForSelector('.ei-bn', { timeout: 30000 }); await p.waitForSelector('.ei-home, .ei-workspace, .o_view_controller', { timeout: 30000 }); await p.waitForTimeout(800);
       const bar = await p.evaluate(() => { const n = document.querySelector('.ei-bn'); const r = n.getBoundingClientRect(); return { bottom: Math.round(r.bottom), top: Math.round(r.top), h: Math.round(r.height), items: [...n.querySelectorAll('.ei-bn-item')].map((b) => ({ t: b.innerText.trim(), h: Math.round(b.getBoundingClientRect().height) })), pad: parseFloat(getComputedStyle(n).paddingBottom), body: document.body.classList.contains('ei-has-bn') }; });
       ctx.check(bar.items.length >= 2 && bar.items.length <= 5 && bar.items[0].t === 'Home', `${label}: the bottom bar has Home first and at most five places`, bar.items.map((x) => x.t).join(' | '));
       ctx.check(bar.bottom === PHONE[1] && bar.items.every((x) => x.h >= 44), `${label}: the bar sits at the bottom edge and every button is at least 44 px tall`, JSON.stringify({ bottom: bar.bottom, hs: bar.items.map((x) => x.h) }));
@@ -53,7 +53,7 @@ module.exports = {
         ctx.check(await p.locator('.ei-sheet').count() === 0, `${label}: Escape closes the sheet`);
         await sections.first().click(); await p.waitForSelector('.ei-sheet');
         const before = p.url();
-        await p.locator('.ei-sheet-row').first().click(); await p.waitForTimeout(1800);
+        await p.locator('.ei-sheet-row').filter({ hasNotText: /^Import/ }).first().click(); await p.waitForTimeout(1800);   // a screen, not an import dialog
         ctx.check(await p.locator('.ei-sheet').count() === 0 && p.url() !== before, `${label}: choosing a screen closes the sheet and opens it`, p.url());
         const on = await p.locator('.ei-bn-item.is-on').allInnerTexts();
         ctx.check(on.length === 1 && on[0].trim() !== 'Home', `${label}: the bar now marks the section you are in`, on.join('|'));
@@ -84,7 +84,7 @@ module.exports = {
       await p.locator('.o_menu_sections').getByText('Customers & Suppliers').first().click(); await p.waitForTimeout(1800);
       ctx.check((await titles()).length === 2 && await p.locator('.ei-tab.is-on .ei-tab-link').innerText() !== 'Home', '3 a new place opens as a new tab and the page you left stays as a tab', (await titles()).join('|'));
       const party = (await titles())[1];
-      await p.locator('.ei-tab-link').first().click(); await p.waitForTimeout(1500);
+      await p.locator('.ei-tab-link').first().click(); await p.waitForSelector('.ei-home', { timeout: 15000 }).catch(() => {}); await p.waitForTimeout(500);
       ctx.check(await p.locator('.ei-tab.is-on .ei-tab-link').innerText() === 'Home' && /action-/.test(p.url()) && await p.locator('.ei-home').count() === 1, '3 clicking a tab returns to that page without reloading the application', p.url());
       await p.locator('.ei-tab-link').nth(1).click(); await p.waitForTimeout(1500);
       ctx.check(await p.locator('.ei-tab.is-on .ei-tab-link').innerText() === party && await p.locator('.ei-p360').count() === 1, '3 and back again');
@@ -127,7 +127,9 @@ module.exports = {
       await p.goto(ctx.base + '/odoo'); await p.waitForSelector('.ei-bn'); await p.waitForTimeout(1200);
       ctx.check(await p.locator('.ei-tabs').count() === 0, '3b a phone has no tab strip');
       await p.locator('.ei-bn-item').filter({ hasNotText: /^(Home|More)$/ }).first().click(); await p.waitForSelector('.ei-sheet');
-      await p.locator('.ei-sheet-row').first().click(); await p.waitForTimeout(1800);
+      const was = p.url();
+      await p.locator('.ei-sheet-row').filter({ hasNotText: /^Import/ }).first().click();
+      await p.waitForFunction((u) => location.href !== u, was, { timeout: 15000 }).catch(() => {}); await p.waitForSelector('.o_view_controller', { timeout: 15000 }).catch(() => {}); await p.waitForTimeout(800);
       await p.locator('.ei-bn-item', { hasText: 'More' }).click(); await p.waitForSelector('.ei-sheet');
       const pages = await p.locator('.ei-sheet-page .ei-sheet-row').allInnerTexts();
       ctx.check(pages.length >= 2, '3b More lists the open pages (Home and the screen you opened)', pages.join(' | '));
