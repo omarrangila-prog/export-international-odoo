@@ -14,7 +14,7 @@
                 <field name="create_date" string="When"/>
                 <field name="user_id"/>
                 <field name="question"/>
-                <field name="outcome" widget="badge"/>
+                <field name="outcome" widget="badge"/><field name="engine" optional="show"/>
                 <field name="intent" optional="hide"/>
             </list>
         </field>

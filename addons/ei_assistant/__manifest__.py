@@ -9,6 +9,7 @@
     'data': [
         'security/ir.access.csv',
         'views/assistant_views.xml',
+        'views/docread_views.xml',
     ],
     'assets': {
         'web.assets_backend': [

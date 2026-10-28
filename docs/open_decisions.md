@@ -42,3 +42,26 @@
 | 36 | OCR for supplier invoices and parent statements: which provider and where the scans are processed. Until then documents are typed in and the screen says so | Reading documents automatically | Manual entry; "OCR not configured" shown |
 | 37 | Month-end lock: who may lock the books after a signed month-end close, and whether the lock is set at once or after a waiting period | Locking the books | An accounting manager, by an explicit button after sign-off |
 | 38 | Control totals for the migration: which old-system reports (trial balance, party list, bank book, debtors, creditors) the client will print at the cut-off, and the cut-off date | Signing off the migration | Comparison screen ready, nothing compared |
+
+## Approved by the owner on 27 October 2026
+
+The owner approved the following. The rest of the table above is unchanged.
+
+| # | What was approved | What it means in the system |
+|---|---|---|
+| 31, 32 | The rate rules as built | Both rules stay separate formulas. Before a contract can use one, the accountant still presses Approve on it in the Formula Register on the live system. That approval is recorded and done by someone other than the formula's author. End Coils and Hadeed rates are typed per contract line. |
+| 33 | Proof of a bank balance | A typed balance needs the bank's proof attached, and a second bank approver signs it off. |
+| 34 | HS code | Optional on supplier invoices; compared with the parent statement when given. |
+| 35 | A language model behind Ask | Claude (Anthropic), model `claude-opus-5-5`. It is read-only and sees only what the person asking may see. Questions and the records it reads are sent to Anthropic. It is off until a key is set (HANDOVER.md section 5). |
+| 36 | Reading documents automatically | The same model reads attached supplier invoices and PDF parent statements. What it reads is a proposal: a person applies it, and the normal checks and sign-offs still apply. |
+| 37 | Locking the books | An accounting manager locks them, with a button after the month-end sign-off. |
+| 38 | Migration control totals | Compared on the "Old system against the books" screen once the client prints them. |
+| Urdu | Left out | Screens stay in English. Ask with the language model can answer a question written in Urdu. |
+
+Approval does not supply data or credentials. These still need things only the client or an outside party can give:
+* opening balances (4);
+* real parent statements;
+* a copy of the FoxPro folder;
+* bank statement formats or feeds (5);
+* FBR registration, integrator and credentials (6);
+* the Anthropic API key.

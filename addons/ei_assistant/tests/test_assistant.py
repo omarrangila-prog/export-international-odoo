@@ -305,13 +305,14 @@ class TestAssistant(TestJourney):
         self.assertEqual(r['kind'], 'denied')
         self.assertIn('do not have a role', r['blocks'][0]['text'])
 
-    def test_a22_nothing_is_sent_outside_this_server(self):
+    def test_a22_only_the_approved_language_model_may_reach_outside(self):
         folder = os.path.dirname(engine.__file__)
         banned = re.compile(r'\b(requests|urllib|http\.client|httpx|socket|smtplib|openai|anthropic|subprocess|aiohttp)\b')
         for name in os.listdir(folder):
             if name.endswith('.py'):
                 with open(os.path.join(folder, name), encoding='utf-8') as fh:
-                    self.assertFalse(banned.findall(fh.read()), name)
+                    found = set(banned.findall(fh.read()))
+                self.assertTrue(found <= ({'anthropic'} if name == 'llm.py' else set()), (name, found))   # one provider, through its SDK, in one file
 
     def test_a23_home_offers_the_question_box_only_to_people_with_questions(self):
         d = self.env['ei.home'].with_user(self.ceo).get_data()
@@ -321,3 +322,126 @@ class TestAssistant(TestJourney):
         ops = self.env['ei.home'].with_user(self.maker).get_data()
         self.assertNotIn('Who owes us money?', ops['ask']['starters'])
         self.assertNotIn('ask', self.env['ei.home'].with_user(self.plain).get_data())
+
+    # ------------------------------------------------------------------ a language model behind Ask (approved 27 Oct 2026)
+    def llm_on(self, script):
+        """Switch the language model on with a stand-in client that plays `script` (no network, no cost)."""
+        from types import SimpleNamespace as NS
+        calls = []
+
+        class Fake:
+            class APIStatusError(Exception):
+                status_code = 500
+
+            class APIConnectionError(Exception):
+                pass
+
+        class Client:
+            def __init__(self):
+                self.beta = NS(messages=NS(create=self.create))
+
+            def create(self, **kw):
+                calls.append(kw)
+                return script.pop(0)(kw) if script else NS(stop_reason='end_turn', content=[NS(type='text', text='done')])
+
+        P = self.env['ir.config_parameter'].sudo()
+        P.set_bool('ei_assistant.llm_enabled', True)
+        P.set_str('ei_assistant.anthropic_api_key', 'test-key-not-real')
+        Model = type(self.env['ei.assistant'])
+        self.patch(Model, '_llm_sdk', lambda s: Fake)
+        self.patch(Model, '_llm_client', lambda s: Client())
+        return calls
+
+    @staticmethod
+    def tool_turn(name, **args):
+        from types import SimpleNamespace as NS
+        return lambda kw: NS(stop_reason='tool_use', content=[NS(type='tool_use', id='t1', name=name, input=args)])
+
+    @staticmethod
+    def final(text):
+        from types import SimpleNamespace as NS
+        return lambda kw: NS(stop_reason='end_turn', content=[NS(type='text', text=text)])
+
+    def test_a24_the_language_model_is_off_until_switched_on(self):
+        status = self.A().llm_status()
+        self.assertFalse(status['enabled'])
+        self.assertNotIn('key', [k for k, v in status.items() if isinstance(v, str) and 'test-key' in v])
+        r = self.ask('which of our customers grew the most')
+        self.assertEqual(r['kind'], 'unknown')                                   # rule-based only: nothing leaves the server
+
+    def test_a25_unknown_questions_go_to_the_model_which_reads_with_the_askers_rights(self):
+        calls = self.llm_on([self.tool_turn('standard_answer', topic='owed_to_us', question='who should we chase first'),
+                             self.final('Rehman Traders owes the most; chase them first.')])
+        r = self.ask('who should we chase first', self.ceo)
+        self.assertEqual((r['kind'], r['intent']), ('answer', 'llm'))
+        self.assertEqual(r['blocks'][0]['text'], 'Rehman Traders owes the most; chase them first.')
+        self.assertTrue(any(b['type'] == 'table' for b in r['blocks']))           # the records it used are shown under its words
+        self.assertIn('language model', r['how'])
+        first = calls[0]
+        self.assertEqual(first['model'], 'claude-opus-5-5')
+        self.assertEqual({t['name'] for t in first['tools']}, {'find_records', 'standard_answer'})
+        self.assertNotIn('approve', str(first['tools']).lower())                  # it is never given a tool that changes anything
+        tool_result = calls[1]['messages'][-1]['content'][0]
+        self.assertFalse(tool_result['is_error'])
+        log = self.env['ei.assistant.log'].sudo().search([], limit=1)
+        self.assertEqual((log.engine, log.outcome), ('llm', 'answered'))
+
+    def test_a26_the_model_cannot_get_more_than_the_role_allows(self):
+        calls = self.llm_on([self.tool_turn('standard_answer', topic='owed_to_us', question='x'), self.final('I cannot see that.')])
+        r = self.ask('tell me something interesting about money', self.maker)
+        topics = next((t['input_schema']['properties']['topic']['enum'] for t in calls[0]['tools'] if t['name'] == 'standard_answer'), [])
+        self.assertNotIn('owed_to_us', topics)                                     # not offered to a role that may not see money
+        self.assertTrue(calls[1]['messages'][-1]['content'][0]['is_error'])        # and refused when asked anyway
+        self.assertFalse(any(b['type'] == 'table' for b in r['blocks']))
+
+    def test_a27_commands_refusals_and_failures_never_reach_or_trust_the_model(self):
+        from types import SimpleNamespace as NS
+        calls = self.llm_on([lambda kw: NS(stop_reason='refusal', content=[])])
+        self.assertEqual(self.ask('approve the invoice')['kind'], 'refused')       # decided before any model is asked
+        self.assertEqual(calls, [])
+        r = self.ask('some question the rules do not know')
+        self.assertEqual(r['kind'], 'unknown')                                    # a refusal from the model falls back to the plain answer
+        self.assertEqual(len(calls), 1)
+
+
+    # ------------------------------------------------------------------ reading documents with the same model (approved 27 Oct 2026)
+    def json_turn(self, data):
+        import json as _json
+        from types import SimpleNamespace as NS
+        return lambda kw: NS(stop_reason='end_turn', content=[NS(type='text', text=_json.dumps(data))])
+
+    def test_a28_reading_a_supplier_invoice_proposes_and_a_person_applies(self):
+        intake = self.env['ei.supplier.intake'].with_user(self.invoicer).create({
+            'partner_id': self.parent.id, 'invoice_number': 'TBD', 'invoice_date': '2026-10-09', 'stated_total': 0})
+        with self.assertRaises(UserError):
+            intake.with_user(self.invoicer).action_ocr()                       # switched off: nothing is guessed
+        calls = self.llm_on([self.json_turn({
+            'invoice_number': 'SUP-9002', 'invoice_date': '2026-10-09', 'supplier_name': 'synthetic', 'total': '400000', 'tax': '0',
+            'lines': [{'description': 'HR coil', 'da_reference': self.da.name, 'quantity_mtl': '2', 'rate_per_mtl': '200000', 'hs_code': '7208.3990'},
+                      {'description': 'unknown', 'da_reference': 'NO-SUCH-DA', 'quantity_mtl': '1', 'rate_per_mtl': '1', 'hs_code': ''}],
+            'unclear': ['stamp over the date']})])
+        with self.assertRaises(UserError):
+            intake.with_user(self.invoicer).action_ocr()                       # nothing attached yet
+        self.env['ir.attachment'].create({'name': 'inv.pdf', 'res_model': intake._name, 'res_id': intake.id, 'raw': b'%PDF-1.4 synthetic', 'mimetype': 'application/pdf'})
+        intake.with_user(self.invoicer).action_ocr()
+        self.assertEqual(calls[0]['output_config']['format']['type'], 'json_schema')
+        self.assertEqual(calls[0]['messages'][0]['content'][0]['type'], 'document')
+        self.assertFalse(intake.line_ids)                                      # read, not applied
+        self.assertIn('stamp over the date', str(intake.ai_proposal_html))
+        intake.with_user(self.invoicer).action_ai_apply()
+        self.assertEqual(intake.invoice_number, 'TBD')                         # a value a person typed is never overwritten
+        self.assertEqual(intake.stated_total, 400000)
+        self.assertEqual((len(intake.line_ids), intake.line_ids.hs_code, intake.line_ids.received_mtl), (1, '7208.3990', 2))
+        self.assertIn('NO-SUCH-DA', intake.message_ids[0].body)               # what could not be applied is said
+        self.assertEqual(intake.state, 'draft')                                # the normal check still decides
+
+    def test_a29_a_pdf_parent_statement_is_read_into_rows_and_still_needs_the_printed_total(self):
+        St = self.env['ei.parent.statement'].with_user(self.rclerk)
+        off = St.import_file(self.parent, '2026-10-01', '2026-10-31', 'oct.pdf', b'%PDF-1.4 synthetic')
+        self.assertEqual(off.state, 'rejected')                                # switched off: PDFs are refused as before
+        self.llm_on([self.json_turn({'rows': [{'invoice_no': 'SUP-9001', 'date': '2026-10-06', 'amount': '800000', 'tax': '0', 'hs_code': '', 'quantity': '4'}],
+                                     'printed_total': '800000', 'unclear': []})])
+        st = St.import_file(self.parent, '2026-10-01', '2026-10-31', 'oct2.pdf', b'%PDF-1.4 synthetic 2')
+        self.assertEqual((st.state, len(st.line_ids), st.line_ids.invoice_no, st.statement_total), ('imported', 1, 'SUP-9001', 800000))
+        self.assertTrue(self.env['ir.attachment'].sudo().search_count([('res_model', '=', st._name), ('res_id', '=', st.id), ('name', '=', 'oct2.pdf')]))
+        self.assertFalse(st.control_entered_by)                                # the printed total is still for a person to type

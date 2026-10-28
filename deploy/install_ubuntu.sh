@@ -32,6 +32,10 @@ run apt-get install -y postgresql nginx certbot python3-certbot-nginx ufw fontco
 run bash -c 'curl -fsSL -o /tmp/wkhtml.deb https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-3/wkhtmltox_0.12.6.1-3.jammy_amd64.deb && apt-get install -y /tmp/wkhtml.deb'
 run apt-get install -y "$DEB"
 
+# the language-model SDK for Ask and document reading (used only when switched on with a key; see HANDOVER.md). Installed in its own
+# folder so it never replaces a system package Odoo runs on.
+run python3 -m pip install --quiet --target /opt/odoo-ai-deps "anthropic==2.3.0"
+
 echo "== 2. our addons"
 run mkdir -p /opt/export-international
 run rsync -a --delete --exclude '.git' --exclude 'docs/ui' --exclude '__pycache__' "$REPO/addons/" /opt/export-international/addons/

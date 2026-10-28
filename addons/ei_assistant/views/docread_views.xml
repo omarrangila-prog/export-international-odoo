@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ei_intake_docread" model="ir.ui.view">
+        <field name="name">ei.supplier.intake.docread</field>
+        <field name="model">ei.supplier.intake</field>
+        <field name="inherit_id" ref="ei_invoice_extensions.ei_intake_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_ocr']" position="attributes">
+                <attribute name="string">Read the document</attribute>
+                <attribute name="invisible">state not in ('draft', 'mismatch')</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_ocr']" position="after">
+                <button name="action_ai_apply" string="Use these values" type="object" invisible="not ai_proposal or state not in ('draft', 'mismatch')"/>
+            </xpath>
+            <xpath expr="//field[@name='ocr_status']/.." position="after">
+                <field name="ai_proposal" invisible="1"/>
+                <div class="alert alert-info" role="status" invisible="not ai_proposal"><field name="ai_proposal_html" nolabel="1" readonly="1"/></div>
+            </xpath>
+        </field>
+    </record>
+</odoo>

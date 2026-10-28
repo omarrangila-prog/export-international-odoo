@@ -13,3 +13,4 @@ class EiAssistantLog(models.Model):
     intent = fields.Char('Understood as', readonly=True)
     outcome = fields.Selection([('answered', 'Answered'), ('choose', 'Asked which one'), ('unknown', 'Not understood'),
                                 ('denied', 'Not allowed for this role'), ('refused', 'Asked to change something')], readonly=True, index=True)
+    engine = fields.Selection([('rules', 'Rule-based'), ('llm', 'Language model')], 'Answered by', default='rules', readonly=True, index=True)
