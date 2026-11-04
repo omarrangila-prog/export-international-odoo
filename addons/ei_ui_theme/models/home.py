@@ -290,19 +290,19 @@ class EiHome(models.AbstractModel):
         # operations figures
         ops = {
             'k_contracts': ('ei.contract', [('state', 'in', ('approved', 'active'))], _("Active contracts"), 'doc',
-                            lambda n: _("%s waiting for approval", env['ei.contract'].search_count([('state', '=', 'reviewed')]))),
+                            lambda n: env._("%s waiting for approval", env['ei.contract'].search_count([('state', '=', 'reviewed')]))),
             'k_das': ('ei.da', [('state', '=', 'under_review')], _("Delivery advices to approve"), 'truck',
-                      lambda n: _("%s approved and open", env['ei.da'].search_count([('state', '=', 'approved')]))),
+                      lambda n: env._("%s approved and open", env['ei.da'].search_count([('state', '=', 'approved')]))),
             'k_verify': ('ei.lifting', [('state', '=', 'draft')], _("Truck loadings to verify"), 'scale',
-                         lambda n: _("Check each gate pass and weighbridge slip")),
+                         lambda n: env._("Check each gate pass and weighbridge slip")),
             'k_toinvoice': ('ei.lifting', [('invoice_status', '=', 'to_invoice')], _("Delivered, not yet invoiced"), 'doc',
-                            lambda n: _("Verified loadings ready to invoice")),
+                            lambda n: env._("Verified loadings ready to invoice")),
             'k_banklines': ('ei.bank.import.line', [('state', 'in', ('new', 'proposed', 'unidentified'))], _("Bank payments to check"), 'bank',
-                            lambda n: _("Match each payment to the right party")),
+                            lambda n: env._("Match each payment to the right party")),
             'k_vouchers': ('ei.cash.voucher', [('state', '=', 'submitted')], _("Cash vouchers waiting for approval"), 'cash',
-                           lambda n: _("A second person must approve them")),
+                           lambda n: env._("A second person must approve them")),
             'k_intake': ('ei.supplier.intake', [('state', '=', 'mismatch')], _("Supplier invoices with a problem"), 'alert',
-                         lambda n: _("Quantity, rate or total does not match")),
+                         lambda n: env._("Quantity, rate or total does not match")),
         }
         for key, (model, dom, label, icon, sub) in ops.items():
             if self._can(model):
@@ -429,18 +429,18 @@ class EiHome(models.AbstractModel):
             s = env[model].search_count(sub_dom) if sub_dom is not None else 0
             stages.append({'key': key, 'label': label, 'icon': icon, 'count': n, 'main': main_text(n),
                            'sub': sub_text(s) if s else _("Nothing waiting"), 'tone': tone_if_sub if s else 'ok', 'waiting': s})
-        stage('contract', _("Contracts"), 'ei.contract', [('state', 'in', ('approved', 'active'))], lambda n: _("%s active", n),
-              [('state', '=', 'reviewed')], lambda s: _("%s to approve", s), 'doc')
-        stage('da', _("Delivery advices"), 'ei.da', [('state', '=', 'approved')], lambda n: _("%s approved", n),
-              [('state', '=', 'under_review')], lambda s: _("%s to approve", s), 'truck')
-        stage('order', _("Daily orders"), 'ei.daily.order', [('state', '=', 'approved')], lambda n: _("%s approved", n),
-              [('state', '=', 'draft')], lambda s: _("%s to approve", s), 'list')
-        stage('lifting', _("Material lifting"), 'ei.lifting', [('state', '=', 'verified')], lambda n: _n(n, _("%s loading verified"), _("%s loadings verified")),
-              [('state', '=', 'draft')], lambda s: _("%s to verify", s), 'scale')
-        stage('supplier', _("Supplier invoices"), 'ei.supplier.intake', [('state', '=', 'billed')], lambda n: _("%s billed", n),
-              [('state', 'in', ('draft', 'mismatch'))], lambda s: _("%s to resolve", s), 'inbox')
-        stage('invoice', _("Customer invoices"), 'ei.lifting', [('invoice_status', '=', 'invoiced')], lambda n: _n(n, _("%s loading invoiced"), _("%s loadings invoiced")),
-              [('invoice_status', '=', 'to_invoice')], lambda s: _("%s to invoice", s), 'doc')
+        stage('contract', _("Contracts"), 'ei.contract', [('state', 'in', ('approved', 'active'))], lambda n: env._("%s active", n),
+              [('state', '=', 'reviewed')], lambda s: env._("%s to approve", s), 'doc')
+        stage('da', _("Delivery advices"), 'ei.da', [('state', '=', 'approved')], lambda n: env._("%s approved", n),
+              [('state', '=', 'under_review')], lambda s: env._("%s to approve", s), 'truck')
+        stage('order', _("Daily orders"), 'ei.daily.order', [('state', '=', 'approved')], lambda n: env._("%s approved", n),
+              [('state', '=', 'draft')], lambda s: env._("%s to approve", s), 'list')
+        stage('lifting', _("Material lifting"), 'ei.lifting', [('state', '=', 'verified')], lambda n: _n(n, env._("%s loading verified"), env._("%s loadings verified")),
+              [('state', '=', 'draft')], lambda s: env._("%s to verify", s), 'scale')
+        stage('supplier', _("Supplier invoices"), 'ei.supplier.intake', [('state', '=', 'billed')], lambda n: env._("%s billed", n),
+              [('state', 'in', ('draft', 'mismatch'))], lambda s: env._("%s to resolve", s), 'inbox')
+        stage('invoice', _("Customer invoices"), 'ei.lifting', [('invoice_status', '=', 'invoiced')], lambda n: _n(n, env._("%s loading invoiced"), env._("%s loadings invoiced")),
+              [('invoice_status', '=', 'to_invoice')], lambda s: env._("%s to invoice", s), 'doc')
         if self._finance_ok() and self._can('account.move'):
             n = env['account.move'].search_count([('move_type', '=', 'out_invoice'), ('state', '=', 'posted'), ('payment_state', 'in', ('not_paid', 'partial'))])
             m = self._count('ei.bank.import.line', [('state', 'in', ('new', 'proposed', 'verified', 'unidentified')), ('amount', '>', 0)]) or 0
@@ -450,8 +450,8 @@ class EiHome(models.AbstractModel):
             m = env['ei.bank.import.line'].search_count([('state', 'in', ('new', 'proposed', 'verified', 'unidentified')), ('amount', '>', 0)])
             stages.append({'key': 'payment', 'label': _("Payment"), 'icon': 'cash', 'count': m, 'main': _n(m, _("%s bank payment"), _("%s bank payments")),
                            'sub': _("to match") if m else _("Nothing waiting"), 'tone': 'warning' if m else 'ok', 'waiting': m})
-        stage('recon', _("Reconciliation"), 'ei.parent.statement.line', TASK_BY_KEY['recon'][5], lambda n: _n(n, _("%s open difference"), _("%s open differences")),
-              [('statement_id.state', '=', 'resolved')], lambda s: _("%s to sign off", s), 'scale')
+        stage('recon', _("Reconciliation"), 'ei.parent.statement.line', TASK_BY_KEY['recon'][5], lambda n: _n(n, env._("%s open difference"), env._("%s open differences")),
+              [('statement_id.state', '=', 'resolved')], lambda s: env._("%s to sign off", s), 'scale')
         # each step counts its own kind of record: the counts are NOT one series and must never be joined by a line
         defs = {
             'contract': (_("Contracts that are approved or active."), _("Waiting: reviewed, not yet approved.")),

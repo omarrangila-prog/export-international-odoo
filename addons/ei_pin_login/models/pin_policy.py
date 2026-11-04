@@ -3,6 +3,8 @@ on their own."""
 import re
 
 from odoo import _
+
+_t = _
 from odoo.exceptions import AccessDenied, UserError, ValidationError
 
 PIN_RE = re.compile(r'[0-9]{4}')           # ASCII digits only (\d would also accept other scripts)
@@ -24,8 +26,9 @@ _EASY = {'1234', '1111', '0000', '1212', '7777', '1004', '2000', '4444', '2222',
 _DIGITS = '0123456789'
 
 
-def why_too_easy(pin):
+def why_too_easy(pin, env=None):
     """None if the PIN is acceptable, else a short reason in plain words."""
+    _ = env._ if env is not None else _t
     if pin in _EASY or len(set(pin)) == 1:
         return _('That PIN is one of the first ones anybody tries. Choose another.')
     if pin in _DIGITS + _DIGITS[:3] or pin in (_DIGITS + _DIGITS[:3])[::-1]:
@@ -37,13 +40,14 @@ def why_too_easy(pin):
     return None
 
 
-def check_new_pin(pin, confirm=None):
+def check_new_pin(pin, confirm=None, env=None):
     """Raises ValidationError with a sentence the person can act on."""
+    _ = env._ if env is not None else _t
     if not isinstance(pin, str) or not PIN_RE.fullmatch(pin):
         raise ValidationError(_('A PIN is exactly four digits, 0 to 9.'))
     if confirm is not None and confirm != pin:
         raise ValidationError(_('The two PINs are not the same.'))
-    reason = why_too_easy(pin)
+    reason = why_too_easy(pin, env)
     if reason:
         raise ValidationError(reason)
 

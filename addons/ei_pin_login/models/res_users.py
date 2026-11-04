@@ -187,7 +187,7 @@ class ResUsers(models.Model):
         ip = request.httprequest.remote_addr if request else 'n/a'
         if Log._set_refused_recently(user):
             raise UserError(_('Too many PINs were refused. Try again in an hour, or ask an administrator.'))
-        check_new_pin(pin, confirm)
+        check_new_pin(pin, confirm, self.env)
         try:
             self.env['ei.pin.credential']._set_pin(user, pin)
         except PinNotAvailable:

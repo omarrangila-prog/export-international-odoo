@@ -88,7 +88,7 @@ class EiAssistant(models.AbstractModel):
 class EiSupplierIntake(models.Model):
     _inherit = 'ei.supplier.intake'
 
-    ai_proposal = fields.Json('Read from the document', readonly=True, copy=False)
+    ai_proposal = fields.Json('Values read from the document', readonly=True, copy=False)
     ai_proposal_html = fields.Html('Read from the document', compute='_compute_ai_proposal_html', sanitize=False)
 
     def _compute_ocr_status(self):

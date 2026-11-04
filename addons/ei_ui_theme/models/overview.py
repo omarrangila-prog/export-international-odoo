@@ -47,8 +47,7 @@ class EiHomeOverview(models.AbstractModel):
                 'compare': '%s - %s' % (short(prev_start), short(prev_end)), 'days': (end - start).days + 1}
 
     # ------------------------------------------------------------------ flows
-    @staticmethod
-    def _delta(cur, prev):
+    def _delta(self, cur, prev):
         if prev > 0:
             pct = round((cur - prev) / prev * 100)
             if pct > 0:

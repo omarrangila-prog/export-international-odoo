@@ -12,6 +12,9 @@ Every call runs as the current user, so access rules decide what can be seen and
 from datetime import timedelta
 
 from odoo import api, fields, models, _
+from odoo.tools.translate import LazyTranslate
+
+_lt = LazyTranslate(__name__)
 from odoo.exceptions import AccessError, UserError
 from odoo.tools.misc import format_amount
 
@@ -21,49 +24,49 @@ OVERDUE_PARAM = 'ei_ui_theme.approval_overdue_days'
 OVERDUE_DEFAULT = 2.0         # PROPOSED default: the client has not set an approval deadline yet
 HIGH_DAYS = 3
 ESCALATED_PREFIX = 'Escalated: '
-SNOOZE_CHOICES = {1: _("until tomorrow"), 3: _("for 3 days"), 7: _("for a week")}
+SNOOZE_CHOICES = {1: _lt("until tomorrow"), 3: _lt("for 3 days"), 7: _lt("for a week")}
 
 # key, model, domain, title of the step, next action label, groups that may do the step, maker field, party field,
 # amount field, "problem" flag (these are shown as high priority at once)
 WORK = [
-    dict(key='contract_approve', verb=_("Approve"), model='ei.contract', domain=[('state', '=', 'reviewed')], step=_("Approve contract"),
-         next=_("Check the papers, then approve"), groups=('ei_contract_da.group_ei_contract_approver',),
+    dict(key='contract_approve', verb=_lt("Approve"), model='ei.contract', domain=[('state', '=', 'reviewed')], step=_lt("Approve contract"),
+         next=_lt("Check the papers, then approve"), groups=('ei_contract_da.group_ei_contract_approver',),
          maker='maker_id', party='parent_partner_id'),
-    dict(key='da_approve', verb=_("Approve"), model='ei.da', domain=[('state', '=', 'under_review')], step=_("Approve delivery advice"),
-         next=_("Check quantities and rates, then approve"), groups=('ei_contract_da.group_ei_contract_approver',),
+    dict(key='da_approve', verb=_lt("Approve"), model='ei.da', domain=[('state', '=', 'under_review')], step=_lt("Approve delivery advice"),
+         next=_lt("Check quantities and rates, then approve"), groups=('ei_contract_da.group_ei_contract_approver',),
          maker='maker_id', party='parent_partner_id'),
-    dict(key='order_approve', verb=_("Approve"), model='ei.daily.order', domain=[('state', '=', 'draft')], step=_("Approve daily order"),
-         next=_("Approve, then print or email"), groups=('ei_daily_orders.group_ei_order_approver',),
+    dict(key='order_approve', verb=_lt("Approve"), model='ei.daily.order', domain=[('state', '=', 'draft')], step=_lt("Approve daily order"),
+         next=_lt("Approve, then print or email"), groups=('ei_daily_orders.group_ei_order_approver',),
          maker='maker_id', party='parent_partner_id'),
-    dict(key='lifting_verify', verb=_("Verify"), model='ei.lifting', domain=[('state', '=', 'draft')], step=_("Verify truck loading"),
-         next=_("Check the gate pass and weighbridge slip"), groups=('ei_material_lifting.group_ei_lifting_reviewer',),
+    dict(key='lifting_verify', verb=_lt("Verify"), model='ei.lifting', domain=[('state', '=', 'draft')], step=_lt("Verify truck loading"),
+         next=_lt("Check the gate pass and weighbridge slip"), groups=('ei_material_lifting.group_ei_lifting_reviewer',),
          maker='maker_id', party='customer_id'),
-    dict(key='voucher_approve', verb=_("Approve"), model='ei.cash.voucher', domain=[('state', '=', 'submitted')], step=_("Approve cash voucher"),
-         next=_("Check the receipt, then approve"), groups=('ei_cashbook.group_ei_cash_approver',),
+    dict(key='voucher_approve', verb=_lt("Approve"), model='ei.cash.voucher', domain=[('state', '=', 'submitted')], step=_lt("Approve cash voucher"),
+         next=_lt("Check the receipt, then approve"), groups=('ei_cashbook.group_ei_cash_approver',),
          maker='maker_id', party='partner_id', amount='amount'),
-    dict(key='bank_approve', verb=_("Approve"), model='ei.bank.import', domain=[('state', 'in', ('received', 'validated', 'proposed'))],
-         step=_("Approve bank statement"), next=_("Check the payments, then approve"),
+    dict(key='bank_approve', verb=_lt("Approve"), model='ei.bank.import', domain=[('state', 'in', ('received', 'validated', 'proposed'))],
+         step=_lt("Approve bank statement"), next=_lt("Check the payments, then approve"),
          groups=('ei_bank_operations.group_ei_bank_approver',), maker='imported_by'),
-    dict(key='bank_post', verb=_("Post"), model='ei.bank.import', domain=[('state', '=', 'approved')], step=_("Post bank statement"),
-         next=_("Post it into the books"), groups=('ei_bank_operations.group_ei_bank_poster',), maker='approved_by'),
-    dict(key='bank_check', verb=_("Match"), model='ei.bank.import.line', domain=[('state', 'in', ('new', 'proposed', 'unidentified'))],
-         step=_("Match bank payment"), next=_("Confirm who paid"),
+    dict(key='bank_post', verb=_lt("Post"), model='ei.bank.import', domain=[('state', '=', 'approved')], step=_lt("Post bank statement"),
+         next=_lt("Post it into the books"), groups=('ei_bank_operations.group_ei_bank_poster',), maker='approved_by'),
+    dict(key='bank_check', verb=_lt("Match"), model='ei.bank.import.line', domain=[('state', 'in', ('new', 'proposed', 'unidentified'))],
+         step=_lt("Match bank payment"), next=_lt("Confirm who paid"),
          groups=('ei_bank_operations.group_ei_bank_officer',), party='suggested_partner_id', amount='amount'),
-    dict(key='intake_problem', verb=_("Fix"), model='ei.supplier.intake', domain=[('state', '=', 'mismatch')], step=_("Fix supplier invoice"),
-         next=_("See what does not match"), groups=('ei_invoice_extensions.group_ei_invoicing',), party='partner_id',
+    dict(key='intake_problem', verb=_lt("Fix"), model='ei.supplier.intake', domain=[('state', '=', 'mismatch')], step=_lt("Fix supplier invoice"),
+         next=_lt("See what does not match"), groups=('ei_invoice_extensions.group_ei_invoicing',), party='partner_id',
          amount='stated_total', problem=True),
-    dict(key='to_invoice', verb=_("Invoice"), model='ei.lifting', domain=[('invoice_status', '=', 'to_invoice')], step=_("Invoice delivered material"),
-         next=_("Create the customer invoice"), groups=('ei_invoice_extensions.group_ei_invoicing',), party='customer_id'),
-    dict(key='recon_diff', verb=_("Resolve"), model='ei.parent.statement.line', domain=[('status', '!=', 'matched'), ('resolution_state', '=', 'open')],
-         step=_("Resolve difference with parent company"), next=_("Find the reason and record it"),
+    dict(key='to_invoice', verb=_lt("Invoice"), model='ei.lifting', domain=[('invoice_status', '=', 'to_invoice')], step=_lt("Invoice delivered material"),
+         next=_lt("Create the customer invoice"), groups=('ei_invoice_extensions.group_ei_invoicing',), party='customer_id'),
+    dict(key='recon_diff', verb=_lt("Resolve"), model='ei.parent.statement.line', domain=[('status', '!=', 'matched'), ('resolution_state', '=', 'open')],
+         step=_lt("Resolve difference with parent company"), next=_lt("Find the reason and record it"),
          groups=('ei_parent_reconciliation.group_ei_recon_user',), amount='difference'),
-    dict(key='recon_signoff', verb=_("Sign off"), model='ei.parent.statement', domain=[('state', '=', 'resolved')], step=_("Sign off parent statement"),
-         next=_("Check and sign off"), groups=('ei_parent_reconciliation.group_ei_recon_approver',), party='partner_id'),
-    dict(key='code_classify', verb=_("Classify"), model='ei.legacy.code', domain=[('verification_status', 'in', ('proposed', 'needs_review'))],
-         step=_("Classify old code"), next=_("Decide what this old code becomes"),
+    dict(key='recon_signoff', verb=_lt("Sign off"), model='ei.parent.statement', domain=[('state', '=', 'resolved')], step=_lt("Sign off parent statement"),
+         next=_lt("Check and sign off"), groups=('ei_parent_reconciliation.group_ei_recon_approver',), party='partner_id'),
+    dict(key='code_classify', verb=_lt("Classify"), model='ei.legacy.code', domain=[('verification_status', 'in', ('proposed', 'needs_review'))],
+         step=_lt("Classify old code"), next=_lt("Decide what this old code becomes"),
          groups=('ei_legacy_master.group_ei_mapping_approver',), bulk=True),
-    dict(key='formula_approve', verb=_("Approve"), model='ei.formula.definition', domain=[('state', '=', 'draft')], step=_("Approve formula"),
-         next=_("Test it, then approve"), groups=('ei_contract_da.group_ei_formula_approver',)),
+    dict(key='formula_approve', verb=_lt("Approve"), model='ei.formula.definition', domain=[('state', '=', 'draft')], step=_lt("Approve formula"),
+         next=_lt("Test it, then approve"), groups=('ei_contract_da.group_ei_formula_approver',)),
 ]
 WORK_BY_KEY = {w['key']: w for w in WORK}
 WORK_MODELS = {w['model'] for w in WORK}
@@ -102,8 +105,7 @@ class EiWork(models.AbstractModel):
         rec.check_access('read')
         return rec
 
-    @staticmethod
-    def _age_text(days):
+    def _age_text(self, days):
         if days <= 0:
             return _("New today")
         return _("Waiting 1 day") if days == 1 else _("Waiting %s days", days)
@@ -143,11 +145,11 @@ class EiWork(models.AbstractModel):
                 oldest = recs[0].write_date or now
                 days = max((now - oldest).days, 0)
                 items.append({
-                    'id': '%s:bulk' % model, 'model': model, 'res_id': 0, 'type': spec['key'], 'bulk': True, 'step': spec['step'],
+                    'id': '%s:bulk' % model, 'model': model, 'res_id': 0, 'type': spec['key'], 'bulk': True, 'step': str(spec['step']),
                     'title': _("%s old codes are waiting for a decision", n), 'party': '', 'party_id': False, 'amount': '',
                     'priority': 'low', 'age_days': days, 'age_text': self._age_text(days), 'overdue': False, 'status': 'open',
                     'assignee': '', 'assignee_me': False, 'due': '', 'my_activity': False, 'escalated_by': '', 'snoozed_until': '',
-                    'next': spec['next'], 'can_act': can_act, 'view_only': not can_act, 'can_assign': False, 'can_escalate': False})
+                    'next': str(spec['next']), 'can_act': can_act, 'view_only': not can_act, 'can_assign': False, 'can_escalate': False})
                 counts['open'] += 1
                 continue
             acts = {}
@@ -181,7 +183,7 @@ class EiWork(models.AbstractModel):
                 is_overdue = days >= overdue and not spec.get('problem')
                 items.append({
                     'id': '%s:%s' % (model, rec.id), 'model': model, 'res_id': rec.id, 'type': spec['key'],
-                    'step': spec['step'], 'verb': spec['verb'], 'title': rec.display_name, 'party': party.name or '', 'party_id': party.id or False,
+                    'step': str(spec['step']), 'verb': str(spec['verb']), 'title': rec.display_name, 'party': party.name or '', 'party_id': party.id or False,
                     'amount': amount, 'priority': self._priority(spec, days), 'age_days': days, 'age_text': self._age_text(days),
                     'overdue': is_overdue, 'status': status,
                     'assignee': who.name or '', 'assignee_me': bool(who) and who == me,
@@ -189,7 +191,7 @@ class EiWork(models.AbstractModel):
                     'my_activity': mine_act.id if mine_act else False,
                     'escalated_by': escalated[0].create_uid.name if escalated else '',
                     'snoozed_until': fields.Date.to_string(snoozed[key]) if key in snoozed else '',
-                    'next': spec['next'], 'can_act': can_act, 'view_only': not can_act,
+                    'next': str(spec['next']), 'can_act': can_act, 'view_only': not can_act,
                     'can_assign': can_act and 'activity_ids' in rec._fields and rec.has_access('write'),
                     'can_escalate': 'activity_ids' in rec._fields and rec.has_access('write') and not escalated,
                 })
@@ -212,7 +214,7 @@ class EiWork(models.AbstractModel):
             if not spec:
                 raise UserError(_("This record no longer exists."))
             self.env[model].check_access('read')
-            return {'type': 'ir.actions.act_window', 'name': spec['step'], 'res_model': model, 'domain': spec['domain'],
+            return {'type': 'ir.actions.act_window', 'name': str(spec['step']), 'res_model': model, 'domain': spec['domain'],
                     'views': [(False, 'list'), (False, 'form')], 'target': 'current'}
         rec = self._record(model, res_id)
         return {'type': 'ir.actions.act_window', 'res_model': model, 'res_id': rec.id, 'views': [(False, 'form')], 'target': 'current'}
@@ -261,7 +263,7 @@ class EiWork(models.AbstractModel):
 
     def _step_of(self, rec):
         spec = next((w for w in WORK if w['model'] == rec._name and rec.filtered_domain(w['domain'])), None)
-        return spec['step'] if spec else rec.display_name
+        return str(spec['step']) if spec else rec.display_name
 
     @api.model
     def escalate(self, model, res_id, note):

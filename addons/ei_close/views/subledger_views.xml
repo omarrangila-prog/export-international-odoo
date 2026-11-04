@@ -23,7 +23,7 @@
                     <field name="state" widget="statusbar"/>
                 </header>
                 <sheet>
-                    <div class="alert alert-info" role="note">
+                    <div class="alert alert-info" role="status">
                         Read from posted journal items only. Nothing here changes the accounts: a difference is explained and corrected through normal entries, never balanced away.
                     </div>
                     <group>

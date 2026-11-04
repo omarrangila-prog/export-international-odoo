@@ -25,9 +25,9 @@ class EiRule(models.Model):
     _inherit = ['mail.thread']
     _order = 'code, id'
 
-    key = fields.Selection([(k, str(v['name'])) for k, v in RECIPES.items()], required=True, readonly=True)
+    key = fields.Selection(selection=lambda self: [(k, str(v['name'])) for k, v in RECIPES.items()], required=True, readonly=True)
     name = fields.Char(compute='_compute_info')
-    code = fields.Char('Brief reference', compute='_compute_info', store=True, help="The A-number of this automation in the project brief.")
+    code = fields.Char('Brief reference', compute='_compute_code', store=True, help="The A-number of this automation in the project brief.")
     company_id = fields.Many2one('res.company', required=True, default=lambda s: s.env.company, index=True)
     enabled = fields.Boolean('Switched on', default=False, tracking=True,
                              help="Off by default. While it is off the schedule ignores it; you can still preview what it would do.")
@@ -45,13 +45,18 @@ class EiRule(models.Model):
     _key_company = models.Constraint('unique(company_id, key)', 'This automation already exists for this company.')
 
     @api.depends('key')
+    def _compute_code(self):
+        for r in self:
+            r.code = RECIPES.get(r.key, {}).get('code') or False
+
+    @api.depends('key')
     def _compute_info(self):
         for r in self:
             rec = RECIPES.get(r.key)
             if not rec:
-                r.name = r.code = r.days_label = r.explanation = False
+                r.name = r.days_label = r.explanation = False
                 continue
-            r.name, r.code, r.days_label = str(rec['name']), rec['code'], str(rec['days_label'])
+            r.name, r.days_label = str(rec['name']), str(rec['days_label'])
             r.explanation = Markup(
                 '<p><b>%s</b> %s</p><p><b>%s</b> %s</p><p><b>%s</b> %s</p><p><b>%s</b> %s</p>'
                 '<p><b>%s</b> %s</p><p class="text-muted">%s</p>') % (
