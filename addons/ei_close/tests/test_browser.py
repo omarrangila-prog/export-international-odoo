@@ -118,25 +118,42 @@ class TestBrowserDesktop(EiBrowserCase):
                 """, login=person.login)
 
     def test_b03_light_and_dark_themes_survive_navigation_and_refresh(self):
-        self.check(HOME, """
+        press = """
             await waitFor('.ei-home-inner');
-            const dark = () => getComputedStyle(document.documentElement).getPropertyValue('--ei-bg').trim();
-            must(dark().toUpperCase() === '#0E1626', 'dark colours are not applied: ' + dark());
-            must(%s === '#0E1626', 'the phone bar is not dark');
+            must(document.querySelector('button.ei-iconbtn[aria-pressed]'), 'Home has no theme button');
+            await odoo.loader.modules.get('@ei_ui_theme/home/home').chooseTheme('%s');      // what the button does before it refreshes the page
+            must(document.cookie.includes('color_scheme=%s'), 'the choice did not reach the cookie: ' + document.cookie);
+        """
+        settings = self.env['res.users.settings']._find_or_create_for_user(self.maker)
+        enterprise = 'color_scheme' in settings._fields
+
+        def chosen(want):
+            if enterprise:                                                      # a setting per person: it follows them to any browser
+                settings.invalidate_recordset()
+                self.assertEqual(settings.color_scheme, want)
+        colour = "getComputedStyle(document.documentElement).getPropertyValue('--ei-bg').trim().toUpperCase()"
+        self.check(HOME, f"must({colour} === '#F4F6FA', 'light colours are not applied: ' + {colour});" + press % ('dark', 'dark'), login=self.maker.login)
+        chosen('dark')
+        self.check(HOME, f"""
+            await waitFor('.ei-home-inner');
+            must({colour} === '#0E1626', 'dark colours are not applied: ' + {colour});
+            must({APP_COLOUR} === '#0E1626', 'the phone bar is not dark');
             await odoo.__WOWL_DEBUG__.root.env.services.action.doAction('ei_contract_da.ei_contract_action');
             await waitFor('.o_kanban_view, .o_list_view');
-            must(dark().toUpperCase() === '#0E1626', 'dark was lost when moving to another screen');
-            const page = async () => (await (await fetch('/odoo')).text());
-            must(/assets_web_dark/.test(await page()), 'a refresh would lose the dark theme');
-            document.cookie = 'color_scheme=light; path=/';
-            must(!/assets_web_dark/.test(await page()), 'choosing light does not reach the next page');
-        """ % APP_COLOUR, login=self.maker.login, cookies={'color_scheme': 'dark'})
-        self.check(HOME, """
+            must({colour} === '#0E1626', 'dark was lost when moving to another screen');
+            must(/assets_web_dark/.test(await (await fetch('/odoo')).text()), 'a refresh would lose the dark theme');
+        """, login=self.maker.login, cookies={'color_scheme': 'dark'})
+        self.check(HOME, f"""
             await waitFor('.ei-home-inner');
-            const bg = getComputedStyle(document.documentElement).getPropertyValue('--ei-bg').trim();
-            must(bg.toUpperCase() === '#F4F6FA', 'light colours are not applied: ' + bg);
-            must(!document.cookie.includes('color_scheme=dark'), 'another browser picked up the first person\\'s choice');
-        """, login=self.ceo.login, cookies={'color_scheme': 'light'})
+            must({colour} === '#F4F6FA', 'another person picked up the first person\\'s choice: ' + {colour});
+        """, login=self.ceo.login)
+        self.check(HOME, press % ('light', 'light'), login=self.maker.login, cookies={'color_scheme': 'dark'})
+        chosen('light')
+        self.check(HOME, f"""
+            await waitFor('.ei-home-inner');
+            must({colour} === '#F4F6FA', 'choosing light did not stay: ' + {colour});
+            must(!/assets_web_dark/.test(await (await fetch('/odoo')).text()), 'a refresh would go back to dark');
+        """, login=self.maker.login, cookies={'color_scheme': 'light'})
 
     def test_b04_navigation_from_the_top_menu(self):
         self.check(HOME, """

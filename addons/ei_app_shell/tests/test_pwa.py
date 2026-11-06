@@ -34,7 +34,12 @@ class TestInstallableApp(HttpCase):
         app = self.url_open('/odoo').text
         self.assertIn('viewport-fit=cover', app)
         self.assertNotIn('user-scalable=no', app, 'pinch zoom must stay available')
-        dark = self.url_open('/odoo', cookies={'color_scheme': 'dark'}).text
+        settings = self.env['res.users.settings']._find_or_create_for_user(self.env.ref('base.user_admin'))
+        if 'color_scheme' in settings._fields:                                  # Enterprise: a setting per person
+            settings.color_scheme = 'dark'
+            dark = self.url_open('/odoo').text
+        else:
+            dark = self.url_open('/odoo', cookies={'color_scheme': 'dark'}).text
         self.assertEqual(re.findall(r'<meta name="theme-color" content="([^"]*)"', dark), ['#0E1626'], 'the phone bar follows the dark theme')
         self.assertEqual(re.findall(r'<meta name="theme-color" content="([^"]*)"', app), ['#F4F6FA'], 'one theme colour, ours')
         self.assertIn('ei-icon-180.png', app)

@@ -29,7 +29,7 @@
             <attribute name="content">width=device-width, initial-scale=1, viewport-fit=cover</attribute>
         </xpath>
         <xpath expr="//meta[@name='theme-color']" position="replace">
-            <meta name="theme-color" t-att-content="'#0E1626' if request.env['ir.http'].color_scheme() == 'dark' else '#F4F6FA'"/>
+            <meta name="theme-color" t-att-content="'#0E1626' if color_scheme == 'dark' else '#F4F6FA'"/>
         </xpath>
         <xpath expr="//link[@rel='apple-touch-icon']" position="attributes">
             <attribute name="href">/ei_app_shell/static/img/ei-icon-180.png</attribute>

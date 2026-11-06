@@ -7,10 +7,10 @@ Written 6 November 2026. It covers the Odoo.sh build logs of 3, 5 and 6 November
 |---|---|---|
 | Community, build machine | Odoo 20 nightly of 18 Oct, Python 3.12, with the client code list | 392 code tests; Playwright browser suite |
 | Latest Community | Odoo 20 nightly of 4 Nov, Python 3.14, demo data, no code list | 250 code tests, 14 of them in a real browser |
-| The same, with a stand-in | A small test addon that copies three Enterprise behaviours seen in the logs. It is not in the repository | Reproducing the failures below |
-| Odoo.sh | Enterprise 20.0 on Python 3.14, as the log reports | Runs when code is pushed. The result of the latest commit has not been seen yet |
+| The same, with a stand-in | A small test addon, not in the repository, that holds Enterprise's own colour-scheme code (service, cookie, setting) taken from the Enterprise 19 copy on the build machine, and a web client subclass written to match the 6 November error | Reproducing the failures below. It may differ from Enterprise 20 |
+| Odoo.sh | Enterprise 20.0 on Python 3.14, as the log reports | The 6 November 18:21 build ran 250 tests with 2 failures, both listed below; every other browser test passed on real Enterprise. The result of the latest commit has not been seen yet |
 
-Enterprise's source is not available on the build machine, so nothing here proves behaviour on real Enterprise. Only an Odoo.sh build can do that.
+Enterprise 20's source is not available on the build machine, so only an Odoo.sh build can prove behaviour on real Enterprise.
 
 ## Failures and root causes
 | Log | Failure | Root cause | Fix | Reproduced before the fix |
@@ -18,7 +18,8 @@ Enterprise's source is not available on the build machine, so nothing here prove
 | 5 Nov | `test_p02`: the wrong theme colour on the app head | Real bug. Enterprise's view set its own colour after ours | Our view now applies last and replaces the tag | Yes, with the stand-in |
 | 5 Nov | `test_43`: `RuntimeError: request not bound` | Test bug. With no cookie the code correctly falls through to Enterprise, which reads the live request, and the test had none | The test now checks that the decision is passed down, without depending on the edition. Enterprise's behaviour is untouched | Yes, with the stand-in |
 | 6 Nov | Whole web client: `Cannot find the definition of component "EiTabStrip"` | Real, serious bug. Components were added to the base class's list, and Enterprise's subclass had already copied that list. The app could not open | The tab strip, undo/redo and Documents button are reached through the prototype, which subclasses inherit | Yes, with the stand-in |
-| 6 Nov | `test_p02`: the browser bar stays light in dark theme | The page context did not carry the colour scheme | `webclient_rendering_context` always supplies it, and the tag asks for it directly | Yes, with the stand-in |
+| 6 Nov (18:21) | `test_p02`: the browser bar stays light in dark theme | Test bug. Enterprise answers every page with its own `color_scheme` cookie, so the test's cookie arrived beside a `light` one | The test now uses Enterprise's own setting for a person | Yes, against the real Enterprise Python code |
+| 6 Nov (18:21) | `test_b03`: `Inspected target navigated or closed` | Real bug, found while diagnosing this. Enterprise's web client resets the cookie to the person's setting and reloads, so **the Home dark/light button could never change anything on Enterprise** | On Enterprise the button now changes that setting, and the server leaves the decision to Enterprise | Yes, with Enterprise's own colour-scheme code |
 
 The 14 new browser tests found the 6 November crash. The 236 tests that existed before could not have found it.
 
@@ -44,7 +45,7 @@ These tests used to accept any exception. They now accept only `UniqueViolation`
 | Refresh | Stays dark; choosing light comes back after a refresh | Playwright spec 19 |
 | Another person in another browser | Not affected | Playwright spec 19 |
 
-The choice is a browser cookie, so two people sharing one browser share it. That is how it was built. Odoo Enterprise also has a per-user setting; how the two combine there has not been observed.
+On Community the choice is a browser cookie, so two people sharing one browser share it. On Enterprise it is a setting per person, which follows them to any browser and also appears in their Preferences.
 
 ## PIN key
 * **Now:** the key comes from `EI_PIN_PEPPER` in the environment or `ei_pin_pepper` in the Odoo configuration file, and is never logged.

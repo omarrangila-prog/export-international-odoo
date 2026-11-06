@@ -324,11 +324,12 @@ class TestHomeV2(TransactionCase):
 
     def test_43_dark_theme_follows_the_viewers_cookie(self):
         http = self.env['ir.http']
-        # with no choice of ours the answer is left to whatever is underneath: 'light' on Community, the user's setting on Enterprise
+        # with no choice of ours the answer is left to whatever is underneath; on Enterprise all of it is, because its own setting decides
         mro = type(http).__mro__
         below = mro[mro.index(EiIrHttp) + 1]
+        enterprise = 'color_scheme' in self.env['res.users.settings']._fields
         with patch.object(below, 'color_scheme', lambda s: 'from below', create=True):
-            for cookie, want in (('dark', 'dark'), ('light', 'light'), (None, 'from below'), ('weird', 'from below')):
+            for cookie, want in (('dark', 'from below' if enterprise else 'dark'), ('light', 'from below' if enterprise else 'light'), (None, 'from below'), ('weird', 'from below')):
                 req = SimpleNamespace(httprequest=SimpleNamespace(cookies={'color_scheme': cookie} if cookie else {}))
                 with patch('odoo.addons.ei_ui_theme.models.ir_http.request', req):
                     self.assertEqual(http.color_scheme(), want, cookie)

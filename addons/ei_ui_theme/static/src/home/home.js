@@ -1,5 +1,6 @@
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
+import { user } from "@web/core/user";
 import { standardActionServiceProps } from "@web/webclient/actions/action_plugin";
 import { Component, onMounted, onWillStart, onWillUnmount, proxy, useProps } from "@odoo/owl";
 import { iconPath } from "../common/icons";
@@ -29,6 +30,13 @@ function smoothPath(pts, height) {
         line += ` C${c1[0].toFixed(2)},${c1[1].toFixed(2)} ${c2[0].toFixed(2)},${c2[1].toFixed(2)} ${p2[0].toFixed(2)},${p2[1].toFixed(2)}`;
     }
     return line;
+}
+
+export async function chooseTheme(scheme) {
+    if ("color_scheme" in user.settings) {              // Enterprise: its web client puts the cookie back to the person's setting, so change the setting
+        await user.setUserSettings("color_scheme", scheme);
+    }
+    document.cookie = `${SCHEME_COOKIE}=${scheme}; path=/; max-age=31536000; samesite=lax`;
 }
 
 export class EiHome extends Component {
@@ -399,8 +407,8 @@ export class EiHome extends Component {
 
     // ------------------------------------------------------------------ theme
     get isDark() { return document.cookie.split(";").map((c) => c.trim()).includes(SCHEME_COOKIE + "=dark"); }
-    toggleTheme() {
-        document.cookie = `${SCHEME_COOKIE}=${this.isDark ? "light" : "dark"}; path=/; max-age=31536000; samesite=lax`;
+    async toggleTheme() {
+        await chooseTheme(this.isDark ? "light" : "dark");
         window.location.reload();
     }
 }
