@@ -1,6 +1,6 @@
 {
     'name': 'Export International - Sign-in with a PIN',
-    'version': '20.0.1.1.0',
+    'version': '20.0.1.2.0',
     'category': 'Hidden',
     'summary': 'Second way to sign in: a personal four-digit PIN (alone, no user name), beside user name and password. Keyed hash, pauses and '
                'locks after wrong tries, optional network allow-list, a sign-in log, the web page only (never the programming interfaces).',

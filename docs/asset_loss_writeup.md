@@ -76,3 +76,9 @@ Reading: the roles that see money (executive, finance) have the heaviest Home, b
 visit; it is still well under 2 seconds. Nothing here says how it behaves with 50,000 journal lines or more: that has **not** been measured,
 because the client's historical data is not loaded. Before go-live, load a year of real entries on a copy and repeat these measurements; the
 first places to look are `ei.home.get_data` and `ei.report.financials.get_statements` (both read aggregated sums, which PostgreSQL indexes well).
+
+## 8. Enterprise and Odoo.sh (added 6 November 2026)
+The causes above were all on the build machine. The Odoo.sh logs supplied on 3 and 5 November show no missing-bundle or stylesheet error, but the logs seen were filtered or cut off, so this is an absence of evidence and not proof. Staging restores and module upgrades on Odoo.sh have not been observed.
+`ei_close/tests/test_browser.py` now runs in Odoo's own test framework wherever the repository is deployed, including on Enterprise. It fails if a script bundle fails to load, a stylesheet does not answer, a stylesheet did not compile, or the browser console logs an error.
+Do not clear bundle rows as routine. If a blank page returns, follow section 6 and keep the log.
+

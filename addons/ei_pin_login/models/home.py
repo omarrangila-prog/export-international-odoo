@@ -1,4 +1,3 @@
-import os
 
 from odoo import _, models
 
@@ -20,8 +19,11 @@ class EiHome(models.AbstractModel):
             ok, text = False, _("Resting: %s refused PIN sign-ins in 24 hours. Someone may be guessing PINs; see Setup > Sign-in PIN activity", refused)
         elif refused >= 10:
             ok, text = False, _("%s refused PIN sign-ins in 24 hours; see Setup > Sign-in PIN activity", refused)
-        elif not os.environ.get('EI_PIN_PEPPER'):
+        elif not self.env['ei.pin.credential']._configured_pepper():
             ok, text = False, _("The key that protects PINs is not set in the server's environment (EI_PIN_PEPPER); see docs/pin_login.md")
+        elif self.env['ei.pin.credential']._stale_count():
+            ok, text = False, _("%s PINs were stored under an earlier key and cannot sign in until those people set them again; see docs/pin_login.md",
+                                self.env['ei.pin.credential']._stale_count())
         else:
             ok, text = True, _("%(p)s people have a PIN; %(r)s refused sign-ins in 24 hours; %(n)s", p=people, r=refused,
                                n=_("PIN sign-in only from %s", networks) if networks else _("PIN sign-in is open from any network"))

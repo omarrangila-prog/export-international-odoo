@@ -11,10 +11,11 @@ from odoo import fields
 from odoo.exceptions import AccessDenied, AccessError, UserError, ValidationError
 from psycopg2 import IntegrityError
 from odoo.tests import HttpCase, TransactionCase, tagged
-from odoo.tools import mute_logger
+from odoo.tools import config, mute_logger
 from odoo.tests.common import JsonRpcException
 
 from ..models import pin_policy
+from ..models.pin_policy import EiPinDenied
 
 PW = 'Alice-long-password-9!'
 GOOD = '4829'
@@ -110,6 +111,35 @@ class TestPinSignIn(TransactionCase):
             self.assertNotEqual(self.Cred._index(GOOD), stored, 'the hash depends on a key that is not in the database')
         self.assertEqual(self.env['ei.pin.credential'].sudo().search_count([('user_id', '=', self.alice.id)]), 1)
         self.assertTrue(self.cred().set_on)
+
+    def test_s01b_the_key_can_live_in_the_environment_or_the_config_file_and_is_never_logged(self):
+        with patch.dict(os.environ, {'EI_PIN_PEPPER': 'key-from-environment'}):
+            self.assertEqual(self.Cred._configured_pepper(), 'key-from-environment')
+        env_without = {k: v for k, v in os.environ.items() if k != 'EI_PIN_PEPPER'}
+        with patch.dict(os.environ, env_without, clear=True), patch.dict(config.options, {'ei_pin_pepper': 'key-from-config-file'}):
+            self.assertEqual(self.Cred._configured_pepper(), 'key-from-config-file')
+            self.assertNotIn('key-from-config-file', self.Cred._key_id())
+            with self.assertNoLogs('odoo.addons.ei_pin_login.models.pin_credential', 'WARNING'):
+                self.Cred._index(GOOD)
+
+    def test_s01c_changing_the_key_asks_people_to_set_the_pin_again_without_locking_anyone(self):
+        self.set_pin()
+        before = self.cred().key_id
+        self.assertRegex(before, r'^[0-9a-f]{16}$')
+        with patch.dict(os.environ, {'EI_PIN_PEPPER': 'a replacement key'}):
+            self.assertEqual(self.Cred._stale_count(), 1)
+            for _try in range(20):                                               # more than enough to lock a PIN for good
+                with self.assertRaises(EiPinDenied) as denied:
+                    self.Cred._verify(self.alice, GOOD)
+                self.assertEqual(denied.exception.reason, 'key_changed')
+            self.assertIn('set again', str(denied.exception))
+            cred = self.cred()
+            self.assertEqual((cred.failed_count, cred.hard_locked, cred.locked_until), (0, False, False))
+            self.assertFalse(self.Cred._user_for_pin(GOOD))                      # the PIN alone finds nobody under the new key
+            self.set_pin()                                                       # the person proves the password and sets it again
+            self.assertEqual(self.Cred._stale_count(), 0)
+            self.assertNotEqual(self.cred().key_id, before)
+            self.assertEqual(pin_login(self.env, 'pin.alice', GOOD)['uid'], self.alice.id)
 
     def test_s02_weak_and_malformed_pins_are_refused_by_the_server(self):
         users = self.env['res.users'].with_user(self.alice)

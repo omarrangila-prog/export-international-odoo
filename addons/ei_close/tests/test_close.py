@@ -1,3 +1,5 @@
+from psycopg2.errors import UniqueViolation
+
 from odoo import Command, fields
 from odoo.exceptions import AccessError, UserError
 from odoo.tests import tagged
@@ -144,9 +146,11 @@ class TestClose(AccountTestInvoicingCommon):
         self.assertEqual(c.date_from, c.date_to)
         self.assertEqual(self.item(c, 'draft_moves').status, 'ok')
         self.assertFalse(self.item(c, 'subledger'))                     # month-only checks are not asked every day
-        with mute_logger('odoo.sql_db'), self.assertRaises(Exception):
+        with mute_logger('odoo.sql_db'), self.assertRaises(UniqueViolation) as refused:     # refused on purpose: the database is the last guard
             with self.cr.savepoint():
                 self.close('day', '2026-10-15')
+        self.assertEqual(refused.exception.diag.constraint_name, 'ei_close_uniq')
+        self.assertEqual(self.env['ei.close'].search_count([('kind', '=', 'day'), ('date_from', '=', '2026-10-15')]), 1)
         with self.assertRaises(UserError):
             c.with_user(self.mgr).action_lock_books()                   # only a signed month locks the books
 

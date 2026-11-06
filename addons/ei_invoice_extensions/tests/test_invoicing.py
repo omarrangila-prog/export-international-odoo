@@ -1,5 +1,7 @@
 from unittest.mock import patch
 
+from psycopg2.errors import UniqueViolation
+
 from odoo import Command
 from odoo.exceptions import AccessError, UserError
 from odoo.tests import tagged
@@ -141,9 +143,11 @@ class TestInvoicing(AccountTestInvoicingCommon):
 
     def test_05_duplicate_invoice_number(self):
         self.intake(number='DUPE')
-        with mute_logger('odoo.sql_db'), self.assertRaises(Exception):
+        with mute_logger('odoo.sql_db'), self.assertRaises(UniqueViolation) as refused:     # refused on purpose: the database is the last guard
             with self.env.cr.savepoint():
                 self.intake(number='DUPE')
+        self.assertEqual(refused.exception.diag.constraint_name, 'ei_supplier_intake_dup')
+        self.assertEqual(self.env['ei.supplier.intake'].search_count([('invoice_number', '=', 'DUPE')]), 1)
         existing = self.env['account.move'].create({'move_type': 'in_invoice', 'partner_id': self.parent.id, 'ref': 'IN-ACC',
                                                     'invoice_date': '2026-10-01', 'invoice_line_ids': [Command.create({'name': 'x', 'price_unit': 1})]})
         j = self.intake(number='IN-ACC')

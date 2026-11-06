@@ -29,11 +29,14 @@ class TestInstallableApp(HttpCase):
         self.assertIn('viewport-fit=cover', login)
         self.assertIn('ei-icon-180.png', login)
         self.assertIn('ei-favicon-64.png', login)
+        self.assertEqual(re.findall(r'<meta name="theme-color" content="([^"]*)"', login), ['#F4F6FA'])
         self.authenticate('admin', 'admin')
         app = self.url_open('/odoo').text
         self.assertIn('viewport-fit=cover', app)
         self.assertNotIn('user-scalable=no', app, 'pinch zoom must stay available')
-        self.assertIn('#F4F6FA', app)
+        dark = self.url_open('/odoo', cookies={'color_scheme': 'dark'}).text
+        self.assertEqual(re.findall(r'<meta name="theme-color" content="([^"]*)"', dark), ['#0E1626'], 'the phone bar follows the dark theme')
+        self.assertEqual(re.findall(r'<meta name="theme-color" content="([^"]*)"', app), ['#F4F6FA'], 'one theme colour, ours')
         self.assertIn('ei-icon-180.png', app)
         self.assertIn('apple-mobile-web-app-capable', app)
 

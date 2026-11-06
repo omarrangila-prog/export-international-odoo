@@ -1,3 +1,5 @@
+from psycopg2.errors import UniqueViolation
+
 from odoo import Command
 from odoo.exceptions import AccessError, UserError
 from odoo.tests import TransactionCase, tagged
@@ -179,9 +181,11 @@ class TestContracts(TransactionCase):
 
     def test_08_duplicate_contract_ref_rejected(self):
         self.contract(ref='DUP')
-        with mute_logger('odoo.sql_db'), self.assertRaises(Exception):
+        with mute_logger('odoo.sql_db'), self.assertRaises(UniqueViolation) as refused:     # refused on purpose: the database is the last guard
             with self.env.cr.savepoint():
                 self.contract(ref='DUP')
+        self.assertEqual(refused.exception.diag.constraint_name, 'ei_contract_uniq_ref')
+        self.assertEqual(self.env['ei.contract'].search_count([('contract_ref', '=', 'DUP')]), 1)     # nothing was left behind
 
     # ---- DA quantity control
     def test_09_da_cannot_exceed_contract_quantity(self):

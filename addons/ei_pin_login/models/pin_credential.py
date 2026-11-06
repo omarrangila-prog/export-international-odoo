@@ -6,7 +6,7 @@ from datetime import timedelta
 
 import psycopg2.errors
 
-from odoo import _, api, fields, models
+from odoo import _, api, fields, models, tools
 
 from .pin_policy import EiPinDenied, PinNotAvailable, lock_for
 
@@ -29,16 +29,22 @@ class EiPinCredential(models.Model):
     failed_count = fields.Integer('Wrong tries since the last good one', readonly=True, default=0)
     locked_until = fields.Datetime('Paused until', readonly=True)
     hard_locked = fields.Boolean('Locked until unlocked', readonly=True)
+    key_id = fields.Char('Key fingerprint', readonly=True, help="Which key this PIN was stored with. A one-way fingerprint: it cannot give the key back.")
 
     _user_uniq = models.Constraint('unique(user_id)', 'A person has one PIN.')
     _pin_uniq = models.Constraint('unique(pin_index)', 'That PIN cannot be used.')
 
     # ---- keyed hash. 10 000 PINs can be tried in a blink by anyone who has BOTH the database and the key, so the key lives in the server's
-    # environment (EI_PIN_PEPPER), not in the database. Without it the fallback is the database's own secret: it works, and protects
-    # nothing if the database is copied (a warning says so once).
+    # environment (EI_PIN_PEPPER) or, where a host offers no way to set one, in the Odoo configuration file (ei_pin_pepper), not in the
+    # database. Without it the fallback is the database's own secret: it works, and protects nothing if the database is copied (a warning
+    # says so once). The key is never logged. Every worker reads the same value, so it must be set once for the whole server and kept.
+    @api.model
+    def _configured_pepper(self):
+        return os.environ.get('EI_PIN_PEPPER') or tools.config.get('ei_pin_pepper') or ''
+
     @api.model
     def _pepper(self):
-        key = os.environ.get('EI_PIN_PEPPER')
+        key = self._configured_pepper()
         if key:
             return key
         if self.env.cr.dbname not in _warned:
@@ -51,6 +57,16 @@ class EiPinCredential(models.Model):
     def _index(self, pin):
         return hmac.new(self._pepper().encode(), f'ei-pin:{pin}'.encode(), hashlib.sha256).hexdigest()
 
+    @api.model
+    def _key_id(self):
+        """A fingerprint of the current key, to notice a PIN stored under another key. HMAC of a constant: it does not reveal the key."""
+        return hmac.new(self._pepper().encode(), b'ei-pin-key-id', hashlib.sha256).hexdigest()[:16]
+
+    @api.model
+    def _stale_count(self):
+        """How many PINs were stored under a different key, and so can no longer sign in until they are set again."""
+        return self.sudo().search_count([('key_id', '!=', False), ('key_id', '!=', self._key_id())])
+
     # ---- set / remove (the person, after proving the password) and reset / unlock (an administrator)
     @api.model
     def _set_pin(self, user, pin):
@@ -59,7 +75,7 @@ class EiPinCredential(models.Model):
         index = self._index(pin)
         if self.sudo().search_count([('pin_index', '=', index), ('user_id', '!=', user.id)]):
             raise PinNotAvailable(_('That PIN cannot be used. Choose another.'))
-        vals = {'pin_index': index, 'set_on': fields.Datetime.now(), 'failed_count': 0, 'locked_until': False, 'hard_locked': False}
+        vals = {'pin_index': index, 'key_id': self._key_id(), 'set_on': fields.Datetime.now(), 'failed_count': 0, 'locked_until': False, 'hard_locked': False}
         cred = self.sudo().search([('user_id', '=', user.id)])
         if cred:
             cred.write(vals)
@@ -82,14 +98,16 @@ class EiPinCredential(models.Model):
         reason = 'wrong_pin'
         try:
             with self.pool.cursor() as cr:
-                cr.execute('SELECT id, pin_index, failed_count, locked_until, hard_locked FROM ei_pin_credential WHERE user_id = %s FOR UPDATE', [user.id])
+                cr.execute('SELECT id, pin_index, failed_count, locked_until, hard_locked, key_id FROM ei_pin_credential WHERE user_id = %s FOR UPDATE', [user.id])
                 row = cr.fetchone()
                 if not row:
                     reason = 'not_set'
                 else:
-                    cid, stored, failed, locked_until, hard = row
+                    cid, stored, failed, locked_until, hard, key_id = row
                     failed = failed or 0
-                    if hard:
+                    if key_id and key_id != self._key_id():
+                        reason = 'key_changed'              # the key was replaced: nobody's PIN can match, so nobody is punished for it
+                    elif hard:
                         reason = 'locked_hard'
                     elif locked_until and locked_until > fields.Datetime.now():
                         reason = 'paused'
@@ -106,4 +124,6 @@ class EiPinCredential(models.Model):
                             _logger.warning('Sign-in PIN of user %s paused after %d wrong tries (%s)', user.id, failed, 'until unlocked' if hard else f'{seconds} s')
         except psycopg2.errors.SerializationFailure:
             reason = 'busy'
+        if reason == 'key_changed':
+            raise EiPinDenied(reason, user.id, message=self.env._("Your PIN has to be set again. Sign in with your password, then set a new PIN from your name menu."))
         raise EiPinDenied(reason)

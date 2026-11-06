@@ -6,7 +6,7 @@
                'the reconciliation centre that shows every reconciliation in one place.',
     'author': 'Odoovations',
     'license': 'LGPL-3',
-    'depends': ['ei_ui_theme', 'ei_reports'],
+    'depends': ['ei_ui_theme', 'ei_reports', 'ei_matching', 'ei_app_shell'],
     'data': [
         'security/ir.access.csv',
         'views/subledger_views.xml',

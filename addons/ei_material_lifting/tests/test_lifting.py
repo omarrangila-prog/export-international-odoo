@@ -1,3 +1,5 @@
+from psycopg2.errors import UniqueViolation
+
 from odoo import Command
 from odoo.exceptions import AccessError, UserError
 from odoo.tests import TransactionCase, tagged
@@ -147,9 +149,11 @@ class TestLifting(TransactionCase):
     def test_09_gate_pass_unique_and_delete_rules(self):
         self.classify()
         l = self.lift(1, gate_pass_no='GP-DUP')
-        with mute_logger('odoo.sql_db'), self.assertRaises(Exception):
+        with mute_logger('odoo.sql_db'), self.assertRaises(UniqueViolation) as refused:     # refused on purpose: the database is the last guard
             with self.env.cr.savepoint():
                 self.lift(1, gate_pass_no='GP-DUP')
+        self.assertEqual(refused.exception.diag.constraint_name, 'ei_lifting_gate')
+        self.assertEqual(self.env['ei.lifting'].search_count([('gate_pass_no', '=', 'GP-DUP')]), 1)
         l.with_user(self.reviewer).action_verify()
         with self.assertRaises(UserError):
             l.with_user(self.reviewer).unlink()

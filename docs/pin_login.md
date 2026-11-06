@@ -40,7 +40,7 @@ A four-digit PIN has 10 000 possibilities, and with the PIN alone as the way in 
 | `ei.pin.only_enabled` | allow the PIN alone (False: the PIN tab also asks for the user name) | True |
 | `ei.pin.blocked_groups` | comma-separated group ids that must use the password; write `none` to reserve nobody | `base.group_system` |
 | `ei.pin.allowed_networks` | where a PIN may be used (above) | empty = anywhere |
-| `EI_PIN_PEPPER` (server environment, not a parameter) | the key that protects PINs | must be set on a live server |
+| `EI_PIN_PEPPER` (server environment) or `ei_pin_pepper` under `[options]` in the Odoo configuration file | the key that protects PINs; never a system parameter, never in the source | must be set on a live server (see "The key") |
 
 The numbers (5 / 10 / 15 tries, 20 and 60 refusals, 20 per address) are constants in `addons/ei_pin_login/models/pin_policy.py`.
 
@@ -73,3 +73,15 @@ Setup > *Sign-in PIN activity* (system administrator, management, auditor; read-
 ## Tests
 * `addons/ei_pin_login/tests/test_pin_login.py` - 34 tests: PIN rules; keyed hash; password needed to set; no two people share a PIN and probing for taken ones is stopped; the PIN alone signs in and is logged without blaming anyone; the system-wide pause (hourly and daily); the switch; the network rule; provisioned PINs; every refusal reads the same; a PIN is not a password and the reverse; pause / hour / hard lock / unlock for the named variant; address throttle; the system administrator excluded; nobody can read the hashes; the log never holds a PIN; the real `/web/login` page, `/xmlrpc`, and the network message. Mutation-checked: removing the pause, the lock or the network rule makes tests fail.
 * `tests/e2e/specs/15_pin_login.js` - the real page in a browser: both tabs, only the chosen field sent, no name asked, set from the name menu (wrong password, weak PIN, mismatch, success), sign in with the four digits alone, wrong PIN, the number pad on a phone (digits, delete, clear, sends at the fourth digit), password still works, the administrator has no menu entry, removal closes it, the log, phone layout.
+
+## The key
+* **Create it once:** `openssl rand -base64 32`. Do not put it in the repository, a ticket or a chat. The installer creates one in `/etc/odoo/ei.env` (mode 600).
+* **Where it goes:** the server environment (`EI_PIN_PEPPER`) comes first. The configuration file (`ei_pin_pepper = ...` under `[options]`) is for hosts with no way to set an environment variable. At start-up Odoo logs that it does not know this option; it logs the option's name, not its value.
+* **Keep it the same** for every worker and across deployments. A staging copy may use its own key, and then PINs copied from production will not work there.
+* **Odoo.sh:** whether a value set in the configuration file or environment survives rebuilds has not been tested here. Confirm it with Odoo support, or from the Odoo.sh shell, before relying on it. Until it is set, Home shows the administrator a red line and PINs are protected only by the database's own secret.
+* **Changing the key** cannot convert existing PINs, because they are stored only as keyed hashes:
+  1. Set the new key on the whole server and restart it.
+  2. Everyone with an old PIN signs in with their password and sets a new PIN from the name menu. Using an old PIN with a user name says the PIN must be set again; it does not count as a wrong try and locks nobody. An old PIN alone is simply not recognised.
+  3. Home shows the administrator how many PINs still have to be set again.
+
+  Each PIN stores a one-way fingerprint of its key to make this possible. The fingerprint cannot give the key back.
