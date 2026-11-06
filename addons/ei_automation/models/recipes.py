@@ -26,14 +26,19 @@ def managers(env):
     return env.ref(MANAGEMENT_GROUP).sudo().user_ids.filtered(lambda u: u.active and not u.share)
 
 
+def may_read(record, user):
+    """Judged with the companies that person belongs to: a manager of another company must not stop the run, and simply cannot read it."""
+    return record.with_user(user).with_context(allowed_company_ids=user.company_ids.ids).has_access('read')
+
+
 def owners_for(env, record, *preferred):
     """The colleague(s) who should be told about this record: the preferred person if they are still an active internal user who
     may read it, otherwise the managers. A reminder is never given to someone who cannot open the record."""
     people = env['res.users']
     for u in preferred:
-        if u and u.active and not u.share and record.with_user(u).has_access('read'):
+        if u and u.active and not u.share and may_read(record, u):
             people |= u
-    return people or managers(env).filtered(lambda u: record.with_user(u).has_access('read'))
+    return people or managers(env).filtered(lambda u: may_read(record, u))
 
 
 def _p(*parts):
@@ -120,7 +125,7 @@ def critical_anomaly(env, rule):
     out = []
 
     def add(rec, why, detail):
-        owners = boss.filtered(lambda u: rec.with_user(u).has_access('read'))
+        owners = boss.filtered(lambda u: may_read(rec, u))
         out.append(Finding(rec, owners, why, _p(detail, _("The managers are told because this needs a decision, not routine work."))))
     for l in env['ei.bank.import.line'].search([('state', '=', 'duplicate'), ('company_id', '=', rule.company_id.id)]):
         add(l, _("Possible duplicate bank payment: %s", l.display_name),
