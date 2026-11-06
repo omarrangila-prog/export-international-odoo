@@ -5,7 +5,7 @@
     <template id="login_brand" inherit_id="web.login" name="Export International sign-in brand">
         <xpath expr="//div[@id='oe_structure_login_top']" position="after">
             <div class="ei-login-brand">
-                <span class="ei-login-mark" aria-hidden="true">EI</span>
+                <img class="ei-login-mark" src="/ei_ui_theme/static/description/icon.svg" alt="" width="46" height="46"/>
                 <div class="ei-login-name"><b>Export International</b><small>Sign in to continue</small></div>
                 <span t-if="ei_environment" class="ei-login-env" t-out="ei_environment"/>
             </div>
