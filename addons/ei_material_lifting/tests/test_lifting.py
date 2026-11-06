@@ -1,6 +1,7 @@
 from odoo import Command
 from odoo.exceptions import AccessError, UserError
 from odoo.tests import TransactionCase, tagged
+from odoo.tools import mute_logger
 
 
 @tagged('post_install', '-at_install', 'ei')
@@ -146,7 +147,7 @@ class TestLifting(TransactionCase):
     def test_09_gate_pass_unique_and_delete_rules(self):
         self.classify()
         l = self.lift(1, gate_pass_no='GP-DUP')
-        with self.assertRaises(Exception):
+        with mute_logger('odoo.sql_db'), self.assertRaises(Exception):
             with self.env.cr.savepoint():
                 self.lift(1, gate_pass_no='GP-DUP')
         l.with_user(self.reviewer).action_verify()

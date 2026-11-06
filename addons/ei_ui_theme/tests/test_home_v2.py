@@ -10,6 +10,7 @@ from odoo.exceptions import AccessError, UserError
 from odoo.tests import TransactionCase, tagged
 
 from odoo.addons.ei_legacy_master.tests.test_parsing import source_bytes
+from odoo.addons.ei_ui_theme.models.ir_http import IrHttp as EiIrHttp
 from odoo.addons.ei_ui_theme.models.work import WORK
 
 
@@ -323,10 +324,14 @@ class TestHomeV2(TransactionCase):
 
     def test_43_dark_theme_follows_the_viewers_cookie(self):
         http = self.env['ir.http']
-        for cookie, want in (('dark', 'dark'), ('light', 'light'), (None, 'light'), ('weird', 'light')):
-            req = SimpleNamespace(httprequest=SimpleNamespace(cookies={'color_scheme': cookie} if cookie else {}))
-            with patch('odoo.addons.ei_ui_theme.models.ir_http.request', req):
-                self.assertEqual(http.color_scheme(), want, cookie)
+        # with no choice of ours the answer is left to whatever is underneath: 'light' on Community, the user's setting on Enterprise
+        mro = type(http).__mro__
+        below = mro[mro.index(EiIrHttp) + 1]
+        with patch.object(below, 'color_scheme', lambda s: 'from below', create=True):
+            for cookie, want in (('dark', 'dark'), ('light', 'light'), (None, 'from below'), ('weird', 'from below')):
+                req = SimpleNamespace(httprequest=SimpleNamespace(cookies={'color_scheme': cookie} if cookie else {}))
+                with patch('odoo.addons.ei_ui_theme.models.ir_http.request', req):
+                    self.assertEqual(http.color_scheme(), want, cookie)
 
     def test_44_home_cost_grows_slowly_with_the_number_of_tasks(self):
         """Guard against a query-per-task loop: 20 more waiting contracts must add only a few queries each."""

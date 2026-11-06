@@ -23,12 +23,13 @@
         </xpath>
     </template>
 
-    <template id="webclient_head" inherit_id="web.webclient_bootstrap" name="Export International application head">
+    <!-- Applied last, and the colour replaces the whole tag: Enterprise's web client sets its own theme colour on this template. -->
+    <template id="webclient_head" inherit_id="web.webclient_bootstrap" name="Export International application head" priority="1000">
         <xpath expr="//meta[@name='viewport']" position="attributes">
             <attribute name="content">width=device-width, initial-scale=1, viewport-fit=cover</attribute>
         </xpath>
-        <xpath expr="//meta[@name='theme-color']" position="attributes">
-            <attribute name="content">#F4F6FA</attribute>
+        <xpath expr="//meta[@name='theme-color']" position="replace">
+            <meta name="theme-color" content="#F4F6FA"/>
         </xpath>
         <xpath expr="//link[@rel='apple-touch-icon']" position="attributes">
             <attribute name="href">/ei_app_shell/static/img/ei-icon-180.png</attribute>

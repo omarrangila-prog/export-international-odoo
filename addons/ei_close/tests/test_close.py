@@ -1,6 +1,7 @@
 from odoo import Command, fields
 from odoo.exceptions import AccessError, UserError
 from odoo.tests import tagged
+from odoo.tools import mute_logger
 
 from odoo.addons.account.tests.common import AccountTestInvoicingCommon
 
@@ -143,7 +144,7 @@ class TestClose(AccountTestInvoicingCommon):
         self.assertEqual(c.date_from, c.date_to)
         self.assertEqual(self.item(c, 'draft_moves').status, 'ok')
         self.assertFalse(self.item(c, 'subledger'))                     # month-only checks are not asked every day
-        with self.assertRaises(Exception):
+        with mute_logger('odoo.sql_db'), self.assertRaises(Exception):
             with self.cr.savepoint():
                 self.close('day', '2026-10-15')
         with self.assertRaises(UserError):

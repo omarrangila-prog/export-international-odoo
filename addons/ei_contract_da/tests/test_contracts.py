@@ -1,6 +1,7 @@
 from odoo import Command
 from odoo.exceptions import AccessError, UserError
 from odoo.tests import TransactionCase, tagged
+from odoo.tools import mute_logger
 
 
 @tagged('post_install', '-at_install', 'ei')
@@ -178,7 +179,7 @@ class TestContracts(TransactionCase):
 
     def test_08_duplicate_contract_ref_rejected(self):
         self.contract(ref='DUP')
-        with self.assertRaises(Exception):
+        with mute_logger('odoo.sql_db'), self.assertRaises(Exception):
             with self.env.cr.savepoint():
                 self.contract(ref='DUP')
 

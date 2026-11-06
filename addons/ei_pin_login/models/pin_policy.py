@@ -2,10 +2,9 @@
 on their own."""
 import re
 
-from odoo import _
-
-_t = _
 from odoo.exceptions import AccessDenied, UserError, ValidationError
+
+_t = lambda text, *args: text % args if args else text      # no environment (a plain call): the English sentence
 
 PIN_RE = re.compile(r'[0-9]{4}')           # ASCII digits only (\d would also accept other scripts)
 

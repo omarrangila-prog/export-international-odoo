@@ -59,6 +59,12 @@ class TestPinPolicy(TransactionCase):
 @tagged('post_install', '-at_install', 'ei')
 class TestPinSignIn(TransactionCase):
 
+    def setUp(self):
+        super().setUp()
+        quiet = mute_logger('odoo.addons.ei_pin_login.models.pin_credential')   # pauses and the missing key are what these tests provoke
+        quiet.__enter__()
+        self.addCleanup(quiet.__exit__)
+
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
@@ -390,6 +396,12 @@ class TestPinSignIn(TransactionCase):
 class TestPinWebSignIn(HttpCase):
     """The real sign-in page, with real requests."""
 
+    def setUp(self):
+        super().setUp()
+        quiet = mute_logger('odoo.addons.ei_pin_login.models.pin_credential')   # pauses and the missing key are what these tests provoke
+        quiet.__enter__()
+        self.addCleanup(quiet.__exit__)
+
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
@@ -477,5 +489,6 @@ class TestPinWebSignIn(HttpCase):
 
     def test_w06_a_pin_does_not_open_the_programming_interfaces(self):
         db = self.env.cr.dbname
-        self.assertFalse(self.xmlrpc_common.authenticate(db, 'pin.web', GOOD, {}))
+        with mute_logger('odoo.addons.rpc.controllers.xmlrpc'):                # Odoo warns that this endpoint is deprecated
+            self.assertFalse(self.xmlrpc_common.authenticate(db, 'pin.web', GOOD, {}))
 

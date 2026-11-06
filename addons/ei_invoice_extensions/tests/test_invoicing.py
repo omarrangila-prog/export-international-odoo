@@ -3,6 +3,7 @@ from unittest.mock import patch
 from odoo import Command
 from odoo.exceptions import AccessError, UserError
 from odoo.tests import tagged
+from odoo.tools import mute_logger
 
 from odoo.addons.account.tests.common import AccountTestInvoicingCommon
 
@@ -140,7 +141,7 @@ class TestInvoicing(AccountTestInvoicingCommon):
 
     def test_05_duplicate_invoice_number(self):
         self.intake(number='DUPE')
-        with self.assertRaises(Exception):
+        with mute_logger('odoo.sql_db'), self.assertRaises(Exception):
             with self.env.cr.savepoint():
                 self.intake(number='DUPE')
         existing = self.env['account.move'].create({'move_type': 'in_invoice', 'partner_id': self.parent.id, 'ref': 'IN-ACC',
