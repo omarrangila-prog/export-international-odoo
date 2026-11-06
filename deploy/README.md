@@ -46,7 +46,7 @@ Take a backup first (`sudo ei-backup`). Re-run the tests on a copy before you to
 - [ ] https works and the padlock is shown; `http://` redirects
 - [ ] `list_db = False` (no "Manage Databases" link on the sign-in page)
 - [ ] the master and administrator passwords are stored somewhere safe
-- [ ] `EI_PIN_PEPPER` is set (Home shows a red line for the administrator if it is not) and the file `/etc/odoo/ei.env` is 600
+- [ ] `EI_PIN_PEPPER` is set and the file `/etc/odoo/ei.env` is 600
 - [ ] the nightly backup ran and a restore was tried on another machine
 - [ ] outgoing mail is configured (Settings > Technical > Outgoing Mail Servers)
 - [ ] sign-up is closed (it is, from this version: `auth_signup.invitation_scope = b2b`)

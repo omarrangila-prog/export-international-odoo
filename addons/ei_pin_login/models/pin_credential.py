@@ -11,7 +11,6 @@ from odoo import _, api, fields, models, tools
 from .pin_policy import EiPinDenied, PinNotAvailable, lock_for
 
 _logger = logging.getLogger(__name__)
-_warned = set()
 
 
 class EiPinCredential(models.Model):
@@ -36,8 +35,8 @@ class EiPinCredential(models.Model):
 
     # ---- keyed hash. 10 000 PINs can be tried in a blink by anyone who has BOTH the database and the key, so the key lives in the server's
     # environment (EI_PIN_PEPPER) or, where a host offers no way to set one, in the Odoo configuration file (ei_pin_pepper), not in the
-    # database. Without it the fallback is the database's own secret: it works, and protects nothing if the database is copied (a warning
-    # says so once). The key is never logged. Every worker reads the same value, so it must be set once for the whole server and kept.
+    # database. Without it the fallback is the database's own secret: it works, and protects nothing if the database is copied (the owner
+    # chose on 6 Nov 2026 not to be warned about this). The key is never logged. Every worker reads the same value, so it must be set once for the whole server and kept.
     @api.model
     def _configured_pepper(self):
         return os.environ.get('EI_PIN_PEPPER') or tools.config.get('ei_pin_pepper') or ''
@@ -47,10 +46,6 @@ class EiPinCredential(models.Model):
         key = self._configured_pepper()
         if key:
             return key
-        if self.env.cr.dbname not in _warned:
-            _warned.add(self.env.cr.dbname)
-            _logger.warning('EI_PIN_PEPPER is not set: sign-in PINs are keyed with the database secret, which protects nothing if the '
-                            'database is copied. Set EI_PIN_PEPPER in the server environment (docs/pin_login.md).')
         return self.env['ir.config_parameter'].sudo().get_str('database.secret', 'ei')
 
     @api.model
