@@ -48,4 +48,5 @@ export class EiDocViewer extends Component {
     size(b) { return b > 1048576 ? `${(b / 1048576).toFixed(1)} MB` : `${Math.max(1, Math.round(b / 1024))} KB`; }
 }
 
-patch(FormController, { components: { ...FormController.components, EiDocViewer } });
+// On the prototype, not in `static components`: a subclass that took its own copy of the components (Enterprise's web client does) still finds it.
+patch(FormController.prototype, { get EiDocViewer() { return EiDocViewer; } });

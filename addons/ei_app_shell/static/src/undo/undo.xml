@@ -13,7 +13,7 @@
 
     <t t-inherit="web.FormView" t-inherit-mode="extension">
         <xpath expr="//t[@t-set-slot='control-panel-status-indicator']/t" position="before">
-            <EiUndoRedo t-if="this.canEdit and !this.env.inDialog" model="this.model"/>
+            <t t-if="this.canEdit and !this.env.inDialog" t-component="this.EiUndoRedo" model="this.model"/>
         </xpath>
     </t>
 </templates>

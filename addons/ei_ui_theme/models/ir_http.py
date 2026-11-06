@@ -14,6 +14,10 @@ class IrHttp(models.AbstractModel):
             return choice
         return super().color_scheme()
 
+    def webclient_rendering_context(self):
+        """The page chooses its dark or light stylesheet from this value. Enterprise's context may leave it out, so always give it."""
+        return dict(super().webclient_rendering_context(), color_scheme=self.color_scheme())
+
     def session_info(self):
         """The top bar shows a badge when this database is not the live one (an administrator sets the label in System Parameters:
         `ei.environment_label`, for example "STAGING - synthetic demo data"). Nothing is shown when the parameter is empty."""

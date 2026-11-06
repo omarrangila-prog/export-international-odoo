@@ -110,4 +110,5 @@ export class EiUndoRedo extends Component {
     }
 }
 
-patch(FormController, { components: { ...FormController.components, EiUndoRedo } });
+// On the prototype, not in `static components`: a subclass that took its own copy of the components (Enterprise's web client does) still finds it.
+patch(FormController.prototype, { get EiUndoRedo() { return EiUndoRedo; } });

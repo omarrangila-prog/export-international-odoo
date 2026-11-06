@@ -19,7 +19,7 @@
 
     <t t-inherit="web.WebClient" t-inherit-mode="extension">
         <xpath expr="//ActionContainer" position="before">
-            <EiTabStrip t-if="!this.state.fullscreen"/>
+            <t t-if="!this.state.fullscreen" t-component="this.EiTabStrip"/>
         </xpath>
     </t>
 </templates>

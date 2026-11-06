@@ -31,4 +31,5 @@ export class EiTabStrip extends Component {
     }
 }
 
-patch(WebClient, { components: { ...WebClient.components, EiTabStrip } });
+// On the prototype, not in `static components`: a subclass that took its own copy of the components (Enterprise's web client does) still finds it.
+patch(WebClient.prototype, { get EiTabStrip() { return EiTabStrip; } });

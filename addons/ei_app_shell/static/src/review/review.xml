@@ -102,7 +102,7 @@
 
     <t t-inherit="web.FormView" t-inherit-mode="extension">
         <xpath expr="//t[@t-set-slot='control-panel-status-indicator']/t" position="before">
-            <EiDocViewer t-if="!this.env.inDialog" record="this.model.root"/>
+            <t t-if="!this.env.inDialog" t-component="this.EiDocViewer" record="this.model.root"/>
         </xpath>
     </t>
 </templates>
