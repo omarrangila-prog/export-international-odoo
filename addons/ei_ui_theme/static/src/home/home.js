@@ -19,17 +19,18 @@ const PRIORITY_WORD = { high: "High", medium: "Medium", low: "Normal" };
 const VISIBLE_TASKS = 8;
 const SNOOZE = [[1, "Until tomorrow"], [3, "For 3 days"], [7, "For a week"]];
 
-// a smooth curve through the points (a Catmull-Rom spline as cubic curves), kept inside the chart's height
-function smoothPath(pts, height) {
-    const clamp = (y) => Math.min(height, Math.max(0, y));
-    let line = `M${pts[0][0].toFixed(2)},${pts[0][1].toFixed(2)}`;
-    for (let i = 0; i < pts.length - 1; i++) {
-        const p0 = pts[i - 1] || pts[i], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] || p2, t = 0.18;
-        const c1 = [p1[0] + (p2[0] - p0[0]) * t, clamp(p1[1] + (p2[1] - p0[1]) * t)];
-        const c2 = [p2[0] - (p3[0] - p1[0]) * t, clamp(p2[1] - (p3[1] - p1[1]) * t)];
-        line += ` C${c1[0].toFixed(2)},${c1[1].toFixed(2)} ${c2[0].toFixed(2)},${c2[1].toFixed(2)} ${p2[0].toFixed(2)},${p2[1].toFixed(2)}`;
-    }
-    return line;
+// clean axis numbers: 0 to the first round number above the highest value, at most four steps
+function niceTicks(max) {
+    if (max <= 0) { return [0, 1]; }
+    const mag = 10 ** Math.floor(Math.log10(max / 4));
+    const step = [1, 2, 2.5, 5, 10].map((m) => m * mag).find((s) => s * 4 >= max);
+    const out = [];
+    for (let v = 0; v < max + step * 0.999; v += step) { out.push(Math.round(v * 1000) / 1000); }
+    return out;
+}
+function tickText(v, compact) {
+    if (!compact) { return v.toLocaleString("en-US"); }
+    return v >= 1e6 ? `${+(v / 1e6).toFixed(2)}M` : v > 0 ? `${+(v / 1e3).toFixed(1)}K` : "0";
 }
 
 export async function chooseTheme(scheme) {
@@ -49,8 +50,8 @@ export class EiHome extends Component {
         this.action = useService("action");
         this.state = proxy({
             loading: true, error: false, data: null, filter: "all", showSnoozed: false, menu: null, dialog: null, busy: false,
-            toast: null, tables: { aging: false }, snoozed: null, allTasks: false,
-            period: "14d", flowTables: {}, flowTip: null, pipeTip: null, ask: "", newMenu: false, allAlerts: false, openDays: {}, phone: window.innerWidth <= 640, folds: {},
+            toast: null, tables: { aging: false, trend: false }, snoozed: null, allTasks: false,
+            period: "14d", trendMode: "", trendAt: null, pipeTip: null, ask: "", newMenu: false, allAlerts: false, openDays: {}, phone: window.innerWidth <= 640, folds: {},
         });
         this.filters = FILTERS;
         this.snoozeChoices = SNOOZE;
@@ -92,48 +93,117 @@ export class EiHome extends Component {
         const d = this.state.data;
         if (key === "summary") { return this.summaryTiles.length > 0; }
         if (key === "decide") { return true; }
-        if (key === "hero") { return d.pipeline.length > 0 || !!d.charts.aging || !!d.charts.material; }
-        if (key === "flows") { return d.flows.length > 0 || d.banks.length > 0 || !!d.top_owing; }
+        if (key === "pulse") { return !!this.trend || !!d.charts.aging || !!d.charts.material; }
+        if (key === "hero") { return d.pipeline.length > 0 || (!!d.ask && (!!d.charts.aging || !!d.charts.material)); }
+        if (key === "flows") { return d.banks.length > 0 || !!d.top_owing; }
         if (key === "recent") { return !!d.recent && d.recent.rows.length > 0; }
         if (key === "kpis") { return this.kpis.length > 0; }
         if (key === "alerts") { return true; }
         if (key === "work") { return d.work.items.length > 0 || d.work.counts.snoozed > 0 || d.work.counts.others > 0 || true; }
-        if (key === "charts") { return !!d.charts.material && !!d.charts.aging; }       // with no ageing card the material card sits in the hero
+        if (key === "charts") { return !!d.charts.material && !!d.charts.aging; }       // with no ageing card the material card sits beside the big chart
         if (key === "pipeline") { return d.pipeline.length > 0; }
         if (key === "activity") { return d.activity.length > 0; }
         if (key === "quick") { return d.quick.length > 0; }
         if (key === "system") { return !!d.system; }
         return false;
     }
-    // one figure, one place: the summary strip carries what customers owe, the bank balance and the bank money to match
+    // one figure, one place: a figure on a tile is not repeated as a smaller tile further down
     get kpis() {
-        const d = this.state.data, here = new Set();
-        if (d.layout.includes("summary")) { ["ar", "bank", "waiting"].forEach((k) => here.add(k)); }
-        else {
-            if (this.agingHero) { here.add("ar"); }
-            if (d.banks.length && d.layout.includes("flows")) { here.add("bank"); }
-        }
+        const d = this.state.data, here = new Set(this.summaryTiles.filter((t) => !t.flow).map((t) => t.key));
+        if (this.agingHero) { here.add("ar"); }
+        if (d.banks.length) { here.add("bank"); }
         return d.kpis.filter((k) => !here.has(k.key));
     }
-    get hasSummary() { return this.state.data.layout.includes("summary"); }
-    // ---- the first screen: five figures (each says what it is made of), then what needs a person
+    get hasSummary() { return this.summaryTiles.some((t) => t.key === "ar" || t.key === "bank"); }
+    // ---- the tiles: what the ledger holds now, then what moved in the period (with its days as small bars)
     get summaryTiles() {
         const d = this.state.data, k = (key) => d.kpis.find((x) => x.key === key), out = [];
-        const bank = k("bank"), ar = k("ar"), waiting = k("waiting");
-        if (bank) { out.push({ key: "bank", label: "Bank balance", tag: "Book balance", value: bank.value, sub: bank.sub, tone: bank.tone, help: bank.help }); }
-        if (ar) { out.push({ key: "ar", label: "Customers owe us", tag: "Posted ledger", value: ar.value, sub: ar.sub, tone: ar.tone, help: ar.help }); }
-        if (waiting) { out.push({ key: "waiting", label: "Bank money to match", tag: "Not settled yet", value: waiting.value, sub: waiting.sub, tone: waiting.tone, help: waiting.help }); }
-        if (ar || bank || waiting) {
-            const items = d.work.items, act = items.filter((t) => t.can_act && !t.view_only);
-            out.push({ key: "decisions", label: "Waiting for your decision", tag: "Your role", value: String(act.length), sub: act.length ? `${items.length - act.length} more in the team queue` : (items.length ? `Nothing for you; ${items.length} in the team queue` : "Nothing is waiting"), tone: act.length ? "warning" : "ok", help: "Steps your role may perform now. A step you prepared yourself needs a second person." });
+        const bank = k("bank"), ar = k("ar"), waiting = k("waiting"), aging = this.agingHero;
+        if (bank) { out.push({ key: "bank", icon: "bank", color: "s1", label: "Bank balance", tag: "Book balance", value: bank.value, sub: bank.sub, tone: bank.tone, help: bank.help }); }
+        if (ar) { out.push({ key: "ar", icon: "invoice", color: "s2", label: "Customers owe us", tag: "Posted ledger", value: ar.value, sub: ar.sub, tone: ar.tone, help: ar.help, meter: aging && !aging.empty ? aging.rows : null }); }
+        if (waiting) { out.push({ key: "waiting", icon: "scale", color: "s3", label: "Bank money to match", tag: "Not settled yet", value: waiting.value, sub: waiting.sub, tone: waiting.tone, help: waiting.help }); }
+        if (!out.length) {          // a role without money leads with its own first figures
+            d.kpis.slice(0, 3).forEach((x, i) => out.push({ key: x.key, icon: "list", color: ["s1", "s2", "s3"][i], label: x.label, tag: x.tag || "", value: x.value, sub: x.sub, tone: x.tone, help: x.help }));
         }
-        const lifted = d.flows.find((f) => f.key === "lifted");
-        if (lifted) { out.push({ key: "lifted", label: "Material lifted", tag: "Verified loadings", value: lifted.text, sub: `${lifted.delta.text} against the days before`, tone: lifted.delta.tone === "bad" ? "warning" : "ok", help: lifted.sub }); }
+        for (const f of d.flows) {
+            out.push({ key: f.key, flow: true, icon: f.icon, color: f.color, label: f.key === "collected" ? "Received in bank" : f.label, tag: "", value: f.text, sub: `vs ${f.prev_text.replace(this.valueParts(f.prev_text).pre, "")}`, tone: "neutral", delta: f.delta, bars: this.flowBars(f),
+                help: `${f.label}, ${d.period.range}. ${f.sub}, ${d.period.compare}` });
+        }
         return out;
     }
+    // "Rs. 10,442,500.00" -> the whole number is what the eye reads; the currency and the paisa stay, smaller
+    valueParts(text) {
+        const m = /^([^\d]*)([\d,]+)(.*)$/.exec(String(text));
+        return m ? { pre: m[1], int: m[2], post: m[3] } : { pre: "", int: String(text), post: "" };
+    }
+    get attention() {
+        const d = this.state.data;
+        if (!d.layout.includes("decide")) { return ""; }
+        const n = d.alerts.length, act = d.work.items.filter((t) => t.can_act && !t.view_only).length;
+        const say = (c, one, many) => `${c} ${c === 1 ? one : many}`;
+        return [n ? say(n, "alert", "alerts") : "", act ? say(act, "decision", "decisions") : ""].filter(Boolean).join(" · ");
+    }
+    // ---- the big chart. One axis at a time: rupees and tons are never drawn on the same scale
+    get trendModes() {
+        const fl = this.state.data.flows, out = [];
+        if (fl.some((f) => f.unit === "money")) { out.push({ key: "total", label: "Running total" }, { key: "day", label: "Per day" }); }
+        if (fl.some((f) => f.unit === "mtl")) { out.push({ key: "material", label: "Material" }); }
+        return out;
+    }
+    setTrendMode(key) { this.state.trendMode = key; this.state.trendAt = null; }
+    get trend() {
+        const modes = this.trendModes;
+        if (!modes.length) { return null; }
+        const d = this.state.data;
+        const mode = (modes.find((m) => m.key === this.state.trendMode) || modes[0]).key;
+        const flows = d.flows.filter((f) => (mode === "material" ? f.unit === "mtl" : f.unit === "money"));
+        const n = flows[0].series.length, line = mode === "total";
+        const val = (p) => (line ? p.run : p.v), txt = (p) => (line ? p.run_text : p.text);
+        const max = Math.max(0, ...flows.flatMap((f) => f.series.map(val)));
+        const ticks = niceTicks(max), top = ticks[ticks.length - 1], compact = top >= 10000;
+        const unit = mode === "material" ? " MTL" : "", pre = mode === "material" ? "" : this.valueParts(flows[0].text).pre;
+        const xOf = (i) => (line ? (n > 1 ? (i / (n - 1)) * 100 : 50) : ((i + 0.5) / n) * 100);
+        const series = flows.map((f) => {
+            const pts = f.series.map((p, i) => `${xOf(i).toFixed(2)},${(100 - (val(p) / top) * 100).toFixed(2)}`);
+            const path = "M" + pts.join(" L");
+            return { key: f.key, label: f.label, color: f.color, path, area: `${path} L${xOf(n - 1).toFixed(2)},100 L${xOf(0).toFixed(2)},100 Z` };
+        });
+        const days = flows[0].series.map((p, i) => ({ iso: p.iso, date: p.date, rows: flows.map((f) => {
+            const c = f.series[i], v = val(c);
+            return { key: f.key, label: f.label, color: f.color, text: txt(c), h: v > 0 ? Math.max(line ? 0 : 1.5, (v / top) * 100) : 0 };
+        }) }));
+        const span = Math.min(4, n - 1), xLabels = [];
+        for (let k = 0; k <= span; k++) {
+            const i = span ? Math.round((k * (n - 1)) / span) : 0;
+            xLabels.push({ i, x: xOf(i), text: days[i].date, edge: k === 0 ? "is-first" : k === span ? "is-last" : "" });
+        }
+        const what = { total: "Added up day by day", day: "Each day", material: "Verified MTL each day" }[mode];
+        return { title: modes[0].key === "material" ? "Material lifted" : "Money and material", mode, line, n, series, days, xLabels, xOf, empty: max <= 0,
+            ticks: ticks.map((v) => ({ pct: (v / top) * 100, text: v ? `${pre}${tickText(v, compact)}${unit}` : "0" })),
+            sub: `${what}, ${d.period.range}`,
+            label: `${what}, ${d.period.range}: ` + flows.map((f) => `${f.label} ${f.text}`).join(", ") + ". The same figures are in the table view.",
+            emptyText: mode === "material" ? `No loadings were verified from ${d.period.range}. The chart fills in as loadings are verified.`
+                : `Nothing was invoiced or received from ${d.period.range}. The chart fills in as invoices are posted and bank lines are matched.` };
+    }
+    hoverTrend(ev, tr) {
+        const box = ev.currentTarget.getBoundingClientRect(), r = (ev.clientX - box.left) / box.width;
+        this.state.trendAt = Math.min(tr.n - 1, Math.max(0, tr.line ? Math.round(r * (tr.n - 1)) : Math.floor(r * tr.n)));
+    }
+    keyTrend(ev, tr) {
+        const step = { ArrowRight: 1, ArrowLeft: -1 }[ev.key];
+        if (!step) { return; }
+        ev.preventDefault();
+        const at = this.state.trendAt;
+        this.state.trendAt = at === null ? tr.n - 1 : Math.min(tr.n - 1, Math.max(0, at + step));
+    }
+    trendTip(tr) {
+        const i = this.state.trendAt;
+        if (i === null || i === undefined || i >= tr.n) { return null; }
+        const x = tr.xOf(i);
+        return { x, date: tr.days[i].date, rows: tr.days[i].rows, side: x < 24 ? "is-start" : x > 76 ? "is-end" : "" };
+    }
     onSummary(t) {
-        if (t.key === "decisions") { this.state.filter = "act"; return this.goTo("work"); }
-        if (t.key === "lifted") { return this.onFlow({ key: "lifted" }); }
+        if (t.flow) { return this.onFlow(t); }
         return this.onKpi({ key: t.key });
     }
     // ---- what needs a person: every alert (with its next step) and the first decisions, side by side
@@ -152,12 +222,12 @@ export class EiHome extends Component {
     }
     // ---- on a phone the secondary sections fold into one-line bars; what needs a person stays open
     foldable(sec) {
-        if (!this.state.phone || ["summary", "decide", "alerts", "system"].includes(sec)) { return false; }
+        if (!this.state.phone || ["summary", "pulse", "decide", "alerts", "system"].includes(sec)) { return false; }
         return sec !== "work" || this.state.data.layout.includes("decide");     // the decisions block already shows the first items
     }
     isOpen(sec) { return !this.foldable(sec) || !!this.state.folds[sec]; }
     toggleFold(sec) { this.state.folds[sec] = !this.state.folds[sec]; }
-    foldTitle(sec) { return { work: "All work", hero: "Contract to payment", flows: "Money and material", recent: "Recent documents", kpis: "At a glance", charts: "Material on contracts", activity: "What happened recently", quick: "Start something" }[sec] || sec; }
+    foldTitle(sec) { return { work: "All work", hero: "Contract to payment", flows: "Banks and who owes most", recent: "Recent documents", kpis: "At a glance", charts: "Material on contracts", activity: "What happened recently", quick: "Start something" }[sec] || sec; }
     get kpiMain() { return this.kpis.slice(0, 4); }
     get kpiMore() { return this.kpis.slice(4); }
     get tasks() {
@@ -209,36 +279,6 @@ export class EiHome extends Component {
         const max = this.flowMax(f);
         return f.series.map((p, i) => ({ ...p, i, h: p.v > 0 ? Math.max(6, (p.v / max) * 100) : 0 }));
     }
-    // a smooth line through the daily values (viewBox 0 0 100 40; y grows downwards)
-    flowPaths(f) {
-        const n = f.series.length;
-        const pts = this.flowPoints(f);
-        const line = smoothPath(pts, 40);
-        return { line, area: `${line} L100,40 L0,40 Z`, endTop: (pts[n - 1][1] / 40) * 100 };
-    }
-    flowPoints(f) {
-        const n = f.series.length, max = this.flowMax(f);
-        return f.series.map((p, i) => [n > 1 ? (i / (n - 1)) * 100 : 50, 36 - (p.v / max) * 30]);
-    }
-    flowDotTop(f, tip) {                   // where the line is on the hovered day, as a share of the chart height
-        const i = f.series.findIndex((p) => p.iso === tip.iso);
-        return i < 0 ? 50 : (this.flowPoints(f)[i][1] / 40) * 100;
-    }
-    hoverFlow(ev, f) {
-        const box = ev.currentTarget.getBoundingClientRect();
-        const rtl = document.documentElement.dir === "rtl";
-        const x = rtl ? box.right - ev.clientX : ev.clientX - box.left;
-        const i = Math.min(f.series.length - 1, Math.max(0, Math.floor((x / box.width) * f.series.length)));
-        this.state.flowTip = { key: f.key, i, left: ((i + 0.5) / f.series.length) * 100 };
-    }
-    leaveFlow() { this.state.flowTip = null; }
-    flowTipOf(f) {
-        const t = this.state.flowTip;
-        if (!t || t.key !== f.key) { return null; }
-        const n = f.series.length;
-        return { ...f.series[t.i], left: f.key === "invoiced" && n > 1 ? (t.i / (n - 1)) * 100 : t.left };
-    }
-    toggleFlowTable(f) { this.state.flowTables[f.key] = !this.state.flowTables[f.key]; }
     stageTip(s) { return `${s.main}. ${s.definition} ${s.waiting ? s.sub + ". " + s.waiting_def : s.sub + "."}`; }
     stageWord(s) { return s.main.replace(/^[\d,.]+\s*/, ""); }       // "10 loadings verified" -> "loadings verified" (the number is shown big above it)
     initials(name) {          // "DEMO Customer - Rehman Traders" -> "RT": the part after the last " - " is the real name

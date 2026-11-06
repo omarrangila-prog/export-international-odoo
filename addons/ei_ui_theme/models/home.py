@@ -105,15 +105,16 @@ PROFILE_KPIS = {
 }
 PROFILE_LAYOUT = {
     # the "New" menu in the header holds the starting points; the launcher section stays only where starting things IS the job.
-    # The three money roles open on a summary strip and one block of "what needs you" (alerts + decisions): the first screen is the work.
-    'executive': ['summary', 'decide', 'hero', 'flows', 'recent', 'kpis', 'work', 'charts', 'activity'],
-    'finance': ['summary', 'decide', 'hero', 'flows', 'recent', 'kpis', 'work', 'charts', 'activity'],
-    'accountant': ['summary', 'decide', 'hero', 'flows', 'recent', 'kpis', 'work', 'charts', 'activity'],
-    'logistics': ['work', 'kpis', 'quick', 'hero', 'flows', 'alerts', 'recent', 'activity', 'charts'],
-    'contract': ['work', 'kpis', 'quick', 'hero', 'flows', 'alerts', 'recent', 'activity', 'charts'],
-    'data_entry': ['work', 'quick', 'kpis', 'alerts', 'hero', 'recent', 'activity', 'charts', 'flows'],
-    'admin': ['system', 'alerts', 'quick', 'hero', 'activity', 'work', 'recent', 'charts', 'kpis', 'flows'],
-    'general': ['work', 'kpis', 'quick', 'hero', 'alerts', 'flows', 'recent', 'activity', 'charts'],
+    # Everyone opens on the figures and charts their role may see. The three money roles then have one block of "what needs you" (alerts + decisions),
+    # with a button in the header that jumps straight to it.
+    'executive': ['summary', 'pulse', 'decide', 'hero', 'flows', 'recent', 'kpis', 'work', 'charts', 'activity'],
+    'finance': ['summary', 'pulse', 'decide', 'hero', 'flows', 'recent', 'kpis', 'work', 'charts', 'activity'],
+    'accountant': ['summary', 'pulse', 'decide', 'hero', 'flows', 'recent', 'kpis', 'work', 'charts', 'activity'],
+    'logistics': ['summary', 'pulse', 'work', 'kpis', 'quick', 'hero', 'flows', 'alerts', 'recent', 'activity', 'charts'],
+    'contract': ['summary', 'pulse', 'work', 'kpis', 'quick', 'hero', 'flows', 'alerts', 'recent', 'activity', 'charts'],
+    'data_entry': ['summary', 'pulse', 'work', 'quick', 'kpis', 'alerts', 'hero', 'recent', 'activity', 'charts', 'flows'],
+    'admin': ['system', 'summary', 'pulse', 'alerts', 'quick', 'hero', 'activity', 'work', 'recent', 'charts', 'kpis', 'flows'],
+    'general': ['summary', 'pulse', 'work', 'kpis', 'quick', 'hero', 'alerts', 'flows', 'recent', 'activity', 'charts'],
 }
 
 

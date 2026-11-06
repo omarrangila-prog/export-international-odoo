@@ -1,6 +1,7 @@
-// The first screen of Home is work, not decoration. For the three roles that carry money (executive, finance manager, accountant) the first
-// viewport must show the summary figures AND the first thing that needs a person, with its next step, on a laptop (1366x768) and on a
-// phone (390x844). Money figures must never wrap onto two lines, and on a phone the secondary sections start folded.
+// The first screen of Home leads with the figures and charts (the owner's decision, 6 Nov 2026). For the three roles that carry money
+// (executive, finance manager, accountant) a laptop (1366x768) must show the tiles and both charts whole, and a phone (390x844) the tiles and
+// the start of the chart. What needs a person is one press away: a button in the header says how much there is and goes straight to it.
+// Money figures must never wrap onto two lines, and on a phone the secondary sections start folded.
 const ROLES = [['demo.ceo', 'executive'], ['demo.finance', 'finance manager'], ['demo.accountant', 'accountant']];
 const FIRST = '.ei-decide .ei-dalerts .ei-alert, .ei-decide .ei-dtask, .ei-decide .ei-allclear';
 
@@ -20,12 +21,15 @@ async function measure(p) {
       folds: [...document.querySelectorAll('.ei-foldbar')].map((e) => e.getAttribute('aria-expanded')),
       overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
       heroShown: !!document.querySelector('.ei-hero-money'),
+      pulse: (() => { const e = document.querySelector('.ei-pulse'); return e && rect(e); })(),
+      plot: (() => { const e = document.querySelector('.ei-plot-area'); return e && rect(e); })(),
+      attn: (() => { const e = document.querySelector('.ei-attn'); return e && rect(e); })(),
     };
   }, FIRST);
 }
 
 module.exports = {
-  name: '14 Home first screen (summary + what needs a person, laptop and phone)',
+  name: '14 Home first screen (figures and charts, one press to what needs a person, laptop and phone)',
   async run(ctx, browser) {
     const { Session } = require('../lib');
     for (const [login, label] of ROLES) {
@@ -35,7 +39,12 @@ module.exports = {
       await s.home();
       let r = await measure(s.page);
       ctx.check(!!r.sum && r.sum.bottom <= 768, `${label}: the summary strip is inside the first 1366x768 screen`, JSON.stringify(r.sum));
-      ctx.check(!!r.first && r.first.bottom <= 768, `${label}: the first alert or decision is inside the first screen too`, JSON.stringify(r.first));
+      ctx.check(!!r.pulse && r.pulse.bottom <= 768, `${label}: both charts are whole inside the first screen too`, JSON.stringify(r.pulse));
+      ctx.check(!!r.attn && r.attn.bottom <= 768, `${label}: the button to what needs a person is on the first screen`, JSON.stringify(r.attn));
+      await s.page.locator('.ei-attn').click(); await s.page.waitForTimeout(900);
+      const seen = await measure(s.page);
+      ctx.check(!!seen.first && seen.first.top >= 0 && seen.first.bottom <= 768, `${label}: and it brings the first alert or decision into view`, JSON.stringify(seen.first));
+      await s.page.locator('.ei-home').evaluate((e) => e.scrollTo(0, 0));
       ctx.check(r.values.length >= 3 && r.values.every((v) => v.fits && v.oneLine), `${label}: every summary figure sits on one line (${r.values.length} figures)`, JSON.stringify(r.values.filter((v) => !v.fits || !v.oneLine)));
       ctx.check(r.overflow <= 0, `${label}: no sideways scroll at 1366`, String(r.overflow));
       ctx.check(r.folds.length === 0, `${label}: nothing is folded on a laptop`);
@@ -55,8 +64,13 @@ module.exports = {
       await s.home();
       r = await measure(s.page);
       ctx.check(r.navTop < 844 && r.navTop >= 744, `${label}: the phone has its bottom bar`, String(r.navTop));
-      ctx.check(!!r.first && r.first.bottom <= r.navTop, `${label}: on a phone the first alert or decision, with its next step, is inside the first screen (above the bottom bar)`, JSON.stringify(r.first) + ' bar at ' + r.navTop);
-      ctx.check(!r.cta || r.cta.bottom <= r.navTop, `${label}: its next-step button is not cut off`, JSON.stringify(r.cta));
+      ctx.check(!!r.plot && r.plot.top < r.navTop, `${label}: on a phone the chart starts on the first screen, above the bottom bar`, JSON.stringify(r.plot) + ' bar at ' + r.navTop);
+      ctx.check(!!r.attn && r.attn.bottom <= r.navTop, `${label}: and so does the button to what needs a person`, JSON.stringify(r.attn));
+      await s.page.locator('.ei-attn').click(); await s.page.waitForTimeout(900);
+      const seenP = await measure(s.page);
+      ctx.check(!!seenP.first && seenP.first.top >= 0 && seenP.first.bottom <= seenP.navTop, `${label}: it brings the first alert or decision into view`, JSON.stringify(seenP.first));
+      ctx.check(!seenP.cta || seenP.cta.bottom <= seenP.navTop, `${label}: with its next-step button not cut off`, JSON.stringify(seenP.cta));
+      await s.page.locator('.ei-home').evaluate((e) => e.scrollTo(0, 0));
       ctx.check(r.swipes && r.peek, `${label}: the figures are a swipe strip and the next one peeks out`, JSON.stringify({ swipes: r.swipes, peek: r.peek }));
       ctx.check(r.values.every((v) => v.fits && v.oneLine), `${label}: phone figures sit on one line`, JSON.stringify(r.values.filter((v) => !v.fits || !v.oneLine)));
       ctx.check(r.overflow <= 0, `${label}: no sideways scroll on a phone`, String(r.overflow));

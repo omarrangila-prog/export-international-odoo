@@ -45,6 +45,14 @@
     .ei-top-mini { display: flex; align-items: center; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
     .ei-top-bar { grid-column: 1 / -1; margin-top: 4px; }
     .ei-top-bar .ei-search { max-width: 560px; }
+    // on a wide screen the search shares the tools' row, so the header stays short and the charts sit high on the first screen
+    @media (min-width: 1101px) {
+        .ei-top { grid-template-columns: minmax(0, 1fr) minmax(220px, 340px) auto; grid-template-areas: "title period period" "title search mini"; gap: 8px 12px; padding-top: 14px; align-items: center; > :first-child { grid-area: title; align-self: start; } }
+        .ei-top-tools { display: contents; } .ei-period { grid-area: period; } .ei-top-mini { grid-area: mini; flex-wrap: nowrap; }
+        .ei-top-bar { grid-area: search; margin-top: 0; min-width: 0; }
+        .ei-top-title { font-size: 38px; }
+    }
+    .ei-attn { min-height: 34px; margin-inline-start: 2px; &:hover { filter: brightness(.97); } }
     .ei-fresh-dot { display: none; }
     .ei-fresh { font-size: 12px; line-height: 1.35; color: var(--ei-muted); text-align: end; b { color: var(--ei-text); font-weight: 600; } }
     .ei-iconbtn {
@@ -73,15 +81,53 @@
 
     // ---------- the first screen: five figures, then what needs a person
     .ei-sum-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 16px; }
-    .ei-sum { container-type: inline-size; display: flex; flex-direction: column; gap: 5px; padding: 16px 18px 14px; text-align: start; background: var(--ei-card); border: 1px solid var(--h-edge); border-radius: var(--h-r); box-shadow: var(--h-shadow); cursor: pointer; border-top: 3px solid transparent; transition: box-shadow .2s, transform .2s;
-        &:hover { box-shadow: var(--h-shadow-hover); transform: translateY(-2px); } &:active { transform: scale(.99); }
-        &.ei-tone-ok { border-top-color: var(--ei-ok); } &.ei-tone-warning { border-top-color: var(--ei-warn); } &.ei-tone-danger { border-top-color: var(--ei-bad); } &.ei-tone-info, &.ei-tone-neutral { border-top-color: var(--ei-s1); } }
-    .ei-sum-top { display: flex; flex-direction: column; align-items: flex-start; gap: 5px; }
-    .ei-sum-label { font-size: 13.5px; font-weight: 600; color: var(--ei-text); }
-    .ei-sum-tag { font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--ei-muted); background: var(--ei-surface-2); padding: 2px 8px; border-radius: 999px; }
-    .ei-sum-value { font-size: clamp(15px, 10.5cqw, 26px); font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -.03em; line-height: 1.1; color: var(--ei-ink); overflow-wrap: anywhere; }
-    .ei-sum-sub { font-size: 12.5px; color: var(--ei-muted); line-height: 1.35; }
+    .ei-sum { container-type: inline-size; position: relative; display: flex; flex-direction: column; gap: 6px; min-width: 0; padding: 14px 16px 12px; text-align: start; background: var(--ei-card); border: 1px solid var(--h-edge); border-radius: var(--h-r); box-shadow: var(--h-shadow); cursor: pointer; overflow: hidden; transition: box-shadow .2s, transform .2s; animation: ei-rise .4s ease both;
+        &:hover { box-shadow: var(--h-shadow-hover); transform: translateY(-2px); } &:active { transform: scale(.99); } }
+    .ei-sum-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+    .ei-sum-id { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+    .ei-sum-label { font-size: 13.5px; font-weight: 700; line-height: 1.25; color: var(--ei-ink); }
+    .ei-sum-tag { font-size: 11.5px; color: var(--ei-muted); }
+    .ei-sum-ico { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 8px; font-size: 14px; flex: none; }
+    .ei-sum-value { display: block; margin-top: 2px; font-size: clamp(17px, 13.4cqw, 28px); font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -.03em; line-height: 1.1; color: var(--ei-ink); white-space: nowrap; overflow: hidden; text-overflow: clip; }
+    .ei-sum-small { font-size: .56em; font-weight: 600; letter-spacing: 0; color: var(--ei-muted); }
+    .ei-sum-foot { display: flex; align-items: center; gap: 6px; min-width: 0; .ei-dchip { flex: none; height: 20px; padding: 0 7px; font-size: 11.5px; white-space: nowrap; } }
+    .ei-sum-sub { min-width: 0; font-size: 12px; color: var(--ei-muted); line-height: 1.3; text-wrap: pretty; font-variant-numeric: tabular-nums; }
+    .ei-sum-bars { display: flex; align-items: flex-end; gap: 2px; height: 28px; margin-top: auto; color: var(--ei-s1); border-bottom: 1px solid var(--ei-line); i { flex: 1; min-width: 1px; max-width: 14px; min-height: 0; border-radius: 2px 2px 0 0; background: currentColor; transform-origin: bottom; animation: ei-grow .5s cubic-bezier(.2, .8, .2, 1) both; } }
+    .ei-sum-meter { display: flex; gap: 2px; height: 8px; margin-top: auto; i { display: block; min-width: 3px; border-radius: 3px; background: var(--ei-seq-0); &.ei-step-1 { background: var(--ei-seq-1); } &.ei-step-2 { background: var(--ei-seq-2); } &.ei-step-3 { background: var(--ei-seq-3); } &.ei-step-4 { background: var(--ei-seq-4); } } }
     .ei-sum.ei-tone-danger .ei-sum-value { color: var(--ei-bad); }
+    @keyframes ei-grow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+    @keyframes ei-wipe { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+
+    // ---------- the big chart beside what customers owe. One axis, thin marks; text keeps the text colours and a mark beside it says which series
+    .ei-section.ei-pulse { margin-top: 14px; }
+    .ei-section.ei-summary { margin-top: 14px; }
+    .ei-pulse-grid { display: grid; grid-template-columns: minmax(0, 1.85fr) minmax(0, 1fr); gap: 16px; align-items: stretch; > .ei-hcard:only-child { grid-column: 1 / -1; } }
+    .ei-pulse .ei-hero-money { display: flex; flex-direction: column; min-width: 0; padding-block: 16px 12px; .ei-hcard-head { margin-bottom: 6px; > .ei-hico { display: none; } } .ei-agemeter { margin: 8px 0 2px; height: 10px; } .ei-agerows { margin-top: 4px; }
+        .ei-agerow { padding-block: 5px; grid-template-columns: 30px minmax(0, 1fr) auto 40px; gap: 2px 10px; } .ei-ageico { width: 30px; height: 30px; font-size: 15px; border-radius: 10px; } li.is-zero .ei-agerow { padding-block: 2px; .ei-ageico { width: 26px; height: 26px; font-size: 13px; } } }
+    .ei-c-s1 { color: var(--ei-s1); } .ei-c-s2 { color: var(--ei-s2); } .ei-c-s3 { color: var(--ei-s3); }
+    .ei-trend { display: flex; flex-direction: column; min-width: 0; }
+    .ei-trend-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+    .ei-trend-tablebtn { width: 34px; height: 34px; font-size: 15px; box-shadow: none; }
+    .ei-seg { display: inline-flex; padding: 3px; gap: 2px; border-radius: 12px; background: var(--ei-surface-2); }
+    .ei-seg-btn { min-height: 28px; padding: 0 11px; border: 0; border-radius: 9px; background: none; font-size: 12.5px; font-weight: 600; color: var(--ei-muted); cursor: pointer; white-space: nowrap; transition: background .15s, color .15s; &:hover { color: var(--ei-ink); } &.is-on { background: var(--ei-card); color: var(--ei-ink); box-shadow: 0 1px 3px rgba(15, 27, 51, .14); } }
+    ul.ei-legend { display: flex; flex-wrap: wrap; gap: 2px 8px; margin: 8px 0 0 -8px; padding: 0; list-style: none; }
+    .ei-legend-btn { display: inline-flex; align-items: center; gap: 7px; min-height: 28px; padding: 0 8px; border: 0; border-radius: 8px; background: none; font-size: 13px; font-weight: 600; color: var(--ei-text); cursor: pointer; &:hover { background: var(--ei-surface-2); } }
+    .ei-legend-sw { display: inline-block; flex: none; width: 10px; height: 10px; border-radius: 3px; background: currentColor; }
+    .ei-plot { display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: minmax(170px, 1fr) auto; flex: 1; gap: 6px 10px; margin-top: 10px; direction: ltr; }
+    .ei-plot-y { position: relative; min-width: 58px; span { position: absolute; right: 0; transform: translateY(50%); font-size: 11.5px; color: var(--ei-muted); white-space: nowrap; font-variant-numeric: tabular-nums; } }
+    .ei-plot-area { position: relative; min-height: 170px; touch-action: pan-y; cursor: crosshair; border-radius: 4px; &:focus-visible { outline: 3px solid var(--ei-focus); outline-offset: 4px; } }
+    .ei-plot-grid { position: absolute; left: 0; right: 0; height: 1px; background: var(--ei-line); }
+    .ei-plot-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; animation: ei-wipe .7s cubic-bezier(.3, .7, .2, 1) both; }
+    .ei-plot-bars { position: absolute; inset: 0; display: flex; align-items: stretch; }
+    .ei-plot-day { flex: 1; min-width: 0; display: flex; align-items: flex-end; justify-content: center; gap: 2px; padding-inline: 2px; i { flex: 1; max-width: 24px; min-width: 1px; border-radius: 4px 4px 0 0; background: currentColor; transform-origin: bottom; animation: ei-grow .45s cubic-bezier(.2, .8, .2, 1) both; } }
+    .ei-plot-cross { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--ei-line-strong); pointer-events: none; }
+    .ei-plot-dot { position: absolute; width: 12px; height: 12px; margin: 0 0 -6px -6px; border-radius: 50%; background: currentColor; border: 2px solid var(--ei-card); pointer-events: none; }
+    .ei-plot-tip { position: absolute; z-index: 5; top: 4px; transform: translateX(-50%); display: flex; flex-direction: column; gap: 3px; padding: 8px 11px; border-radius: 10px; background: var(--ei-ink); color: var(--ei-on-ink); font-size: 12.5px; white-space: nowrap; pointer-events: none; box-shadow: var(--ei-shadow-pop); &.is-start { transform: translateX(8px); } &.is-end { transform: translateX(calc(-100% - 8px)); } }
+    .ei-plot-tiprow { display: flex; align-items: center; gap: 7px; b { margin-inline-start: auto; padding-inline-start: 14px; font-weight: 700; } }
+    .ei-plot-x { grid-column: 2; position: relative; height: 16px; span { position: absolute; transform: translateX(-50%); font-size: 11.5px; color: var(--ei-muted); white-space: nowrap; &.is-first { transform: none; } &.is-last { transform: translateX(-100%); } } }
+    .ei-trend-empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; min-height: 190px; padding: 16px; text-align: center; p { margin: 0; max-width: 46ch; font-size: 14px; color: var(--ei-muted); text-wrap: pretty; } }
+    .ei-trend-table { max-height: 260px; margin-top: 10px; flex: 1; }
+    @media (prefers-reduced-motion: reduce) { .ei-plot-svg, .ei-plot-day i, .ei-sum-bars i, .ei-sum { animation: none; } }
     .ei-decide-grid { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); gap: 20px; align-items: start; }
     .ei-decide .ei-hcard-head { margin-bottom: 8px; }
     .ei-decide .ei-hcard-title { font-size: 17px; display: flex; align-items: center; gap: 8px; }
@@ -226,18 +272,6 @@
     .ei-flow { display: flex; flex-direction: column; transition: box-shadow .2s, transform .2s; &:hover { box-shadow: var(--h-shadow-hover); } }
     .ei-flow .ei-hcard-head { margin-bottom: 12px; }
     .ei-flow-open { width: 36px; height: 36px; box-shadow: none; font-size: 15px; }
-    .ei-fdot { position: absolute; z-index: 2; inset-inline-start: 100%; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%; background: currentColor; border: 3px solid var(--ei-card); box-shadow: 0 2px 6px rgba(15, 27, 51, .25); pointer-events: none; transition: top .12s, inset-inline-start .12s; }
-    .ei-fchart { position: relative; height: 96px; margin-top: 14px; color: var(--ei-s1); border-bottom: 1px solid var(--ei-line); }
-    .ei-c-s2 .ei-fchart { color: var(--ei-s2); } .ei-c-s3 .ei-fchart { color: var(--ei-s3); }
-    .ei-spark { display: block; width: 100%; height: 100%; overflow: visible; }
-    .ei-fbars { display: flex; align-items: flex-end; gap: 3px; height: 100%; }
-    .ei-fbar { flex: 1; min-width: 2px; border-radius: 5px 5px 2px 2px; background: linear-gradient(180deg, var(--ei-s1) 0%, var(--ei-s1-lite) 100%); transition: filter .12s, height .4s cubic-bezier(.2, .8, .2, 1); &.is-on { filter: brightness(1.12) saturate(1.2); } }
-    .ei-c-s2 .ei-fbar { background: linear-gradient(180deg, var(--ei-s2) 0%, var(--ei-s2-lite) 100%); }
-    .ei-c-s3 .ei-fbar { background: linear-gradient(180deg, var(--ei-s3) 0%, var(--ei-s3-lite) 100%); }
-    .ei-fx { display: flex; justify-content: space-between; margin-top: 6px; font-size: 11.5px; color: var(--ei-muted); }
-    .ei-ftip { position: absolute; z-index: 5; top: -6px; transform: translate(-50%, -100%); display: flex; flex-direction: column; gap: 1px; padding: 7px 11px; background: var(--ei-ink); color: var(--ei-on-ink); border-radius: 10px; font-size: 12.5px; white-space: nowrap; pointer-events: none; box-shadow: var(--ei-shadow-pop); }
-    .ei-flow-table { margin-top: auto; padding-top: 10px; align-self: flex-start; }
-    .ei-flow .ei-table-wrap { max-height: 190px; margin-top: 10px; }
     .ei-banklist li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; align-items: center; padding: 10px 0; border-top: 1px solid var(--ei-line); font-size: 14px; &:first-child { margin-top: 10px; } }
     .ei-bank-bal small { font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--ei-muted); margin-inline-end: 4px; }
     .ei-bank-act { grid-column: 1 / -1; justify-self: start; min-height: 32px; }
@@ -372,6 +406,7 @@
     // ---------- tablet
     @media (max-width: 1199.98px) {
         .ei-hero-grid { grid-template-columns: 1fr; }
+        .ei-pulse-grid { grid-template-columns: minmax(0, 1fr); }
         .ei-decide-grid { grid-template-columns: minmax(0, 1fr); }
     }
     @media (max-width: 1100px) {
@@ -389,10 +424,13 @@
         .ei-dalerts .ei-alert { display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; align-items: start; gap: 6px 12px; .ei-alert-cta { grid-column: 2 / -1; justify-self: start; } }
         .ei-decide .ei-hcard { padding-inline: 14px; } .ei-dalerts, .ei-dtasks { margin-inline: -6px; }
         .ei-top-bar { margin-top: 0; } .ei-top-sub { margin-top: 2px; }
-        .ei-section { margin-top: 18px; } .ei-summary { margin-top: 10px; } .ei-top { gap: 6px 24px; } .ei-sub-company, .ei-role-user { display: none; }          // on a phone the avatar says who, the line says which view and which day
+        .ei-section { margin-top: 18px; } .ei-section.ei-summary { margin-top: 10px; } .ei-top { gap: 6px 24px; } .ei-sub-company, .ei-role-user { display: none; }          // on a phone the avatar says who, the line says which view and which day
         .ei-top-mini { gap: 6px; .ei-iconbtn { width: 34px; height: 34px; } } .ei-top-tools { gap: 6px; }
         .ei-sum-sub { font-size: 12px; }
-        .ei-top-title { font-size: 34px; } .ei-top-lead { font-size: 14.5px; } .ei-title-btn { width: 36px; height: 36px; }
+        .ei-trend-head { .ei-hcard-id { flex: 1 1 100%; } .ei-seg { flex: 1; } .ei-seg-btn { flex: 1; padding-inline: 6px; text-align: center; } }
+        .ei-plot { grid-template-rows: 170px auto; } .ei-plot-y { min-width: 46px; } .ei-pulse-grid { gap: 12px; }
+        .ei-compare, .ei-datepill.is-static { display: none; }
+        .ei-title-row { flex-wrap: wrap; gap: 8px 10px; } .ei-top-title { font-size: 34px; } .ei-top-lead { font-size: 14.5px; } .ei-title-btn { width: 36px; height: 36px; }
         .ei-hcard { padding: 16px 16px 14px; }
         .ei-bignum { font-size: 30px; }
         .ei-grid-kpi, .ei-grid-kpi-small { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }

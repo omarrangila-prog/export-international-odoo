@@ -70,9 +70,9 @@ class TestHomeV2(TransactionCase):
             self.assertEqual(d['profile'], profile, user.login)
             self.assertEqual(sorted(d['layout']), sorted(set(d['layout'])), 'no section is listed twice')
         ceo_layout = self.home(self.ceo)['layout']
-        self.assertEqual(ceo_layout[:2], ['summary', 'decide'])             # the first screen is the figures and what needs a person
+        self.assertEqual(ceo_layout[:3], ['summary', 'pulse', 'decide'])    # figures and charts first, then what needs a person
         self.assertLess(ceo_layout.index('hero'), ceo_layout.index('work'))  # then the overview, before the long work list
-        self.assertEqual(self.home(self.approver)['layout'][0], 'work')     # workflow first
+        self.assertEqual(self.home(self.approver)['layout'][:3], ['summary', 'pulse', 'work'])     # the figures this role may see, then its workflow
         self.assertEqual(self.home(self.sysadmin)['layout'][0], 'system')
 
     def test_02_money_is_only_for_finance_and_management(self):

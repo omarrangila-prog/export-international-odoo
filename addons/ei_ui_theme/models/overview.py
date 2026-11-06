@@ -76,13 +76,18 @@ class EiHomeOverview(models.AbstractModel):
         prev = sum(by_day.get(d, 0.0) for d in prev_days)
         digits = 3 if unit == 'mtl' else 2
         text = (lambda v: '{:,.3f} MTL'.format(v)) if unit == 'mtl' else self._fmt
+        series, run = [], 0.0
+        for d in days:
+            run += by_day.get(d, 0.0)
+            series.append({'iso': fields.Date.to_string(d), 'date': format_date(self.env, d, date_format='dd MMM'),
+                           'v': round(by_day.get(d, 0.0), digits), 'text': text(by_day.get(d, 0.0)),
+                           'run': round(run, digits), 'run_text': text(run)})
         return {
             'key': key, 'label': label, 'icon': icon, 'color': color, 'unit': unit,
             'value': round(cur, digits), 'text': text(cur), 'prev': round(prev, digits), 'prev_text': text(prev),
             'delta': self._delta(cur, prev), 'empty': not (cur or prev),
             'sub': _("Before: %s", text(prev)),
-            'series': [{'iso': fields.Date.to_string(d), 'date': format_date(self.env, d, date_format='dd MMM'),
-                        'v': round(by_day.get(d, 0.0), digits), 'text': text(by_day.get(d, 0.0))} for d in days],
+            'series': series,
         }
 
     def _flows(self, period):

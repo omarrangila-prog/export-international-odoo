@@ -11,7 +11,7 @@ module.exports = {
     const admin = await new Session(ctx, browser, 'admin', 'admin').start();
     const ceo = await new Session(ctx, browser, 'demo.ceo', 'demo').start();
     const p = ceo.page;
-    const card = (title) => p.locator('.ei-flow', { has: p.locator('.ei-hcard-title', { hasText: new RegExp(`^${title}$`) }) });
+    const card = (title) => p.locator('.ei-sum', { has: p.locator('.ei-sum-label', { hasText: new RegExp(`^${title}$`) }) });
     const sumInvoiced = async (from, to) => (await admin.rpc('account.move', 'search_read', [[['move_type', '=', 'out_invoice'], ['state', '=', 'posted'], ['invoice_date', '>=', from], ['invoice_date', '<=', to]], ['amount_total_signed']])).reduce((t, r) => t + r.amount_total_signed, 0);
     const sumReceived = async (from, to) => (await admin.rpc('ei.bank.import.line', 'search_read', [[['state', '=', 'posted'], ['amount', '>', 0], ['date', '>=', from], ['date', '<=', to]], ['amount']])).reduce((t, r) => t + r.amount, 0);
     const deltaText = (cur, prev) => prev > 0 ? (Math.round((cur - prev) / prev * 100) > 0 ? '+' : '') + Math.round((cur - prev) / prev * 100) + '%' : (cur > 0 ? 'New' : 'No activity');
@@ -31,41 +31,58 @@ module.exports = {
     const inv = flows.find(f => f.key === 'invoiced');
     const first = inv.series[0].iso, last = inv.series[inv.series.length - 1].iso;
     const cur = await sumInvoiced(first, last), prev = await sumInvoiced(addDays(first, -14), addDays(first, -1));
-    const shown = await card('Invoiced').locator('.ei-bignum').innerText();
+    const shown = await card('Invoiced').locator('.ei-sum-value').innerText();
     ctx.check(Math.abs(digits(shown) - cur) < 0.01 && cur > 0, '2 "Invoiced" equals the posted customer invoices of the period', `${shown} vs ${cur}`);
     const chip = (await card('Invoiced').locator('.ei-dchip').innerText()).replace(/\s+/g, ' ');
     ctx.check(chip.includes(deltaText(cur, prev)), '2 its change is worked out against the 14 days before', `${chip} vs ${deltaText(cur, prev)} (before ${prev})`);
-    ctx.check(/Before:/.test(await card('Invoiced').innerText()) && digits(await card('Invoiced').locator('.ei-hcard-sub').innerText()) === prev, '2 and the card says what the earlier figure was', String(prev));
+    ctx.check(digits(await card('Invoiced').locator('.ei-sum-sub').innerText()) === prev, '2 and the tile says what the earlier figure was', String(prev));
     const rec = await sumReceived(first, last);
-    ctx.check(Math.abs(digits(await card('Received in the bank').locator('.ei-bignum').innerText()) - rec) < 0.01, '2 "Received in the bank" equals the posted bank receipts of the period');
-    ctx.check(await card('Material lifted').count() === 1, '2 the lifted material card is there for this role');
+    ctx.check(Math.abs(digits(await card('Received in bank').locator('.ei-sum-value').innerText()) - rec) < 0.01, '2 "Received in bank" equals the posted bank receipts of the period');
+    ctx.check(await card('Material lifted').count() === 1, '2 the lifted material tile is there for this role');
+    ctx.check(await card('Invoiced').locator('.ei-sum-bars i').count() === 14, '2 the tile shows one small bar per day');
 
-    // ---- 3 changing the period changes the cards, from the server
+    // ---- 3 changing the period changes the tiles and the chart, from the server
     await p.locator('.ei-period select').selectOption('30d'); await p.waitForTimeout(1800);
     const f30 = (await ceo.rpc('ei.home', 'get_data', ['30d'])).flows.find(f => f.key === 'invoiced');
     const cur30 = await sumInvoiced(f30.series[0].iso, f30.series[f30.series.length - 1].iso);
-    ctx.check(f30.series.length === 30 && Math.abs(digits(await card('Invoiced').locator('.ei-bignum').innerText()) - cur30) < 0.01, '3 "Last 30 days" re-reads the cards: 30 days, and the figure equals the records', String(cur30));
-    ctx.check(/compared to/.test(await p.locator('.ei-h2-note').first().innerText()), '3 the section says which days it shows and which days it is compared to');
+    ctx.check(f30.series.length === 30 && Math.abs(digits(await card('Invoiced').locator('.ei-sum-value').innerText()) - cur30) < 0.01, '3 "Last 30 days" re-reads the tiles: 30 days, and the figure equals the records', String(cur30));
     await p.locator('.ei-period select').selectOption('7d'); await p.waitForTimeout(1500);
-    ctx.check((await card('Invoiced').locator('.ei-fx span').first().innerText()).length > 0 && await card('Invoiced').count() === 1, '3 "Last 7 days" works too');
+    ctx.check((await p.locator('.ei-plot-x span').first().innerText()).length > 0 && await card('Invoiced').locator('.ei-sum-bars i').count() === 7, '3 "Last 7 days" works too');
     await p.locator('.ei-period select').selectOption('14d'); await p.waitForTimeout(1500);
 
-    // ---- 4 charts: hover, table alternative, open the records
-    const chart = card('Invoiced').locator('.ei-fchart');
-    await chart.scrollIntoViewIfNeeded(); await p.waitForTimeout(300);
-    const box = await chart.boundingBox();
-    await p.mouse.move(box.x + box.width * 0.5, box.y + box.height * 0.5); await p.waitForTimeout(400);
-    ctx.check(await card('Invoiced').locator('.ei-ftip').count() === 1 && /\d/.test(await card('Invoiced').locator('.ei-ftip').innerText()), '4 hovering a chart shows that day and its figure');
-    await card('Invoiced').getByRole('button', { name: 'Show as table' }).click(); await p.waitForTimeout(400);
-    const rows = card('Invoiced').locator('tbody tr');
-    let total = 0; for (let i = 0; i < await rows.count(); i++) total += digits(await rows.nth(i).locator('td').innerText());
-    ctx.check(await rows.count() === 14 && Math.abs(total - cur) < 0.01, '4 the table has one row per day and adds up to the card', `${await rows.count()} rows, ${total}`);
-    await card('Invoiced').getByRole('button', { name: 'Show chart' }).click();
+    // ---- 4 the big chart: hover, keyboard, modes, table alternative, open the records
+    const trend = p.locator('.ei-trend'), chart = trend.locator('.ei-plot-area');
+    const modes = await trend.locator('.ei-seg-btn').allInnerTexts();
+    ctx.check(modes.join('|') === 'Running total|Per day|Material', '4 the chart offers the running total, each day and material (rupees and tons never share an axis)', modes.join('|'));
+    ctx.check((await trend.locator('.ei-legend').innerText()).includes('Invoiced') && (await trend.locator('.ei-legend').innerText()).includes('Received in the bank'), '4 two series have a legend');
+    const hoverTip = async (x) => { const box = await chart.boundingBox(); await p.mouse.move(box.x + box.width * x, box.y + box.height * 0.5); await p.waitForTimeout(350); return (await trend.locator('.ei-plot-tip').innerText()).replace(/\s+/g, ' '); };
+    const endTip = await hoverTip(0.995);
+    ctx.check(digits(endTip.split('Invoiced')[1]) === Math.round(cur * 100) / 100, '4 at the last day the running total equals the tile', `${endTip} vs ${cur}`);
+    const inside = await p.evaluate(() => { const t = document.querySelector('.ei-plot-tip').getBoundingClientRect(), c = document.querySelector('.ei-trend').getBoundingClientRect(); return t.left >= c.left && t.right <= c.right; });
+    ctx.check(inside, '4 the tooltip stays inside the card at the edge of the chart');
+    await p.mouse.move(2, 2); await p.waitForTimeout(200);
+    ctx.check(await trend.locator('.ei-plot-tip').count() === 0, '4 leaving the chart closes the tooltip');
+    await chart.focus(); await p.keyboard.press('ArrowLeft'); await p.waitForTimeout(200);
+    ctx.check(await trend.locator('.ei-plot-tip').count() === 1, '4 the arrow keys read the chart too');
+    await p.locator('.ei-top-title').click();
+    await trend.getByRole('button', { name: 'Per day', exact: true }).click(); await p.waitForTimeout(600);
+    ctx.check(await trend.locator('.ei-plot-day').count() === 14 && await trend.locator('.ei-plot-svg').count() === 0, '4 "Per day" draws a group of bars for each of the 14 days');
+    await trend.getByRole('button', { name: 'Show as table' }).click(); await p.waitForTimeout(400);
+    const rows = trend.locator('tbody tr');
+    let total = 0; for (let i = 0; i < await rows.count(); i++) total += digits(await rows.nth(i).locator('td').first().innerText());
+    ctx.check(await rows.count() === 14 && Math.abs(total - cur) < 0.01, '4 the table has one row per day and adds up to the tile', `${await rows.count()} rows, ${total}`);
+    await trend.getByRole('button', { name: 'Show chart' }).click();
+    await trend.getByRole('button', { name: 'Material', exact: true }).click(); await p.waitForTimeout(500);
+    ctx.check(/MTL/.test(await trend.locator('.ei-plot-y').innerText()) && !/Rs/.test(await trend.locator('.ei-plot-y').innerText()), '4 "Material" has its own axis in MTL');
+    await trend.getByRole('button', { name: 'Running total', exact: true }).click(); await p.waitForTimeout(300);
     m = ceo.mark();
-    await card('Invoiced').locator('.ei-flow-open').click(); await p.waitForSelector('.o_list_view, .o_kanban_view', { timeout: 15000 });
+    await card('Invoiced').click(); await p.waitForSelector('.o_list_view, .o_kanban_view', { timeout: 15000 });
     await p.waitForSelector('.o_data_row', { timeout: 15000 }).catch(() => {});
-    ctx.check(await p.locator('.o_data_row').count() >= 1, '4 the arrow opens the invoices that were added up');
-    await ceo.clean('4 the flow card and its records are clean', m);
+    ctx.check(await p.locator('.o_data_row').count() >= 1, '4 the tile opens the invoices that were added up');
+    await ceo.home();
+    await trend.locator('.ei-legend-btn').first().click(); await p.waitForSelector('.o_list_view, .o_kanban_view', { timeout: 15000 });
+    ctx.check(true, '4 the legend opens the same records');
+    await ceo.clean('4 the tile, the chart and their records are clean', m);
 
     // ---- 5 what customers owe, and who owes most
     await ceo.home();
@@ -125,8 +142,8 @@ module.exports = {
     m = ops.mark();
     await ops.home();
     const text = (await op.locator('.ei-home').innerText()).replace(/\s+/g, ' ');
-    ctx.check(await op.locator('.ei-flow:has(.ei-hcard-title:text-is("Invoiced"))').count() === 0 && await op.locator('.ei-hero-money:has(.ei-hcard-title:text-is("Customers owe us"))').count() === 0, '8 an operator has no invoiced card and no "Customers owe us" card');
-    ctx.check(await op.locator('.ei-flow:has(.ei-hcard-title:text-is("Material lifted"))').count() === 1, '8 but does have the material lifted card');
+    ctx.check(await op.locator('.ei-sum:has(.ei-sum-label:text-is("Invoiced"))').count() === 0 && await op.locator('.ei-hero-money:has(.ei-hcard-title:text-is("Customers owe us"))').count() === 0, '8 an operator has no invoiced tile and no "Customers owe us" card');
+    ctx.check(await op.locator('.ei-sum:has(.ei-sum-label:text-is("Material lifted"))').count() === 1 && await op.locator('.ei-trend .ei-hcard-title').innerText() === 'Material lifted' && await op.locator('.ei-trend .ei-seg').count() === 0, '8 but has the material lifted tile and chart, and no money chart to switch to');
     ctx.check(!/Rs\.\s?[\d,]{7,}/.test(text), '8 and no large money figure appears anywhere on the page');
     const opAsk = await op.locator('.ei-askbar-chips button').allInnerTexts();
     ctx.check(!opAsk.some(c => /owes us|overdue|we owe/i.test(c)) && opAsk.length >= 1, '8 the question box offers this role only questions it can have answered', opAsk.join(' | '));

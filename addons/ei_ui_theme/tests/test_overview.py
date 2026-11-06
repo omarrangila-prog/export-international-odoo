@@ -154,13 +154,22 @@ class TestOverview(TestJourney):
         self.assertIsNone(self.home(self.cashclerk)['recent'])
 
     # ------------------------------------------------------------------ o09 the page as a whole
+    def test_o08b_the_running_total_adds_up_to_the_figure_on_the_tile(self):
+        for f in self.home(self.ceo)['flows']:
+            run = 0.0
+            for p in f['series']:
+                run += p['v']
+                self.assertAlmostEqual(p['run'], run, 2, f['key'])
+            self.assertAlmostEqual(f['series'][-1]['run'], f['value'], 2, f['key'])
+            self.assertEqual(f['series'][-1]['run_text'], f['text'], f['key'])
+
     def test_o09_banks_total_and_layouts(self):
         d = self.home(self.ceo)
         self.assertEqual(d['banks_total'], self.money(sum(b['amount'] for b in d['banks'])))
         kpi = next((k for k in d['kpis'] if k['key'] == 'bank'), None)
         if kpi:
             self.assertEqual(kpi['value'], d['banks_total'])
-        known = {'summary', 'decide', 'hero', 'flows', 'kpis', 'alerts', 'work', 'charts', 'recent', 'activity', 'quick', 'system'}
+        known = {'summary', 'pulse', 'decide', 'hero', 'flows', 'kpis', 'alerts', 'work', 'charts', 'recent', 'activity', 'quick', 'system'}
         for user in (self.ceo, self.bapprover, self.officer, self.maker, self.dispatch, self.cashclerk, self.capprover):
             lay = self.home(user)['layout']
             self.assertTrue(set(lay) <= known, (user.login, lay))
