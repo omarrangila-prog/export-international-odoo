@@ -33,8 +33,9 @@ class EiDa(models.Model):
         cur, comp = self.currency_id, self.company_id
         if not cur or not comp or cur == comp.currency_id:
             return None
-        return self.env['res.currency.rate'].search([('currency_id', '=', cur.id), ('name', '<=', self.date),
+        rate = self.env['res.currency.rate'].search([('currency_id', '=', cur.id), ('name', '<=', self.date),
                                                      ('company_id', 'in', [comp.id, False])], order='name desc', limit=1)
+        return rate or False            # an empty recordset is not False: callers test `is False`
 
     @api.depends('currency_id', 'date', 'company_id')
     def _compute_fx(self):
@@ -76,9 +77,19 @@ class EiDaLine(models.Model):
     cn_amount = fields.Monetary('Credit note on this coil', currency_field='currency_id')
     cn_text = fields.Char('Credit note text (this coil)')
     feeding_calc = fields.Json('Calculation', readonly=True, copy=False)
-    spread_per_mtl = fields.Monetary('Spread / MTL', compute='_compute_spread', currency_field='currency_id')
-    gross_spread = fields.Monetary('Gross spread (coil)', compute='_compute_spread', currency_field='currency_id',
+    currency_id = fields.Many2one(related='da_id.contract_id.currency_id', store=True)
+    spread_per_mtl = fields.Monetary('Spread / MTL', compute='_compute_spread', store=True, currency_field='currency_id', aggregator='avg')
+    gross_spread = fields.Monetary('Gross spread (coil)', compute='_compute_spread', store=True, currency_field='currency_id',
                                    help="MTL x spread. Before costs and taxes; not booked profit.")
+    result = fields.Selection([('profit', 'Profit'), ('even', 'Break-even'), ('loss', 'Loss')], compute='_compute_spread', store=True)
+    cn_commission = fields.Monetary('Taken off the CN', compute='_compute_cn', store=True, currency_field='currency_id',
+                                    help="From the saved calculation (the formula's own percentage).")
+    net_cn = fields.Monetary('Net CN / MTL', compute='_compute_cn', store=True, currency_field='currency_id')
+    cn_total = fields.Monetary('Net CN for the coil', compute='_compute_cn', store=True, currency_field='currency_id',
+                               help="Net CN per MTL x the coil's MTL, as the examples treat a CN per ton (to be confirmed by the client).")
+    da_date = fields.Date(related='da_id.date', store=True, string='DA date')
+    da_parent_id = fields.Many2one(related='da_id.parent_partner_id', store=True, string='Parent company')
+    formula_text = fields.Char('Formula used', compute='_compute_cn', store=True)
     loss_reason = fields.Char('Why sold below cost')
     customer_code_id = fields.Many2one('ei.legacy.code', string='Customer code', domain="[('source_sheet_key', '=', 'CUSTOMER')]")
     trade_code_id = fields.Many2one('ei.legacy.code', string='Purchase / sale code', domain="[('source_sheet_key', '=', 'FOR PURCHASE')]")
@@ -95,6 +106,18 @@ class EiDaLine(models.Model):
             spread = fe.money(Decimal(str(l.sale_rate or 0)) - Decimal(str(l.purchase_rate or 0)))
             l.spread_per_mtl = float(spread)
             l.gross_spread = float(fe.money(spread * Decimal(str(l.mtl or 0))))
+            l.result = 'profit' if spread > 0 else 'loss' if spread < 0 else 'even'
+
+    @api.depends('feeding_calc', 'mtl')
+    def _compute_cn(self):
+        for l in self:
+            calc = l.feeding_calc or {}
+            rows = {r.get('key'): r.get('value') for r in calc.get('rows') or []}
+            l.cn_commission = float(rows.get('cn_commission') or 0)
+            l.net_cn = float(rows.get('net_cn') or 0)
+            l.cn_total = float(fe.money(Decimal(str(rows.get('net_cn') or 0)) * Decimal(str(l.mtl or 0))))
+            f = calc.get('formula')
+            l.formula_text = f and '%s v%s' % (f.get('code'), f.get('version')) or (_("Typed rates") if calc else False)
 
     @api.constrains('customer_code_id', 'trade_code_id', 'pl_code_id')
     def _check_code_sheets(self):

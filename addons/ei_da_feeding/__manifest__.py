@@ -9,6 +9,7 @@
     'data': [
         'views/desk_views.xml',
         'views/da_views.xml',
+        'views/report_views.xml',
     ],
     'assets': {
         'web.assets_backend': [

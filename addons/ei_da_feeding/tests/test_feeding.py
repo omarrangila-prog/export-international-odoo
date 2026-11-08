@@ -216,22 +216,27 @@ class TestFeeding(TransactionCase):
         self.assertIn('changed by hand', str(e.exception))
 
     def test_12_a_foreign_currency_needs_a_rate_and_shows_the_base_amount(self):
-        usd = self.env.ref('base.USD')
-        usd.active = True
-        if usd == self.env.company.currency_id:
-            self.skipTest('company currency is USD')
-        self.env['res.currency.rate'].search([('currency_id', '=', usd.id)]).unlink()
-        d = self.new_da(self.contract(currency=usd))
+        # a fresh test database may run in USD: then the "foreign" currency of this test is EUR
+        foreign = self.env.ref('base.USD') if self.env.company.currency_id != self.env.ref('base.USD') else self.env.ref('base.EUR')
+        foreign.active = True
+        self.env['res.currency.rate'].search([('currency_id', '=', foreign.id)]).unlink()
+        d = self.new_da(self.contract(currency=foreign))
         line = self.coil(d, 'direct_no_commission', purchase_rate='800', sale_rate='812')
-        self.assertIn('No USD rate', d.fx_text)
+        self.assertIs(d._fx(), False)
+        self.assertIn('No %s rate' % foreign.name, d.fx_text)
+        self.assertTrue(self.desk.da_load(d.id)['fx_missing'])
         d.with_user(self.maker).action_review()
-        with self.assertRaises(UserError):
+        with self.assertRaises(UserError) as e:
             d.with_user(self.checker).action_approve()
-        self.env['res.currency.rate'].create({'currency_id': usd.id, 'name': '2026-11-01', 'rate': 1 / 280.0,
+        self.assertIn('No %s rate' % foreign.name, str(e.exception))
+        self.env['res.currency.rate'].create({'currency_id': foreign.id, 'name': '2026-11-01', 'rate': 1 / 280.0,
                                               'company_id': self.env.company.id})
+        d.invalidate_recordset(['fx_text'])
         prev = self.desk.preview(d.id, {'contract_line_id': d.contract_id.line_ids.id, 'method': 'direct_no_commission',
                                         'purchase_rate': '800', 'sale_rate': '812', 'weight_kg': '4574'})
-        self.assertEqual((prev['currency'], prev['base']['purchase_rate'], prev['base']['total_spread']), ('USD', '224000.00', '15368.64'))
+        # the coil's own amount (54.89) converted, as Odoo converts a document amount: 54.89 x 280 = 15,369.20
+        self.assertEqual((prev['currency'], prev['base']['purchase_rate'], prev['total_spread'], prev['base']['total_spread']),
+                         (foreign.name, '224000.00', '54.89', '15369.20'))
         d.with_user(self.checker).action_approve()
         self.assertEqual((line.purchase_rate, line.sale_rate), (800.0, 812.0))                # the DA keeps its own currency
 
@@ -255,3 +260,21 @@ class TestFeeding(TransactionCase):
         with self.assertRaises(UserError) as e:
             c.with_user(self.maker).action_review()
         self.assertIn('268051.41', str(e.exception))
+
+    def test_15_feeding_history_and_credit_note_register_show_what_was_saved(self):
+        d = self.new_da(self.contract())
+        a = self.coil(d, 'purchase_with_cn', 'COIL-A', weight_kg='5120')
+        self.coil(d, 'normal_sale', 'COIL-B')
+        self.coil(d, 'loss_sale', 'COIL-C')
+        self.assertEqual((a.cn_commission, a.net_cn, a.cn_total, a.formula_text), (13.2, 986.8, 5052.42, 'ISL_ASML_DEALER_NET v1'))
+        hist = self.env.ref('ei_da_feeding.ei_feeding_history_action')
+        rows = self.env['ei.da.line'].with_user(self.maker).search(eval(hist.domain) + [('da_id', '=', d.id)])
+        self.assertEqual(len(rows), 3)
+        by = {m: (s, r) for m, s, r in self.env['ei.da.line'].with_user(self.maker)._read_group(
+            eval(hist.domain) + [('da_id', '=', d.id)], ['feeding_method'], ['gross_spread:sum', '__count'])}
+        self.assertEqual(by['normal_sale'][0], 9282.48)
+        self.assertEqual(by['loss_sale'][0], -31883.52)
+        self.assertEqual(self.env['ei.da.line'].search_count([('da_id', '=', d.id), ('result', '=', 'loss')]), 1)
+        reg = self.env.ref('ei_da_feeding.ei_cn_register_action')
+        cn = self.env['ei.da.line'].with_user(self.maker).search(eval(reg.domain) + [('da_id', '=', d.id)])
+        self.assertEqual(cn.mapped('coil_no'), ['COIL-A'])                 # only the coil with a CN

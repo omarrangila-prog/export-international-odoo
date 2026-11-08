@@ -42,6 +42,13 @@ Orders & Trucks › **DA feeding desk** (module `ei_da_feeding`). One screen for
 - A DA in a foreign currency (USD) needs an Odoo exchange rate on or before the DA date. The screen shows the company-currency equivalent.
 - A contract line whose formula gives a purchase rate cannot be sent for review with a different hand-typed rate.
 
+## Reports (Orders & Trucks)
+- **DA feeding history:** every coil fed in the desk, with method, rates, spread per MTL, gross spread for the coil, and result (a loss is shown in red). It has list, pivot and graph views, grouped by currency and then method. Totals are never added across currencies.
+- **Credit note register:** the coils fed with "Purchase with CN". It shows the CN per MTL, the 1.32% taken off it, the net CN per MTL, the net CN for the coil's tons, and the purchase rate after the CN.
+
+## Currency
+A DA takes the currency of its contract. For a USD DA, the desk shows Odoo's exchange rate for the DA date and the PKR equivalent of the coil, converted as Odoo converts a document amount. A USD DA with no rate on or before its date cannot be approved.
+
 ## After approval
 The approved DA line carries its purchase and sale rate into the existing chain:
 - the daily order request;

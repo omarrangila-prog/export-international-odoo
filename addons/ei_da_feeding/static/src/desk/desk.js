@@ -9,6 +9,8 @@ const MODEL = "ei.feeding.desk";
 const OFFSET_METHODS = ["normal_sale", "high_profit_sale", "loss_sale", "sale_at_mill_rate", "purchase_with_cn"];
 const LOOKUPS = { customer: "Customer", customer_code: "Customer code", trade_code: "Purchase / sale code", pl_code: "P&L code" };
 
+// today in the person's own time zone (Karachi), not UTC: between midnight and 5 am they differ by a day
+const localDay = () => { const n = new Date(), z = (x) => String(x).padStart(2, "0"); return `${n.getFullYear()}-${z(n.getMonth() + 1)}-${z(n.getDate())}`; };
 const toNum = (v) => parseFloat(String(v === undefined || v === null ? "" : v).replace(/,/g, ""));
 export function fmt(v, digits = 2) {
     const n = toNum(v);
@@ -116,7 +118,7 @@ export class EiDaFeeding extends Component {
     }
     startNewDa() {
         const c = this.state.list.contracts;
-        this.state.newDa = { contract_id: c.length === 1 ? String(c[0].id) : "", name: "", date: new Date().toISOString().slice(0, 10),
+        this.state.newDa = { contract_id: c.length === 1 ? String(c[0].id) : "", name: "", date: localDay(),
             order_datetime: "", ship_date: "", printed_customer: "" };
     }
     async createDa() {

@@ -9,6 +9,12 @@ const GOLDEN = {
   direct_no_commission: ['229,500.00', '230,500.00', '+1,000.00', '+4,574.00'],
 };
 
+async function pickIn(p, label, term) {
+  await p.locator('.ei-fd-pick', { hasText: label }).getByRole('button', { name: /Choose|Change/ }).first().click();
+  await p.fill('#ei-fd-look', term); await p.waitForTimeout(700);
+  await p.locator('.ei-fd-lookrows button').first().click(); await p.waitForTimeout(300);
+}
+
 module.exports = {
   name: '20 DA feeding desk (six methods in practice, a real coil to review)',
   async run(ctx, browser) {
@@ -95,6 +101,82 @@ module.exports = {
     try { await ap.rpc('ei.da', 'action_approve', [[da.id]]); } catch (e) { refused = String(e.message || e); }
     ctx.check(/not yet verified/.test(refused), '3 approval is refused: the customer code is not verified, nothing is guessed', refused.slice(0, 160));
     await ap.close();
+
+    // ---- 5 a USD contract: the PKR equivalent is shown, and a DA dated before any USD rate cannot be approved
+    const u = await new Session(ctx, browser, 'demo.contracts', 'demo', [1440, 900], { timeout: 30000 }).start();
+    const up = u.page;
+    m = u.mark();
+    await u.goto(`/odoo/action-${act}`); await up.waitForSelector('.ei-fd-method', { timeout: 30000 });
+    const feedUsd = async (name, date) => {
+      await up.getByRole('tab', { name: /Real entry/ }).click();
+      await up.getByRole('button', { name: 'New DA' }).click();
+      await up.waitForSelector('.ei-fd-main select option:nth-child(2)', { state: 'attached', timeout: 15000 });
+      const o = await up.locator('.ei-fd-main select option').evaluateAll((os) => os.map((x) => [x.value, x.textContent]));
+      await up.locator('.ei-fd-main select').first().selectOption(o.find(([, tx]) => /USD-1/.test(tx))[0]);
+      await up.fill('#ei-fd-daname', name);
+      await up.locator('.ei-fd-main input[type="date"]').last().fill(date);
+      await up.locator('.ei-fd-main .ei-fd-field.is-wide input').last().fill('M/S DEMO CUSTOMER - NOOR STEEL');
+      await up.getByRole('button', { name: 'Create draft DA' }).click();
+      await up.waitForSelector('.ei-fd-daname', { timeout: 15000 });
+      await up.locator('.ei-fd-paper input[type="file"]').setInputFiles({ name: 'da.pdf', mimeType: 'application/pdf', buffer: Buffer.from('%PDF-1.4\n% synthetic\n') });
+      await up.waitForTimeout(1000);
+      await up.getByRole('button', { name: 'Add a coil' }).click();
+      await up.fill('#ei-fd-coil', name + '-C1');
+      await up.locator('.ei-fd-editor .ei-fd-field:has-text("Weight") input').fill('4574');
+      await pickIn(up, 'Customer', 'Noor'); await pickIn(up, 'Customer code', 'D.02');
+      await up.getByRole('radio', { name: /Direct purchase/ }).click();
+      await up.locator('.ei-fd-editor .ei-fd-field:has-text("Purchase rate") input').fill('800');
+      await up.locator('.ei-fd-editor .ei-fd-field:has-text("Sale rate") input').fill('812');
+      await up.waitForTimeout(1200);
+    };
+    const today = new Date(Date.now() + 5 * 3600 * 1000).toISOString().slice(0, 10);
+    const usdName = 'DA-E2E-USD-' + Date.now().toString().slice(-5);
+    await feedUsd(usdName, today);
+    const fx = await up.locator('.ei-fd-dahead').innerText();
+    ctx.check(/USD/.test(fx) && /1 USD = 280/.test(fx), '5 the DA says it is in USD and which rate applies', fx.replace(/\s+/g, ' '));
+    const base = await up.locator('.ei-fd-answer').innerText();
+    ctx.check(/In PKR/.test(base) && base.includes('224,000.00') && base.includes('+54.89 USD') && base.includes('+15,369.20'), '5 the PKR equivalent is shown: 800 x 280 = 224,000.00; the coil spread 54.89 USD = 15,369.20 PKR', base.replace(/\s+/g, ' ').slice(0, 200));
+    await ctx.shot(up, 'feeding_usd');
+    await up.getByRole('button', { name: 'Save coil (draft)' }).click(); await up.waitForTimeout(1200);
+    await up.getByRole('button', { name: 'Send for review' }).click(); await up.waitForTimeout(1200);
+    const early = new Date(Date.parse(today.slice(0, 8) + '01T00:00:00Z') - 86400000).toISOString().slice(0, 10);
+    const oldName = usdName + '-OLD';
+    await feedUsd(oldName, early);
+    ctx.check(/No USD rate/.test(await up.locator('.ei-fd-dahead').innerText()), '5 a USD DA dated before any USD rate says so before it is sent');
+    await up.getByRole('button', { name: 'Save coil (draft)' }).click(); await up.waitForTimeout(1200);
+    await up.getByRole('button', { name: 'Send for review' }).click(); await up.waitForTimeout(1200);
+    await u.clean('5 the USD entries are clean', m);
+    await u.close();
+    const ap2 = await new Session(ctx, browser, 'demo.contractapprover', 'demo').start();
+    const [usdDa] = await admin.rpc('ei.da', 'search_read', [[['name', '=', usdName]], ['id']]);
+    const [oldDa] = await admin.rpc('ei.da', 'search_read', [[['name', '=', oldName]], ['id']]);
+    await ap2.rpc('ei.da', 'action_approve', [[usdDa.id]]);
+    const [st] = await admin.rpc('ei.da', 'read', [[usdDa.id], ['state']]);
+    ctx.check(st.state === 'approved', '5 the USD DA with a verified code and a rate is approved by the approver', st.state);
+    let noRate = '';
+    try { await ap2.rpc('ei.da', 'action_approve', [[oldDa.id]]); } catch (e) { noRate = String(e.message || e); }
+    ctx.check(/No USD rate/.test(noRate), '5 the DA dated before the first USD rate is refused', noRate.slice(0, 160));
+    await ap2.close();
+
+    // ---- 6 the reports: feeding history and the credit note register, from the approved DEMO DA
+    const r = await new Session(ctx, browser, 'demo.contracts', 'demo', [1440, 900], { timeout: 30000 }).start();
+    m = r.mark();
+    await r.menu('Orders & Trucks', 'DA feeding history');
+    await r.page.waitForSelector('.o_list_view', { timeout: 20000 });
+    await r.page.locator('.o_facet_remove').first().click().catch(() => {}); await r.page.waitForTimeout(800);
+    const hist = (await r.page.locator('.o_list_view').innerText()).replace(/\s+/g, ' ');
+    ctx.check(['DEMO-COIL-01', 'DEMO-COIL-02', 'DEMO-COIL-03'].every((c) => hist.includes(c)), '6 the feeding history lists the fed coils');
+    const lossRow = r.page.locator('.o_data_row', { hasText: 'DEMO-COIL-03' });
+    ctx.check(/Loss/.test(await lossRow.innerText()) && await lossRow.evaluate((e) => e.classList.contains('text-danger')), '6 a coil sold below cost is shown as a loss, in red');
+    await ctx.shot(r.page, 'feeding_history');
+    await r.menu('Orders & Trucks', 'Credit note register');
+    await r.page.waitForSelector('.o_list_view', { timeout: 20000 });
+    const cnText = (await r.page.locator('.o_data_row', { hasText: 'DEMO-COIL-02' }).innerText()).replace(/\s+/g, ' ');
+    ctx.check(await r.page.locator('.o_data_row', { hasText: 'DEMO-COIL-01' }).count() === 0 && /DEMO-COIL-02/.test(cnText) && /986\.80/.test(cnText) && /5,052\.42/.test(cnText),
+      '6 the CN register lists only the coil with a CN: net 986.80 per MTL, 5,052.42 for its 5.120 MTL', cnText);
+    await ctx.shot(r.page, 'feeding_cn_register');
+    await r.clean('6 the reports open clean', m);
+    await r.close();
 
     // ---- 4 phone: practice fits the screen
     const ph = await new Session(ctx, browser, 'demo.contracts', 'demo', [390, 844], { timeout: 30000 }).start();

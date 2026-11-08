@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Two read-only reports over the coils fed in the desk. Every figure is a stored copy of what the desk saved; nothing is recomputed here. -->
+    <record id="ei_feeding_history_list" model="ir.ui.view">
+        <field name="name">ei.da.line.feeding.history.list</field>
+        <field name="model">ei.da.line</field>
+        <field name="priority">90</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0" delete="0" decoration-danger="result == 'loss'" decoration-muted="state in ('cancelled', 'amended')">
+                <field name="da_date"/><field name="da_id"/><field name="da_parent_id" optional="hide"/><field name="coil_no"/>
+                <field name="customer_id"/><field name="customer_code_id" optional="hide"/><field name="feeding_method"/>
+                <field name="mtl" sum="MTL"/><field name="currency_id" column_invisible="1"/>
+                <field name="purchase_rate"/><field name="sale_rate"/><field name="spread_per_mtl"/>
+                <field name="gross_spread"/><field name="result" optional="show"/>
+                <field name="formula_text" optional="hide"/><field name="loss_reason" optional="hide"/><field name="state"/>
+            </list>
+        </field>
+    </record>
+    <record id="ei_feeding_history_pivot" model="ir.ui.view">
+        <field name="name">ei.da.line.feeding.history.pivot</field>
+        <field name="model">ei.da.line</field>
+        <field name="arch" type="xml">
+            <pivot string="Feeding history" sample="1">
+                <field name="currency_id" type="row"/><field name="feeding_method" type="row"/><field name="da_date" interval="month" type="col"/>
+                <field name="mtl" type="measure"/><field name="gross_spread" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+    <record id="ei_feeding_history_graph" model="ir.ui.view">
+        <field name="name">ei.da.line.feeding.history.graph</field>
+        <field name="model">ei.da.line</field>
+        <field name="arch" type="xml">
+            <graph string="Gross spread by method" type="bar" sample="1">
+                <field name="feeding_method"/><field name="currency_id"/><field name="gross_spread" type="measure"/>
+            </graph>
+        </field>
+    </record>
+    <record id="ei_feeding_history_search" model="ir.ui.view">
+        <field name="name">ei.da.line.feeding.history.search</field>
+        <field name="model">ei.da.line</field>
+        <field name="priority">90</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="coil_no"/><field name="da_id"/><field name="customer_id"/><field name="customer_code_id"/><field name="da_parent_id"/>
+                <filter name="approved" string="Approved" domain="[('state', 'in', ('approved', 'fulfilled', 'closed'))]"/>
+                <filter name="waiting" string="Draft or in review" domain="[('state', 'in', ('draft', 'under_review'))]"/>
+                <separator/>
+                <filter name="loss" string="Sold below cost" domain="[('result', '=', 'loss')]"/>
+                <filter name="with_cn" string="With a credit note" domain="[('cn_amount', '>', 0)]"/>
+                <filter name="code_check" string="Code to check" domain="[('customer_code_id.verification_status', '!=', 'approved')]"/>
+                <separator/>
+                <filter name="this_month" string="DA date: this month" date="da_date"/>
+                <group>
+                    <filter name="g_currency" string="Currency" context="{'group_by': 'currency_id'}"/>
+                    <filter name="g_method" string="Method" context="{'group_by': 'feeding_method'}"/>
+                    <filter name="g_customer" string="Customer" context="{'group_by': 'customer_id'}"/>
+                    <filter name="g_parent" string="Parent company" context="{'group_by': 'da_parent_id'}"/>
+                    <filter name="g_month" string="Month" context="{'group_by': 'da_date:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    <record id="ei_feeding_history_action" model="ir.actions.act_window">
+        <field name="name">DA feeding history</field>
+        <field name="res_model">ei.da.line</field>
+        <field name="view_mode">list,pivot,graph</field>
+        <field name="domain">[('feeding_method', '!=', False)]</field>
+        <field name="context">{'search_default_g_currency': 1, 'search_default_g_method': 1}</field>
+        <field name="search_view_id" ref="ei_feeding_history_search"/>
+        <field name="view_ids" eval="[(5, 0, 0), (0, 0, {'view_mode': 'list', 'view_id': ref('ei_feeding_history_list')}),
+                                      (0, 0, {'view_mode': 'pivot', 'view_id': ref('ei_feeding_history_pivot')}),
+                                      (0, 0, {'view_mode': 'graph', 'view_id': ref('ei_feeding_history_graph')})]"/>
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">No coil has been fed in the DA feeding desk yet.</p>
+            <p>Each coil saved in the desk appears here with its method, rates and spread. Spreads are gross, before costs and taxes.</p></field>
+    </record>
+
+    <record id="ei_cn_register_list" model="ir.ui.view">
+        <field name="name">ei.da.line.cn.register.list</field>
+        <field name="model">ei.da.line</field>
+        <field name="priority">91</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0" delete="0" decoration-muted="state in ('cancelled', 'amended')">
+                <field name="da_date"/><field name="da_id"/><field name="da_parent_id" optional="hide"/><field name="coil_no"/><field name="customer_id"/>
+                <field name="cn_text"/><field name="currency_id" column_invisible="1"/>
+                <field name="cn_amount" string="CN / MTL"/><field name="cn_commission" string="Less 1.32% / MTL"/><field name="net_cn"/>
+                <field name="mtl" sum="MTL"/><field name="cn_total"/><field name="purchase_rate" string="Purchase after CN"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+    <record id="ei_cn_register_action" model="ir.actions.act_window">
+        <field name="name">Credit note register (per coil)</field>
+        <field name="res_model">ei.da.line</field>
+        <field name="view_mode">list,pivot</field>
+        <field name="domain">[('feeding_method', '=', 'purchase_with_cn')]</field>
+        <field name="search_view_id" ref="ei_feeding_history_search"/>
+        <field name="view_ids" eval="[(5, 0, 0), (0, 0, {'view_mode': 'list', 'view_id': ref('ei_cn_register_list')}),
+                                      (0, 0, {'view_mode': 'pivot', 'view_id': ref('ei_feeding_history_pivot')})]"/>
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">No credit note has been entered on a coil yet.</p>
+            <p>Every coil fed with "Purchase with CN" is listed with its CN, the 1.32% taken off it and the net CN. Whether the CN also becomes an Odoo credit note is still to be decided with the client.</p></field>
+    </record>
+
+    <menuitem id="menu_ei_feeding_history" name="DA feeding history" parent="ei_contract_da.menu_ei_contracts" action="ei_feeding_history_action"
+              sequence="16" groups="ei_contract_da.group_ei_contract_staff,ei_legacy_master.group_ei_auditor"/>
+    <menuitem id="menu_ei_cn_register" name="Credit note register" parent="ei_contract_da.menu_ei_contracts" action="ei_cn_register_action"
+              sequence="17" groups="ei_contract_da.group_ei_contract_staff,ei_legacy_master.group_ei_auditor"/>
+</odoo>
