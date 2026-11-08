@@ -37,6 +37,7 @@ class EiLegacyCode(models.Model):
     _inherit = ['mail.thread']
     _order = 'source_sheet_key, source_row'
     _rec_name = 'display_name'
+    _rec_names_search = ['legacy_code', 'original_name', 'nickname']
 
     _legacy_uniq = models.Constraint(
         'unique(company_id, source_sheet_key, legacy_code)',

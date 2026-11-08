@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ei_da_code_action" model="ir.actions.act_window">
+        <field name="name">Accept the printed customer for this code</field>
+        <field name="res_model">ei.reason.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{'default_res_model': 'ei.da.line', 'default_method': 'action_authorise_code'}</field>
+    </record>
+
+    <record id="ei_da_form_feeding" model="ir.ui.view">
+        <field name="name">ei.da.form.feeding</field>
+        <field name="model">ei.da</field>
+        <field name="inherit_id" ref="ei_contract_da.ei_da_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="%(action_ei_da_feeding)d" string="Open in feeding desk" type="action" invisible="state not in ('draft', 'under_review')"
+                        context="{'da_id': id}"/>
+            </xpath>
+            <field name="date" position="after">
+                <field name="printed_customer" readonly="state != 'draft'"/>
+                <field name="order_datetime" readonly="state != 'draft'"/>
+                <field name="ship_date" readonly="state != 'draft'"/>
+                <field name="currency_id"/>
+                <field name="fx_text" invisible="not fx_text"/>
+            </field>
+            <xpath expr="//field[@name='line_ids']/list/field[@name='contract_line_id']" position="after">
+                <field name="coil_no"/><field name="weight_kg" optional="show"/><field name="feeding_method" optional="show"/>
+                <field name="customer_code_id" optional="show"/>
+            </xpath>
+            <xpath expr="//field[@name='line_ids']/list/field[@name='rate_note']" position="after">
+                <field name="spread_per_mtl" optional="show"/><field name="gross_spread" sum="Gross spread" optional="show"/>
+                <field name="loss_reason" optional="hide"/><field name="code_issue" optional="show" decoration-danger="code_issue"/>
+                <field name="code_override_reason" optional="hide"/>
+                <button name="%(ei_da_code_action)d" type="action" string="Accept printed customer" icon="fa-check-square-o"
+                        groups="ei_contract_da.group_ei_da_override" invisible="not customer_code_id"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

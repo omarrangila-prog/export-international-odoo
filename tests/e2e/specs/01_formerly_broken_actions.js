@@ -56,8 +56,8 @@ module.exports = {
     });
     // 3 formula -> New version
     await flow('3 Formula > New version opens the new version', async () => {
-      // the approved (staging) formula: a draft such as ISL_ASML_DEALER_NET has no New version button
-      await s.menu('Setup', 'Formula register'); await p.locator('.o_data_row', { hasText: 'MILL_RATE_DEDUCTION' }).first().click();
+      // the approved (staging) formula: a draft such as MILL_RATE_DEDUCTION has no New version button
+      await s.menu('Setup', 'Formula register'); await p.locator('.o_data_row', { hasText: 'ISL_ASML_DEALER_NET' }).first().click();
       await p.waitForSelector('.o_form_view'); await s.button('New version');
       ctx.check(await resultIsForm('ei.formula.definition'), '3 ... and shows a formula form');
     });

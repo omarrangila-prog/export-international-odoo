@@ -108,13 +108,17 @@ class EiDa(models.Model):
                         raise UserError(_("Line '%(l)s' asks %(q)s MTL but only %(f)s MTL of the contract line is free. "
                                           "A special authorisation is needed.", l=l.contract_line_id.product_id.display_name,
                                           q=l.mtl, f=free))
-                if (l.purchase_rate != l.contract_line_id.purchase_rate or l.sale_rate != l.contract_line_id.sale_rate) \
-                        and not (l.rate_note or '').strip():
+                if l._needs_rate_note() and not (l.rate_note or '').strip():
                     raise UserError(_("Line '%s' has rates different from the contract; explain in the rate note.",
                                       l.contract_line_id.product_id.display_name))
+            d._check_before_approval()
             d._sys({'state': 'approved', 'approved_by': self.env.user.id, 'approved_at': fields.Datetime.now()})
             if d.previous_id:
                 d.previous_id._sys({'state': 'amended'})
+
+    def _check_before_approval(self):
+        """Hook: further checks a module adds before a DA is approved (raise to refuse)."""
+        return True
 
     def action_cancel(self, reason=None):
         for d in self:
@@ -218,6 +222,11 @@ class EiDaLine(models.Model):
                 raise UserError(_("MTL must be positive."))
             if l.contract_line_id.contract_id != l.da_id.contract_id:
                 raise UserError(_("The contract line belongs to another contract."))
+
+    def _needs_rate_note(self):
+        """A rate different from the contract needs a written reason (a module may supply a stronger proof)."""
+        self.ensure_one()
+        return self.purchase_rate != self.contract_line_id.purchase_rate or self.sale_rate != self.contract_line_id.sale_rate
 
     def action_authorise_over_quantity(self, reason=None):
         """Special authorisation to exceed the free contract quantity (explicit, logged)."""

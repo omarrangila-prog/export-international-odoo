@@ -54,18 +54,22 @@ bank = env['account.journal'].search([('type', '=', 'bank'), ('company_id', '=',
 bank2 = env['account.journal'].search([('code', '=', 'DEMB2'), ('company_id', '=', co.id)]) or env['account.journal'].create({'name': 'DEMO Meezan Bank', 'type': 'bank', 'code': 'DEMB2', 'company_id': co.id})
 cash = env['account.journal'].search([('type', '=', 'cash'), ('company_id', '=', co.id)], limit=1) or env['account.journal'].create({'name': 'DEMO Cash box', 'type': 'cash', 'code': 'DEMC', 'company_id': co.id})
 att = lambda rec: env['ir.attachment'].create({'name': 'scan.txt', 'res_model': rec._name, 'res_id': rec.id, 'raw': b'DEMO scanned document'})
-formula = env.ref('ei_contract_da.formula_example_mill_rate')
+# DEMO approval of the ISL/ASML dealer-net formula (Daily Working Tasks pp.3-5) so the feeding desk can be tried on staging.
+# The older "basic less 1.32%" reading (MILL_RATE_DEDUCTION) stays a draft: it is not how ISL purchases are worked out.
+formula = env.ref('ei_contract_da.formula_isl_asml_dealer_net')
 if formula.state == 'draft':
     formula.with_user(U['accountant']).action_approve()
+ISL_PARAMS = {'sales_tax_pct': '18', 'additional_pct': '0.1', 'commission_pct': '1.32', 'cn_amount': '0', 'cn_commission_pct': '1.32'}
 
 # --- contract (maker -> reviewer -> approver) and DAs
 if not env['ei.contract'].search([('contract_ref', '=', 'DEMO/ISL/001')]):
     ct = as_('contracts', 'ei.contract').create({
         'parent_partner_id': parent.id, 'contract_ref': 'DEMO/ISL/001', 'contract_type': 'commission',
         'valid_from': fields.Date.today().replace(month=1, day=1), 'valid_to': fields.Date.today().replace(month=12, day=31),
-        'line_ids': [Command.create({'product_id': prod.id, 'grade': 'HR 2.0 mm', 'ordered_mtl': 200, 'purchase_rate': 200000,
-                                     'sale_rate': 210000, 'formula_id': formula.id, 'basic_rate': 210000,
-                                     'param_ids': [Command.create({'key': 'deduction_pct', 'value': '1.32'})]})]})
+        # basic 210,000 -> mill 248,047.80, dealer net 245,275.80 (worked out by the formula); sold at the mill rate less 1,000
+        'line_ids': [Command.create({'product_id': prod.id, 'grade': 'HR 2.0 mm', 'ordered_mtl': 200, 'purchase_rate': 245275.80,
+                                     'sale_rate': 247047.80, 'formula_id': formula.id, 'basic_rate': 210000,
+                                     'param_ids': [Command.create({'key': k, 'value': v}) for k, v in ISL_PARAMS.items()]})]})
     att(ct); ct.with_user(U['contracts']).action_review(); ct.with_user(U['contractapprover']).action_approve()
     ct.with_user(U['contracts']).action_activate()
     ct.line_ids.with_user(U['contractapprover']).action_set_ownership('direct_dispatch', 'DEMO: mill dispatches to customer')
@@ -107,8 +111,8 @@ if not env['ei.contract'].search([('contract_ref', '=', 'DEMO/ISL/001')]):
             'partner_id': parent.id, 'invoice_number': no, 'invoice_date': fields.Date.today(), 'stated_total': qty * rate,
             'line_ids': [Command.create({'da_line_id': da1.line_ids.id, 'order_line_id': order.line_ids.filtered(lambda l: l.da_id == da1).id, 'received_mtl': qty, 'unit_rate': rate})]})
         att(i); i.action_check(); return i
-    good = intake('DEMO-SUP-9001', 12, 200000); good.with_user(U['invoicing']).action_create_bill(); good.bill_id.action_post()
-    intake('DEMO-SUP-9002', 8, 205000)
+    good = intake('DEMO-SUP-9001', 12, 245275.80); good.with_user(U['invoicing']).action_create_bill(); good.bill_id.action_post()
+    intake('DEMO-SUP-9002', 8, 250000)        # wrong rate on purpose: above the DA's 245,275.80
     # invoice one lifting to a customer (draft -> posted)
     lift = env['ei.lifting'].search([('gate_pass_no', '=', 'GP-DEMO-101')])
     w = env['ei.invoice.wizard'].with_user(U['invoicing']).with_context(active_model='ei.lifting', active_ids=lift.ids).create({'post': True})
@@ -140,7 +144,7 @@ if not env['ei.bank.import'].search([('filename', '=', 'demo_statement.csv')]):
 
 # --- parent statement
 if not env['ei.parent.statement'].search([('filename', '=', 'demo_parent_stmt.csv')]):
-    s = "Invoice No,Date,Amount,Tax\nDEMO-SUP-9001,%s,2400000,0\nDEMO-SUP-9002,%s,1640000,0\nDEMO-SUP-9003,%s,500000,0\n" % ((today.strftime('%d/%m/%Y'),) * 3)
+    s = "Invoice No,Date,Amount,Tax\nDEMO-SUP-9001,%s,2943309.60,0\nDEMO-SUP-9002,%s,2000000,0\nDEMO-SUP-9003,%s,500000,0\n" % ((today.strftime('%d/%m/%Y'),) * 3)
     st = env['ei.parent.statement'].with_user(U['recon']).import_file(parent, today.replace(day=1), today, 'demo_parent_stmt.csv', s.encode(), control_total=4540000)
     st.with_user(U['recon']).action_match()
 env.cr.commit()

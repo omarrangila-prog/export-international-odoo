@@ -245,9 +245,15 @@ class EiContractLine(models.Model):
                     raise UserError(_("Line '%(l)s' has a credit-note amount (%(p)s); write the CN text for this coil too.",
                                       l=l.product_id.display_name, p=', '.join(entered)))
                 try:
-                    l.formula_id.compute(l.basic_rate, l.ordered_mtl, l._params(), l.currency_id.decimal_places)
+                    _rows, values = l.formula_id.compute(l.basic_rate, l.ordered_mtl, l._params(), l.currency_id.decimal_places)
                 except (fe.FormulaError, ValueError) as e:
                     raise UserError(_("Formula cannot be evaluated on line '%(l)s': %(e)s", l=l.product_id.display_name, e=e))
+                # a formula that gives the purchase rate decides it: a different hand-typed rate would silently disagree with it
+                got = values.get('final_net_purchase_rate', values.get('dealer_net_purchase_rate'))
+                if got is not None and fe.quantize(l.purchase_rate or 0, l.currency_id.decimal_places) != got:
+                    raise UserError(_("Line '%(l)s': its formula gives a purchase rate of %(f)s, but %(p)s is typed. Type %(f)s, "
+                                      "or explain the difference to the accountant and change the formula's inputs.",
+                                      l=l.product_id.display_name, f=got, p=l.purchase_rate))
 
     def _live_calc(self):
         self.ensure_one()

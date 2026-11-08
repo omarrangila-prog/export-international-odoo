@@ -143,10 +143,11 @@ class TestContracts(TransactionCase):
         f.with_user(self.acct).action_approve()
         prm = lambda cn: [Command.create({'key': k, 'value': v}) for k, v in (
             ('sales_tax_pct', '18'), ('additional_pct', '0.1'), ('commission_pct', '1.32'), ('cn_amount', cn), ('cn_commission_pct', '1.32'))]
-        line = lambda lot, cn, text=False: Command.create({'product_id': self.prod.id, 'lot': lot, 'ordered_mtl': 5, 'purchase_rate': 1, 'sale_rate': 2,
-                                                          'formula_id': f.id, 'basic_rate': 244450, 'param_ids': prm(cn), 'cn_text': text})
+        line = lambda lot, cn, rate, text=False: Command.create({'product_id': self.prod.id, 'lot': lot, 'ordered_mtl': 5, 'purchase_rate': rate,
+                                                                'sale_rate': 288739.45, 'formula_id': f.id, 'basic_rate': 244450,
+                                                                'param_ids': prm(cn), 'cn_text': text})
         c = self.Contract.create({'parent_partner_id': self.isl.id, 'contract_ref': 'ASML-CN', 'line_ids': [
-            line('COIL-1', '1000'), line('COIL-2', '0')]})
+            line('COIL-1', '1000', 284525.91), line('COIL-2', '0', 285512.71)]})
         self.env['ir.attachment'].sudo().create({'name': 'c.pdf', 'res_model': 'ei.contract', 'res_id': c.id, 'raw': b'x'})
         with self.assertRaises(UserError):
             c.action_review()                                                   # CN amount without its text

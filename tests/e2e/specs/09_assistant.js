@@ -2,7 +2,7 @@
 // what is on the screen AND on the real records behind it, because the promises of this feature are that answers equal the product's own
 // figures, that every answer shows where it comes from, that a role never sees what it may not see, and that nothing can be changed.
 const stamp = Date.now();
-const today = new Date();
+const today = new Date(Date.now() + 5 * 3600 * 1000);   // the staff day is Karachi time (UTC+5, no daylight saving), not UTC
 const iso = (days) => new Date(today.getTime() + days * 86400000).toISOString().slice(0, 10);
 const digits = (t) => (String(t).match(/-?\d[\d,]*(?:\.\d+)?/) || ['0'])[0].replace(/,/g, '');
 
