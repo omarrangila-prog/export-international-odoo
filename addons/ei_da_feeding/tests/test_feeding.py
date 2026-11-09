@@ -130,6 +130,8 @@ class TestFeeding(TransactionCase):
         self.assertEqual(fe.tons_from_kg('1'), Decimal('0.001'))
         with self.assertRaises(fe.FeedingError):
             fe.feed('direct_no_commission', 0, purchase_rate=1, sale_rate=2)
+        with self.assertRaises(fe.FeedingError):                                      # a sale offset that wipes out the price
+            fe.feed('loss_sale', Decimal('4.574'), steps=self.formula._steps(), basic_rate='229500', params={k: Decimal(str(v)) for k, v in PARAMS.items() if k != 'cn_amount'}, sale_offset='-999999')
         r = fe.feed('direct_no_commission', Decimal('4.574'), purchase_rate='229500', sale_rate='229500')
         self.assertEqual((r['spread_per_mtl'], r['result']), (Decimal('0.00'), 'even'))
 

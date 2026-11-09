@@ -249,6 +249,9 @@ class EiContractLine(models.Model):
 
     def _check_ready(self):
         for l in self:
+            if (l.purchase_rate or 0) <= 0 or (l.sale_rate or 0) <= 0:
+                raise UserError(_("Line '%(l)s' needs a purchase rate and a sale rate above zero (purchase %(p)s, sale %(s)s).",
+                                  l=l.product_id.display_name, p=l.purchase_rate, s=l.sale_rate))
             if l.formula_id:
                 if l.formula_id.state != 'approved':
                     raise UserError(_("Formula %s is not approved.", l.formula_id.display_name))

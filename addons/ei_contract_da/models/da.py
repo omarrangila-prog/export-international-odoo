@@ -80,6 +80,7 @@ class EiDa(models.Model):
                 raise UserError(_("Add at least one DA line."))
             if not d.attachment_count:
                 raise UserError(_("Attach the DA document received from the parent company."))
+            d.line_ids._check_rates()
             d._sys({'state': 'under_review'})
 
     def _available(self, cline):
@@ -234,6 +235,14 @@ class EiDaLine(models.Model):
                 raise UserError(_("MTL must be positive."))
             if l.contract_line_id.contract_id != l.da_id.contract_id:
                 raise UserError(_("The contract line belongs to another contract."))
+
+    def _check_rates(self):
+        """Every DA line carries a purchase rate and a sale rate above zero before the DA goes forward."""
+        bad = self.filtered(lambda l: (l.purchase_rate or 0) <= 0 or (l.sale_rate or 0) <= 0)
+        if bad:
+            raise UserError(_("Every line needs a purchase rate and a sale rate above zero:\n- %s", '\n- '.join(
+                _("%(l)s: purchase %(p)s, sale %(s)s", l=getattr(l, 'coil_no', False) or l.product_id.display_name,
+                  p=l.purchase_rate, s=l.sale_rate) for l in bad)))
 
     def _needs_rate_note(self):
         """A rate different from the contract needs a written reason (a module may supply a stronger proof)."""

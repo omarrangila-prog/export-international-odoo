@@ -1,6 +1,6 @@
 {
     'name': 'Export International - Online Banking',
-    'version': '20.0.1.0.0',
+    'version': '20.0.1.0.1',
     'category': 'Accounting',
     'summary': 'Bank statement import, duplicate guards, balance matching, verified allocation and daily posting review',
     'author': 'Odoovations',

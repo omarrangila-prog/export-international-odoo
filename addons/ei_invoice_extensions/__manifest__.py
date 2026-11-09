@@ -1,6 +1,6 @@
 {
     'name': 'Export International - Supplier Intake & Customer Invoicing',
-    'version': '20.0.1.0.0',
+    'version': '20.0.1.0.1',
     'category': 'Accounting',
     'summary': 'Supplier invoice intake with mismatch blocking, billing of verified liftings, compliance submission log',
     'author': 'Odoovations',

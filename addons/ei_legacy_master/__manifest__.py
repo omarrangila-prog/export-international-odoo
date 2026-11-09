@@ -1,6 +1,6 @@
 {
     'name': 'Export International - Legacy Code Master',
-    'version': '20.0.1.0.0',
+    'version': '20.0.1.0.1',
     'category': 'Accounting/Localizations',
     'summary': 'Raw legacy code registry, audited import and accountant-approved mapping queue',
     'author': 'Odoovations',

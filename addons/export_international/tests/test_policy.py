@@ -149,3 +149,27 @@ class TestPolicy(AccountTestInvoicingCommon):
         self.assertEqual((c.now_payments, c.now_book), (500, -500))          # the book side is live before the day is closed
         self.assertEqual(c.now_difference, 1500)
         self.assertIn(cash.name, c.display_name)
+
+    def test_rates_every_line_carries_a_purchase_and_a_sale_rate(self):
+        """Client question, 9 Nov 2026: do all entries have a sale rate and a purchase rate? Yes: nothing goes forward without both."""
+        from odoo.addons.ei_da_feeding.models import feeding_engine as fe
+        for kw in ({'purchase_rate': '0', 'sale_rate': '230500'}, {'purchase_rate': '229500', 'sale_rate': '0'},
+                   {'purchase_rate': '-5', 'sale_rate': '230500'}):
+            with self.assertRaises(fe.FeedingError):
+                fe.feed('direct_no_commission', 4, **kw)
+        bad = self.env['ei.contract'].with_user(self.op).create({
+            'parent_partner_id': self.parent.id, 'contract_ref': 'P-R0', 'currency_id': self.pkr.id,
+            'line_ids': [Command.create({'product_id': self.prod.id, 'ordered_mtl': 50, 'purchase_rate': 200000})]})   # no sale rate
+        self.attach(bad)
+        with self.assertRaises(UserError):
+            bad.with_user(self.op).action_confirm()
+        c = self.contract('P-R1')
+        c.with_user(self.op).action_confirm()
+        d = self.da(c, 'P-DA-R')
+        d.line_ids.sale_rate = 0                                    # a DA line typed to zero on the plain form
+        with self.assertRaises(UserError):
+            d.with_user(self.op).action_confirm()
+        self.assertEqual(d.state, 'draft')
+        d.line_ids.sale_rate = 201000
+        d.with_user(self.op).action_confirm()
+        self.assertEqual(d.state, 'approved')

@@ -1,6 +1,6 @@
 {
     'name': 'Export International - Parent Ledger Reconciliation',
-    'version': '20.0.1.0.0',
+    'version': '20.0.1.0.1',
     'category': 'Accounting',
     'summary': 'Monthly parent-company statement matching by invoice number with owned, approved exception resolution',
     'author': 'Odoovations',

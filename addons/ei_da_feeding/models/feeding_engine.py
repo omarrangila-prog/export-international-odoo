@@ -105,6 +105,11 @@ def feed(method, quantity, steps=None, rounding_mode='final_only', basic_rate=No
             sale = money(mill + D(sale_offset or 0))
         rows.append({'key': 'sale', 'label': "Sale rate (mill rate %s %s)" % ('+' if sale >= mill else '-', money(abs(sale - mill))),
                      'value': sale})
+    # every coil carries both rates: a zero or negative rate is a typing slip, never a price
+    if purchase <= 0:
+        raise FeedingError("The purchase rate must be more than zero (it is %s)." % purchase)
+    if sale <= 0:
+        raise FeedingError("The sale rate must be more than zero (it is %s). Check the mill rate +/- amount." % sale)
     spread = money(sale - purchase)
     total = money(spread * qty)
     return {

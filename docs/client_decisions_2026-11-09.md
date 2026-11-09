@@ -35,6 +35,14 @@ These decisions come from the client's final handoff. They replace earlier "seco
   - the default DA date is the local day.
 - **Morning bank balance list:** the bank column has room; rarely used columns are hidden by default.
 
+## 4. Every entry carries a purchase rate and a sale rate
+- **Checked on 9 November 2026:** each of the six feeding methods saves both rates on the coil, and the figures match the handwritten examples (normal, high-profit, loss, mill rate, CN, direct). Every DA line and contract line on the training and test databases has both rates.
+- **Gap found and closed:** a direct coil could be saved with a purchase rate of 0, and a large minus on the mill rate could give a sale rate below zero. Now:
+  - the feeding calculation refuses a purchase or sale rate of zero or below, in plain words;
+  - a DA cannot be confirmed or sent for review while any line lacks either rate (this also covers lines typed on the plain DA form);
+  - a contract cannot be confirmed or approved while any line lacks either rate.
+- **Tests:** `test_policy.test_rates_every_line_carries_a_purchase_and_a_sale_rate` and an extra case in `ei_da_feeding` `test_04`.
+
 ## Not done
 - **The proposed new top menu** (HOME | DAILY WORK | MONEY | CONTRACTS & DA | …). The current menu stays, and the "Approvals" menu is still shown even when every approval is off.
 - **A dedicated keyboard-only test of the desk.**

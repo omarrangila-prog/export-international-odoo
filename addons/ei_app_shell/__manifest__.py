@@ -1,6 +1,6 @@
 {
     'name': 'Export International - App shell',
-    'version': '20.0.1.1.0',
+    'version': '20.0.1.1.1',
     'category': 'Hidden',
     'summary': 'Installable on a phone or desktop (own name, icons, colours), a phone bottom bar, workspace tabs like a browser, '
                'undo / redo of edits, the evidence shown before an approval, and documents beside the record.',

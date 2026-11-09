@@ -1,6 +1,6 @@
 {
     'name': 'Export International - Cash Book',
-    'version': '20.0.1.0.0',
+    'version': '20.0.1.0.1',
     'category': 'Accounting',
     'summary': 'Cash vouchers with maker-checker, receipts, safe/bank transfers, daily cash count',
     'author': 'Odoovations',
