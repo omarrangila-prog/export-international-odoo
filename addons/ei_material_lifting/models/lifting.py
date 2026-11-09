@@ -8,7 +8,8 @@ OWNERSHIP = [('owned', 'Owned stock'), ('consignment', 'Supplier-owned consignme
 class EiLifting(models.Model):
     _name = 'ei.lifting'
     _description = 'Material lifting (gate pass / weighbridge)'
-    _inherit = ['mail.thread', 'mail.activity.mixin']
+    _inherit = ['mail.thread', 'mail.activity.mixin', 'ei.review.option.mixin']
+    _ei_flow = 'lifting'
     _order = 'date desc, id desc'
 
     name = fields.Char(readonly=True, copy=False, default='New')
@@ -118,13 +119,14 @@ class EiLifting(models.Model):
 
     # -------------------------------------------------------------- workflow
     def action_verify(self):
-        if not self.env.user.has_group('ei_material_lifting.group_ei_lifting_reviewer'):
-            raise AccessError(_("Only a lifting reviewer can verify."))
         for r in self:
+            if r._approval_required():
+                if not self.env.user.has_group('ei_material_lifting.group_ei_lifting_reviewer'):
+                    raise AccessError(_("Only a lifting reviewer can verify."))
+                if r.maker_id == self.env.user and not self.env.su:
+                    raise AccessError(_("Maker-checker: you cannot verify a lifting you entered."))
             if r.state != 'draft':
                 raise UserError(_("Only a draft lifting can be verified."))
-            if r.maker_id == self.env.user and not self.env.su:
-                raise AccessError(_("Maker-checker: you cannot verify a lifting you entered."))
             if not r.attachment_count:
                 raise UserError(_("Attach the gate pass / weighbridge / dispatch proof first."))
             if not r.contract_line_id.stock_ownership:

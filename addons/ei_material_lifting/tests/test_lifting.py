@@ -12,6 +12,7 @@ class TestLifting(TransactionCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        cls.env['ei.approval.policy'].sudo().set_all(True)        # these tests check the second-person controls (policy on)
         mk = lambda login, *gs: cls.env['res.users'].with_context(no_reset_password=True).create({
             'name': login, 'login': login, 'group_ids': [Command.set([cls.env.ref(g).id for g in gs])]})
         cls.dispatch = mk('l_disp', 'ei_material_lifting.group_ei_dispatch_officer')

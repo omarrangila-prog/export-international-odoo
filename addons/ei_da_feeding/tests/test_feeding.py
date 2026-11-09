@@ -26,6 +26,7 @@ class TestFeeding(TransactionCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        cls.env['ei.approval.policy'].sudo().set_all(True)        # these tests check the second-person controls (policy on)
         mk = lambda login, *gs: cls.env['res.users'].with_context(no_reset_password=True).create({
             'name': login, 'login': login, 'tz': 'Asia/Karachi', 'group_ids': [Command.set([cls.env.ref(g).id for g in gs])]})
         cls.maker = mk('f_maker', 'ei_contract_da.group_ei_contract_staff')
@@ -216,8 +217,8 @@ class TestFeeding(TransactionCase):
         self.assertIn('changed by hand', str(e.exception))
 
     def test_12_a_foreign_currency_needs_a_rate_and_shows_the_base_amount(self):
-        # a fresh test database may run in USD: then the "foreign" currency of this test is EUR
-        foreign = self.env.ref('base.USD') if self.env.company.currency_id != self.env.ref('base.USD') else self.env.ref('base.EUR')
+        # the company currency of a fresh test database may be USD: then the "foreign" one is PKR (only PKR and USD are allowed)
+        foreign = self.env.ref('base.USD') if self.env.company.currency_id != self.env.ref('base.USD') else self.env.ref('base.PKR')
         foreign.active = True
         self.env['res.currency.rate'].search([('currency_id', '=', foreign.id)]).unlink()
         d = self.new_da(self.contract(currency=foreign))

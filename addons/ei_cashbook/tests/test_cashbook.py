@@ -11,6 +11,7 @@ class TestCashbook(AccountTestInvoicingCommon):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        cls.env['ei.approval.policy'].sudo().set_all(True)        # these tests check the second-person controls (policy on)
         mk = lambda login, g: cls.env['res.users'].with_context(no_reset_password=True).create({
             'name': login, 'login': login, 'group_ids': [Command.set([cls.env.ref(g).id])]})
         cls.clerk = mk('c_clerk', 'ei_cashbook.group_ei_cash_clerk')

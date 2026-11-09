@@ -20,6 +20,7 @@ class TestHomeV2(TransactionCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        cls.env['ei.approval.policy'].sudo().set_all(True)        # these tests check the second-person controls (policy on)
         mk = lambda login, *gs: cls.env['res.users'].with_context(no_reset_password=True).create({
             'name': login, 'login': login, 'group_ids': [Command.set([cls.env.ref(g).id for g in gs] or [cls.env.ref('base.group_user').id])]})
         cls.cash = mk('v_cash', 'ei_cashbook.group_ei_cash_clerk')

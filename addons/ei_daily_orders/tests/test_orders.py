@@ -9,6 +9,7 @@ class TestOrders(TransactionCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        cls.env['ei.approval.policy'].sudo().set_all(True)        # these tests check the second-person controls (policy on)
         mk = lambda login, *gs: cls.env['res.users'].with_context(no_reset_password=True).create({
             'name': login, 'login': login, 'group_ids': [Command.set([cls.env.ref(g).id for g in gs])]})
         cls.maker = mk('o_maker', 'ei_contract_da.group_ei_contract_staff')

@@ -13,6 +13,7 @@
         'views/legacy_code_views.xml',
         'views/import_batch_views.xml',
         'views/menus.xml',
+        'views/settings_views.xml',
     ],
     'application': True,
     'installable': True,

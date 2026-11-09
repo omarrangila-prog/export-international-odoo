@@ -5,7 +5,8 @@ from odoo.exceptions import AccessError, UserError
 class EiCashVoucher(models.Model):
     _name = 'ei.cash.voucher'
     _description = 'Cash voucher'
-    _inherit = ['mail.thread', 'mail.activity.mixin']
+    _inherit = ['mail.thread', 'mail.activity.mixin', 'ei.review.option.mixin']
+    _ei_flow = 'cash'
     _order = 'date desc, id desc'
 
     name = fields.Char(readonly=True, copy=False, default='New')
@@ -102,17 +103,30 @@ class EiCashVoucher(models.Model):
             raise AccessError(_("Only a cash approver can decide a voucher."))
 
     def action_approve(self):
-        """Approve and post in one controlled step."""
-        self._check_checker()
+        """Approve and post in one controlled step. With approval off the maker may post their own voucher, but only with
+        accounting rights: posting to the books is a security right, not an approval."""
         for r in self:
+            if r._approval_required():
+                r._check_checker()
+            elif not (self.env.su or self.env.user.has_group('account.group_account_user')):
+                raise AccessError(_("Posting to the cash book needs accounting rights. The voucher stays submitted for someone who has them."))
             if r.state != 'submitted':
                 raise UserError(_("Only a submitted voucher can be approved."))
-            if r.maker_id == self.env.user and not self.env.su and r.amount > r.journal_id.ei_self_approve_limit:
+            if r._approval_required() and r.maker_id == self.env.user and not self.env.su and r.amount > r.journal_id.ei_self_approve_limit:
                 raise AccessError(_("Maker-checker: you cannot approve your own voucher of %(a)s (self-approval limit %(l)s).",
                                     a=r.amount, l=r.journal_id.ei_self_approve_limit))
             move = r._create_move()
             r.write({'state': 'posted', 'checker_id': self.env.user.id, 'decided_at': fields.Datetime.now(),
                      'move_id': move.id})
+
+    def action_confirm(self):
+        """Save & Continue: submit, then post at once when approval is off and the person has accounting rights."""
+        for r in self:
+            if r.state == 'draft':
+                r.action_submit()
+            if r.state == 'submitted' and not r._approval_required() and (self.env.su or self.env.user.has_group('account.group_account_user')):
+                r.action_approve()
+        return True
 
     def action_reject(self, reason=None):
         self._check_checker()
@@ -143,8 +157,9 @@ class EiCashVoucher(models.Model):
         if not cash_acc:
             raise UserError(_("Journal %s has no cash account.", j.display_name))
         if self.kind in ('payment', 'receipt'):
-            counter = self.category_id.account_id
-            if self.category_id.company_id != self.company_id:
+            cat = self.category_id.sudo()      # the category's configured account; who may post was checked before (posting rights)
+            counter = cat.account_id
+            if cat.company_id != self.company_id:
                 raise UserError(_("Category %s belongs to another company.", self.category_id.name))
         elif self.kind == 'bank_transfer':
             counter = self.company_id.transfer_account_id

@@ -51,7 +51,9 @@
         <field name="arch" type="xml">
             <form>
                 <header>
-                    <button name="action_review" string="Send for review" type="object" class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_confirm" string="Save &amp; Continue" type="object" class="btn-primary" invisible="state != 'draft' or approval_mode != 'direct'" data-hotkey="s"/>
+                    <button name="action_review" string="Send for review" type="object" class="btn-primary" invisible="state != 'draft' or approval_mode == 'direct'"/>
+                    <field name="approval_mode" invisible="1"/>
                     <button name="action_approve" string="Approve" type="object" class="btn-primary" invisible="state != 'reviewed'"
                             groups="ei_contract_da.group_ei_contract_approver"/>
                     <button name="action_activate" string="Activate" type="object" invisible="state != 'approved'"/>
@@ -62,6 +64,9 @@
                     <field name="state" widget="statusbar" statusbar_visible="draft,reviewed,approved,active,fulfilled,closed"/>
                 </header>
                 <sheet>
+                    <div class="o_row mb-2" title="Off by default: you confirm it yourself. Tick to have a second person check it.">
+                        <field name="review_requested" readonly="state != 'draft'" widget="boolean_toggle"/><label for="review_requested"/>
+                    </div>
                     <div class="oe_title"><h1><field name="name"/></h1>
                         <field name="usage" widget="badge" decoration-info="usage == 'partial'" decoration-success="usage == 'full'" invisible="state in ('draft', 'cancelled')"/></div>
                     <group>

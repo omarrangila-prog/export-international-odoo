@@ -87,12 +87,13 @@ def parse_rows(filename, data):
 class EiParentStatement(models.Model):
     _name = 'ei.parent.statement'
     _description = 'Parent-company ledger statement'
-    _inherit = ['mail.thread']
+    _inherit = ['mail.thread', 'ei.two.currency.mixin']
     _order = 'date_to desc, id desc'
 
     name = fields.Char(readonly=True, copy=False, default='New')
     company_id = fields.Many2one('res.company', required=True, default=lambda s: s.env.company, index=True)
-    currency_id = fields.Many2one('res.currency', required=True, default=lambda s: s.env.company.currency_id)
+    currency_id = fields.Many2one('res.currency', required=True, default=lambda s: s.env.company.currency_id,
+                                  domain="[('name', 'in', ('PKR', 'USD'))]")
     partner_id = fields.Many2one('res.partner', string='Parent company', required=True, index=True)
     date_from = fields.Date(required=True)
     date_to = fields.Date(required=True)

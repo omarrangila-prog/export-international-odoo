@@ -13,6 +13,7 @@ class TestApprovalEvidence(TestJourney):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        cls.env['ei.approval.policy'].sudo().set_all(True)        # these tests check the second-person controls (policy on)
         prod = cls.env['product.product'].create({'name': 'Rev coil', 'uom_id': cls.env.ref('uom.product_uom_ton').id})
         parent = cls.env['res.partner'].create({'name': 'Rev Parent Mill'})
         cls.c = cls.env['ei.contract'].with_user(cls.maker).create({'parent_partner_id': parent.id, 'contract_ref': 'REV-1', 'line_ids': [Command.create({

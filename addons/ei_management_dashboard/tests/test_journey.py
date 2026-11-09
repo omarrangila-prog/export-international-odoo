@@ -17,6 +17,7 @@ class TestJourney(AccountTestInvoicingCommon):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        cls.env['ei.approval.policy'].sudo().set_all(True)        # these tests check the second-person controls (policy on)
         co = cls.company_data['company']
         cls.co = co
         cls.env = cls.env(user=1, context=dict(cls.env.context, allowed_company_ids=[co.id]))

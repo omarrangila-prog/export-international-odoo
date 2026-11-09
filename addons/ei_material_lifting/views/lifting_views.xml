@@ -24,13 +24,18 @@
         <field name="arch" type="xml">
             <form>
                 <header>
+                    <button name="action_verify" string="Save &amp; Continue" type="object" class="btn-primary" invisible="state != 'draft' or approval_mode != 'direct'" data-hotkey="s"/>
+                    <field name="approval_mode" invisible="1"/>
                     <button name="action_verify" string="Verify lifting" type="object" class="btn-primary"
-                            invisible="state != 'draft'" groups="ei_material_lifting.group_ei_lifting_reviewer"/>
+                            invisible="state != 'draft' or approval_mode == 'direct'" groups="ei_material_lifting.group_ei_lifting_reviewer"/>
                     <button name="%(ei_lifting_cancel_action)d" string="Reverse" type="action" invisible="state != 'verified'"
                             groups="ei_material_lifting.group_ei_lifting_reviewer"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,verified"/>
                 </header>
                 <sheet>
+                    <div class="o_row mb-2" title="Off by default: you confirm it yourself. Tick to have a second person check it.">
+                        <field name="review_requested" readonly="state != 'draft'" widget="boolean_toggle"/><label for="review_requested"/>
+                    </div>
                     <div class="oe_title"><h1><field name="name"/></h1></div>
                     <group>
                         <group>

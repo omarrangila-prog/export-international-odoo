@@ -43,6 +43,20 @@
     .ei-fd-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; justify-content: flex-end; margin-top: 12px; }
     .ei-fd-spacer { flex: 1; }
 
+    .ei-fd-steps-bar { list-style: none; display: flex; flex-wrap: wrap; gap: 6px 18px; max-width: 1480px; margin: 0 auto 12px; padding: 0 28px;
+        li { display: flex; align-items: center; gap: 8px; color: var(--ei-muted); font-weight: 600; font-size: 13px;
+            span { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid var(--ei-line-strong); font-size: 12px; }
+            &.is-on { color: var(--ei-ink); span { background: var(--ei-primary); border-color: var(--ei-primary); color: var(--ei-on-primary); } }
+            &.is-done span { background: var(--ei-ok-soft); border-color: var(--ei-ok-line); color: var(--ei-ok); } } }
+    .ei-fd-curseg { display: flex; align-items: center; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; > span { font-size: 12.5px; font-weight: 700; margin-inline-end: 6px; } }
+    .ei-fd-curbtn { min-width: 64px; min-height: 36px; border-radius: 10px; border: 1.5px solid var(--ei-line-strong); background: var(--ei-card); font-weight: 800; cursor: pointer;
+        &.is-on { background: var(--ei-primary); border-color: var(--ei-primary); color: var(--ei-on-primary); } }
+    .ei-fd-review { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; margin: 0 4px; cursor: pointer; }
+    .ei-fd-done { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-bottom: 12px; padding: 10px 14px; border-radius: 12px;
+        background: var(--ei-ok-soft); border: 1px solid var(--ei-ok-line); &.is-wait { background: var(--ei-warn-soft); border-color: var(--ei-warn-line); } }
+    .ei-fd-rowacts { white-space: nowrap; .ei-fd-link + .ei-fd-link { margin-inline-start: 10px; } }
+    .ei-fd-table tfoot th, .ei-fd-table tfoot td { border-bottom: 0; font-weight: 700; }
+
     // ---- practice: one card per method
     .ei-fd-inputs { margin-bottom: 16px; }
     .ei-fd-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(#{"min(310px, 100%)"}, 1fr)); gap: 14px; }

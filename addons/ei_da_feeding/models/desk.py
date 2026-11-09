@@ -162,7 +162,9 @@ class EiFeedingDesk(models.AbstractModel):
                                 'formula_state': cl.formula_id.state or '', 'free_mtl': d._available(cl),
                                 'target_customer': cl.target_customer_id and {'id': cl.target_customer_id.id, 'name': cl.target_customer_id.display_name}}
                                for cl in d.contract_id.line_ids],
-            'lines': lines, 'total_mtl': d.total_mtl,
+            'lines': lines, 'total_mtl': d.total_mtl, 'total_spread': sum(d.line_ids.mapped('gross_spread')),
+            'review_requested': d.review_requested, 'approval_on': self.env['ei.approval.policy'].flow_on('da'),
+            'approved_by': d.approved_by.name or '',
         }
 
     def _code_out(self, c):
@@ -267,10 +269,29 @@ class EiFeedingDesk(models.AbstractModel):
         return self.da_load(d.id)
 
     @api.model
-    def submit(self, da_id):
+    def submit(self, da_id, review=False):
+        """Save & Continue. Approval off (the default): the DA is confirmed now, by the person entering it, after every check
+        (quantities, rates, codes, exchange rate). Approval on, or 'Send for review' ticked: it goes to the approver.
+        When confirmed, the next task (today's daily order request) is prepared from it."""
         d = self._da(da_id, write=True)
-        d.action_review()
-        return self.da_load(d.id)
+        if not d.line_ids:
+            raise UserError(_("Add at least one coil first."))
+        d.write({'review_requested': bool(review)})
+        d.action_confirm()
+        nxt = None
+        if d.state == 'approved' and 'ei.daily.order' in self.env and self.env['ei.daily.order'].has_access('create'):
+            try:
+                with self.env.cr.savepoint():          # a problem with today's order never undoes the confirmed DA
+                    order = self.env['ei.daily.order'].generate_from_da(d)
+            except UserError as e:
+                nxt = {'error': str(e)}
+            else:
+                if order:
+                    nxt = {'model': 'ei.daily.order', 'id': order.id, 'name': order.display_name,
+                           'state': dict(order._fields['state'].selection).get(order.state)}
+        res = self.da_load(d.id)
+        res['next'] = nxt
+        return res
 
     @api.model
     def attach(self, da_id, name, data_b64, mimetype=None):

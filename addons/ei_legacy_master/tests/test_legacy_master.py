@@ -13,6 +13,7 @@ class TestLegacyMaster(TransactionCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        cls.env['ei.approval.policy'].sudo().set_all(True)        # these tests check the second-person controls (policy on)
         Users = cls.env['res.users'].with_context(no_reset_password=True)
         g = lambda x: cls.env.ref('ei_legacy_master.' + x)
         cls.importer = Users.create({'name': 'Importer', 'login': 'ei_imp', 'group_ids': [(6, 0, [g('group_ei_importer').id])]})

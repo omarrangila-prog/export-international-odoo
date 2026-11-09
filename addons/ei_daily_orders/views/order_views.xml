@@ -24,7 +24,9 @@
         <field name="arch" type="xml">
             <form>
                 <header>
-                    <button name="action_approve" string="Approve" type="object" class="btn-primary" invisible="state != 'draft'"
+                    <button name="action_confirm" string="Save &amp; Continue" type="object" class="btn-primary" invisible="state != 'draft' or approval_mode != 'direct'" data-hotkey="s"/>
+                    <field name="approval_mode" invisible="1"/>
+                    <button name="action_approve" string="Approve" type="object" class="btn-primary" invisible="state != 'draft' or approval_mode == 'direct'"
                             groups="ei_daily_orders.group_ei_order_approver"/>
                     <button name="action_print" string="Print" type="object" invisible="state != 'approved'"/>
                     <button name="action_send_email" string="Send by email" type="object" invisible="state != 'approved'"/>
@@ -32,6 +34,9 @@
                     <field name="state" widget="statusbar"/>
                 </header>
                 <sheet>
+                    <div class="o_row mb-2" title="Off by default: you confirm it yourself. Tick to have a second person check it.">
+                        <field name="review_requested" readonly="state != 'draft'" widget="boolean_toggle"/><label for="review_requested"/>
+                    </div>
                     <div class="oe_title"><h1><field name="name"/></h1></div>
                     <group>
                         <group><field name="parent_partner_id" readonly="state != 'draft'"/><field name="date" readonly="state != 'draft'"/></group>

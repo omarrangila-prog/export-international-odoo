@@ -7,7 +7,8 @@ from odoo.addons.ei_legacy_master.models.parsing import check_hs
 class EiDailyOrder(models.Model):
     _name = 'ei.daily.order'
     _description = 'Daily Order Request'
-    _inherit = ['mail.thread']
+    _inherit = ['mail.thread', 'ei.review.option.mixin']
+    _ei_flow = 'order'
     _order = 'date desc, id desc'
 
     name = fields.Char(readonly=True, copy=False, default='New')
@@ -81,19 +82,26 @@ class EiDailyOrder(models.Model):
 
     # -------------------------------------------------------------- workflow
     def action_approve(self):
-        if not self.env.user.has_group('ei_daily_orders.group_ei_order_approver'):
-            raise AccessError(_("Only an order approver can approve."))
         for o in self:
+            if o._approval_required():
+                if not self.env.user.has_group('ei_daily_orders.group_ei_order_approver'):
+                    raise AccessError(_("Only an order approver can approve."))
+                if o.create_uid == self.env.user and not self.env.su:
+                    raise AccessError(_("Maker-checker: you cannot approve a request you created."))
             if o.state != 'draft':
                 raise UserError(_("Only a draft can be approved."))
             if not o.line_ids:
                 raise UserError(_("An order request without lines cannot be approved."))
-            if o.create_uid == self.env.user and not self.env.su:
-                raise AccessError(_("Maker-checker: you cannot approve a request you created."))
             for l in o.line_ids:
                 l._check_quantity()
             o.with_context(ei_system=True).write({'state': 'approved', 'approved_by': self.env.user.id,
                                                    'approved_at': fields.Datetime.now()})
+
+    def action_confirm(self):
+        """Save & Continue: confirm the request now when approval is off; otherwise it waits in draft for the approver."""
+        todo = self.filtered(lambda o: o.state == 'draft' and not o._approval_required())
+        todo.action_approve()
+        return True
 
     def action_cancel(self, reason=None):
         for o in self:

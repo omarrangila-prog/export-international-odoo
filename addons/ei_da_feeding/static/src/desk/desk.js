@@ -29,11 +29,13 @@ export class EiDaFeeding extends Component {
 
     setup() {
         this.orm = useService("orm");
+        this.action = useService("action");
         this.notification = useService("notification");
         this.state = proxy({
             tab: "practice", lab: null, labInputs: null, open: {}, labBusy: false,
             methods: [], list: null, da: null, line: null, preview: null, previewBusy: false, newDa: null,
             look: { field: null, term: "", rows: [], busy: false }, busy: false, error: "", header: null, docIndex: 0,
+            review: false, next: null, newCur: "PKR",
         });
         this.timers = { lab: null, prev: null, look: null };
         this.onKey = (ev) => {
@@ -109,7 +111,7 @@ export class EiDaFeeding extends Component {
     }
     async loadList() { try { this.state.list = await this.call("da_list", []); } catch { this.state.list = { rows: [], contracts: [] }; } }
     async openDa(id) {
-        this.state.line = null; this.state.preview = null; this.state.docIndex = 0;
+        this.state.line = null; this.state.preview = null; this.state.docIndex = 0; this.state.next = null; this.state.review = false;
         try { this.setDa(await this.call("da_load", [id])); } catch { /* shown */ }
     }
     setDa(da) {
@@ -117,7 +119,8 @@ export class EiDaFeeding extends Component {
         this.state.header = { printed_customer: da.printed_customer, order_datetime: da.order_datetime, ship_date: da.ship_date, date: da.date };
     }
     startNewDa() {
-        const c = this.state.list.contracts;
+        this.state.next = null;
+        const c = this.contractsForCurrency;
         this.state.newDa = { contract_id: c.length === 1 ? String(c[0].id) : "", name: "", date: localDay(),
             order_datetime: "", ship_date: "", printed_customer: "" };
     }
@@ -140,12 +143,31 @@ export class EiDaFeeding extends Component {
         try { this.setDa(await this.call("attach", [this.state.da.id, file.name, data, file.type])); this.toast("Paper attached."); } catch { /* shown */ }
         ev.target.value = "";
     }
+    // Save & Continue: confirmed now when approval is off (the default), or sent to the approver when ticked / switched on
     async submit() {
         if (this.state.line) { this.toast("Save or close the coil you are editing first.", "warning"); return; }
         this.state.busy = true;
-        try { this.setDa(await this.call("submit", [this.state.da.id])); await this.loadList(); this.toast("Sent for review. An approver checks it next."); }
-        catch { /* shown */ } finally { this.state.busy = false; }
+        try {
+            const r = await this.call("submit", [this.state.da.id, this.state.review]);
+            this.setDa(r); this.state.next = r.next; await this.loadList();
+            this.toast(r.state === "approved" ? "DA confirmed." + (r.next && !r.next.error ? " Next: the daily order request is ready." : "")
+                : "Sent for review. The approver checks it next.");
+        } catch { /* shown */ } finally { this.state.busy = false; }
     }
+    openNext() {
+        const n = this.state.next;
+        if (n && !n.error) { this.action.doAction({ type: "ir.actions.act_window", res_model: n.model, res_id: n.id, views: [[false, "form"]], target: "current" }); }
+    }
+    get step() {
+        const d = this.state.da;
+        if (!d) { return 1; }
+        if (this.state.line) { return this.state.line.method ? 3 : 2; }
+        return d.lines.length ? 4 : 2;
+    }
+    get contractsForCurrency() {
+        return (this.state.list ? this.state.list.contracts : []).filter((c) => c.currency === this.state.newCur);
+    }
+    setNewCur(cur) { this.state.newCur = cur; if (this.state.newDa) { this.state.newDa.contract_id = ""; } }
 
     // ------------------------------------------------------------------ real entry: one coil
     newLine() {
@@ -162,6 +184,17 @@ export class EiDaFeeding extends Component {
         }
         this.state.line = l; this.state.preview = null;
         this.focusSoon("#ei-fd-coil");
+    }
+    // a new coil with the repeatable details of an existing one; the coil number, weight and credit note are left empty
+    duplicateLine(row) {
+        const l = blankLine();
+        Object.assign(l, { contract_line_id: String(row.contract_line_id), grade: row.grade, method: row.method,
+            basic_rate: row.basic_rate ? String(row.basic_rate) : "", sale_offset: String(row.sale_offset || 0), sale_typed: row.sale_typed,
+            sale_rate: row.sale_typed ? String(row.sale_rate || "") : "", purchase_rate: row.method === "direct_no_commission" ? String(row.purchase_rate || "") : "",
+            customer: row.customer, customer_code: row.customer_code, trade_code: row.trade_code, pl_code: row.pl_code, rate_note: row.rate_note });
+        this.state.line = l; this.state.preview = null;
+        this.focusSoon("#ei-fd-coil");
+        this.refresh();
     }
     editLine(row) {
         this.state.line = { ...blankLine(), ...row, contract_line_id: String(row.contract_line_id), weight_kg: String(row.weight_kg || ""),

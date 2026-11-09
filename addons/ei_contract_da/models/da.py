@@ -5,8 +5,9 @@ from odoo.exceptions import AccessError, UserError
 class EiDa(models.Model):
     _name = 'ei.da'
     _description = 'Delivery Advice (DA)'
-    _inherit = ['mail.thread', 'mail.activity.mixin']
+    _inherit = ['mail.thread', 'mail.activity.mixin', 'ei.review.option.mixin']
     _order = 'date desc, id desc'
+    _ei_flow = 'da'
 
     name = fields.Char('DA number (as issued by parent)', required=True, tracking=True)
     amendment_no = fields.Integer(default=0, readonly=True)
@@ -89,13 +90,14 @@ class EiDa(models.Model):
         return cline.ordered_mtl - used
 
     def action_approve(self):
-        if not self.env.user.has_group('ei_contract_da.group_ei_contract_approver'):
-            raise AccessError(_("Only a contract approver can approve a DA."))
         for d in self:
+            if d._approval_required():
+                if not self.env.user.has_group('ei_contract_da.group_ei_contract_approver'):
+                    raise AccessError(_("Only a contract approver can approve a DA."))
+                if d.create_uid == self.env.user and not self.env.su:
+                    raise AccessError(_("Maker-checker: you cannot approve a DA you created."))
             if d.state != 'under_review':
                 raise UserError(_("Only a DA under review can be approved."))
-            if d.create_uid == self.env.user and not self.env.su:
-                raise AccessError(_("Maker-checker: you cannot approve a DA you created."))
             if d.contract_id.state != 'active':
                 raise UserError(_("Contract %s is not active.", d.contract_id.name))
             c = d.contract_id
@@ -115,6 +117,16 @@ class EiDa(models.Model):
             d._sys({'state': 'approved', 'approved_by': self.env.user.id, 'approved_at': fields.Datetime.now()})
             if d.previous_id:
                 d.previous_id._sys({'state': 'amended'})
+
+    def action_confirm(self):
+        """Save & Continue: with approval off the DA is confirmed at once by the person entering it (every check still runs:
+        quantities, rates, codes, exchange rate); with approval on it waits for the approver."""
+        for d in self:
+            if d.state == 'draft':
+                d.action_review()
+            if not d._approval_required() and d.state == 'under_review':
+                d.action_approve()
+        return True
 
     def _check_before_approval(self):
         """Hook: further checks a module adds before a DA is approved (raise to refuse)."""

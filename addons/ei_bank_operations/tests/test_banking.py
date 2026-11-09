@@ -17,6 +17,7 @@ class TestBanking(AccountTestInvoicingCommon):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        cls.env['ei.approval.policy'].sudo().set_all(True)        # these tests check the second-person controls (policy on)
         g = lambda x: cls.env.ref(x).id
         mk = lambda login, *groups: cls.env['res.users'].with_context(no_reset_password=True).create({
             'name': login, 'login': login, 'group_ids': [Command.set([g(x) for x in groups])]})

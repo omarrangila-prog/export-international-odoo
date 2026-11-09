@@ -63,5 +63,14 @@ if not env['ei.da'].search([('name', '=', 'DA-DEMO-FEED-1')]):
                                       loss_reason='DEMO: clearing an old coil'))
     da.with_user(U['contracts']).action_review()
     da.with_user(U['contractapprover']).action_approve()
+# ---- one DEMO training login that can do every daily task (used for the training film); password: demo
+TRAINER_GROUPS = ['ei_contract_da.group_ei_contract_staff', 'ei_material_lifting.group_ei_dispatch_officer',
+                  'ei_invoice_extensions.group_ei_invoicing', 'ei_cashbook.group_ei_cash_clerk', 'account.group_account_user',
+                  'ei_bank_operations.group_ei_bank_officer', 'ei_parent_reconciliation.group_ei_recon_user']
+if not env['res.users'].search([('login', '=', 'demo.trainer')]):
+    env['res.users'].with_context(no_reset_password=True).create({
+        'name': 'DEMO Trainer', 'login': 'demo.trainer', 'password': 'demo', 'email': 'demo.trainer@example.invalid',
+        'company_id': co.id, 'company_ids': [Command.set([co.id])], 'tz': 'Asia/Karachi',
+        'group_ids': [Command.set([env.ref(g).id for g in TRAINER_GROUPS])], 'action_id': env.ref('ei_ui_theme.action_ei_home').id})
 env.cr.commit()
 print('DEMO feeding ready: codes D.01/D.02, USD contract, DA-DEMO-FEED-1')

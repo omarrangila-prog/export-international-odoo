@@ -11,14 +11,16 @@ from . import formula_engine as fe
 class EiContract(models.Model):
     _name = 'ei.contract'
     _description = 'Parent-company contract'
-    _inherit = ['mail.thread', 'mail.activity.mixin']
+    _inherit = ['mail.thread', 'mail.activity.mixin', 'ei.review.option.mixin', 'ei.two.currency.mixin']
     _order = 'date desc, id desc'
+    _ei_flow = 'contract'
 
     name = fields.Char(readonly=True, copy=False, default='New')
     parent_partner_id = fields.Many2one('res.partner', string='Parent company (supplier)', required=True, tracking=True)
     contract_ref = fields.Char('Parent contract reference', required=True, tracking=True)
     company_id = fields.Many2one('res.company', string='Owner company', required=True, default=lambda s: s.env.company, index=True)
-    currency_id = fields.Many2one('res.currency', required=True, default=lambda s: s.env.company.currency_id)
+    currency_id = fields.Many2one('res.currency', required=True, default=lambda s: s.env.company.currency_id,
+                                  domain="[('name', 'in', ('PKR', 'USD'))]")
     date = fields.Date(required=True, default=fields.Date.context_today)
     valid_from = fields.Date(tracking=True)
     valid_to = fields.Date(tracking=True)
@@ -104,19 +106,34 @@ class EiContract(models.Model):
             r._sys({'state': 'reviewed', 'reviewed_by': self.env.user.id})
 
     def action_approve(self):
-        if not self.env.user.has_group('ei_contract_da.group_ei_contract_approver'):
-            raise AccessError(_("Only a contract approver can approve."))
         for r in self:
+            if r._approval_required():          # approval on (policy or "Send for review"): a second, authorised person
+                if not self.env.user.has_group('ei_contract_da.group_ei_contract_approver'):
+                    raise AccessError(_("Only a contract approver can approve."))
+                if r.create_uid == self.env.user and not self.env.su:
+                    raise AccessError(_("Maker-checker: you cannot approve a contract you created."))
             if r.state != 'reviewed':
                 raise UserError(_("Only a reviewed contract can be approved."))
-            if r.create_uid == self.env.user and not self.env.su:
-                raise AccessError(_("Maker-checker: you cannot approve a contract you created."))
             r.line_ids._check_ready()
             r.line_ids._take_snapshot()
             r._sys({'state': 'approved', 'approved_by': self.env.user.id, 'approved_at': fields.Datetime.now()})
             if r.previous_id:
                 r.previous_id._sys({'state': 'amended'})
                 r.previous_id.da_ids.filtered(lambda d: d.state in ('draft', 'under_review'))._cancel_for_revision(r)
+
+    def action_confirm(self):
+        """Save & Continue: with approval off the person entering the contract confirms it (checked, approved, active) in one
+        step; with approval on (or 'Send for review' ticked) it goes to the approver."""
+        for r in self:
+            if r.state == 'draft':
+                r.action_review()
+            if r._approval_required():
+                continue
+            if r.state == 'reviewed':
+                r.action_approve()
+            if r.state == 'approved':
+                r.action_activate()
+        return True
 
     def action_activate(self):
         for r in self:

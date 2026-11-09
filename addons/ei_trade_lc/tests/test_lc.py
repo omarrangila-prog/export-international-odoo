@@ -11,6 +11,7 @@ class TestLc(TransactionCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        cls.env['ei.approval.policy'].sudo().set_all(True)        # these tests check the second-person controls (policy on)
         mk = lambda login, g: cls.env['res.users'].with_context(no_reset_password=True).create({
             'name': login, 'login': login, 'group_ids': [Command.set([cls.env.ref(g).id])]})
         cls.mgr = mk('lc_mgr', 'ei_trade_lc.group_ei_trade_manager')

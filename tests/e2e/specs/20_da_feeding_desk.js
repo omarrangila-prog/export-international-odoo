@@ -39,9 +39,9 @@ module.exports = {
     }
     const pending = p.locator('.ei-fd-method[data-method="purchase_without_commission"]');
     ctx.check(await pending.locator('.ei-fd-figs').count() === 0 && /client/.test(await pending.innerText()), '1 "Purchase without commission" shows no invented numbers and says it waits for the client');
-    await p.locator('.ei-fd-method[data-method="purchase_with_cn"]').getByRole('button', { name: 'Why this amount?' }).click();
+    await p.locator('.ei-fd-method[data-method="purchase_with_cn"]').getByRole('button', { name: 'Show calculation' }).click();
     const steps = await p.locator('.ei-fd-method[data-method="purchase_with_cn"] .ei-fd-steps').innerText();
-    ctx.check(['41,310.00', '270,810.00', '270.81', '271,080.81', '3,029.40', '268,051.41', '13.20', '986.80', '267,064.61'].every((v) => steps.includes(v)), '1 "Why this amount?" shows every step of the CN example');
+    ctx.check(['41,310.00', '270,810.00', '270.81', '271,080.81', '3,029.40', '268,051.41', '13.20', '986.80', '267,064.61'].every((v) => steps.includes(v)), '1 "Show calculation" shows every step of the CN example');
     await p.locator('.ei-fd-inputs input').first().fill('239950'); await p.waitForTimeout(1200);
     const isl = (await p.locator('.ei-fd-method[data-method="sale_at_mill_rate"] .ei-fd-figs dd').first().innerText()).trim();
     ctx.check(isl === '280,256.80', '1 a new basic rate re-works every card (ISL p.3 example: dealer net 280,256.80)', isl);
@@ -69,7 +69,7 @@ module.exports = {
     ctx.check(await p.locator('.ei-fd-docframe').count() === 1, '2 the attached paper is shown beside the entry');
     const shownTime = await p.locator('.ei-fd-work input[type="datetime-local"]').first().inputValue();
     ctx.check(shownTime === '2026-11-06T16:03', '2 the printed order time comes back as typed (Karachi time), apart from the DA date', shownTime);
-    await p.getByRole('button', { name: 'Add a coil' }).click();
+    await p.getByRole('button', { name: 'Add Coil' }).click();
     await p.fill('#ei-fd-coil', 'E2E-COIL-1');
     await p.locator('.ei-fd-editor .ei-fd-field:has-text("Weight") input').fill('4574');
     ctx.check((await p.locator('.ei-fd-editor .ei-fd-hint').first().innerText()).includes('4.574'), '2 4,574 kg shows as 4.574 MTL straight away');
@@ -86,10 +86,10 @@ module.exports = {
     await p.waitForTimeout(1200);
     const ans = (await p.locator('.ei-fd-answer .ei-fd-figs dd').allInnerTexts()).map((t) => t.trim());
     ctx.check(ans[0] === '244,289.00' && ans[1] === '248,047.80', '2 the coil is worked out from the contract formula: dealer net 245,275.80 less net CN 986.80; sold at the mill rate', ans.join(' / '));
-    await p.getByRole('button', { name: 'Save coil (draft)' }).click(); await p.waitForTimeout(1500);
+    await p.getByRole('button', { name: 'Save Draft' }).click(); await p.waitForTimeout(1500);
     const row = await p.locator('.ei-fd-table tbody tr').first().innerText();
     ctx.check(/E2E-COIL-1/.test(row) && /Code to check/.test(row), '2 the saved coil is listed, flagged because its customer code is not verified', row.replace(/\s+/g, ' '));
-    await p.getByRole('button', { name: 'Send for review' }).click(); await p.waitForTimeout(1500);
+    await p.getByRole('button', { name: 'Save & Continue' }).click(); await p.waitForTimeout(1500);
     const da = (await admin.rpc('ei.da', 'search_read', [[['name', '=', daName]], ['state', 'total_mtl']]))[0];
     ctx.check(da && da.state === 'under_review' && Math.abs(da.total_mtl - 4.574) < 1e-9, '2 the DA went to review with 4.574 MTL', JSON.stringify(da));
     await s.clean('2 real entry is clean', m);
@@ -110,7 +110,8 @@ module.exports = {
     const feedUsd = async (name, date) => {
       await up.getByRole('tab', { name: /Real entry/ }).click();
       await up.getByRole('button', { name: 'New DA' }).click();
-      await up.waitForSelector('.ei-fd-main select option:nth-child(2)', { state: 'attached', timeout: 15000 });
+      await up.getByRole('radio', { name: 'USD' }).click();
+      await up.waitForFunction(() => [...document.querySelectorAll('.ei-fd-main select option')].some((o) => /USD$/.test(o.textContent.trim())), null, { timeout: 15000 });
       const o = await up.locator('.ei-fd-main select option').evaluateAll((os) => os.map((x) => [x.value, x.textContent]));
       await up.locator('.ei-fd-main select').first().selectOption(o.find(([, tx]) => /USD-1/.test(tx))[0]);
       await up.fill('#ei-fd-daname', name);
@@ -120,7 +121,7 @@ module.exports = {
       await up.waitForSelector('.ei-fd-daname', { timeout: 15000 });
       await up.locator('.ei-fd-paper input[type="file"]').setInputFiles({ name: 'da.pdf', mimeType: 'application/pdf', buffer: Buffer.from('%PDF-1.4\n% synthetic\n') });
       await up.waitForTimeout(1000);
-      await up.getByRole('button', { name: 'Add a coil' }).click();
+      await up.getByRole('button', { name: 'Add Coil' }).click();
       await up.fill('#ei-fd-coil', name + '-C1');
       await up.locator('.ei-fd-editor .ei-fd-field:has-text("Weight") input').fill('4574');
       await pickIn(up, 'Customer', 'Noor'); await pickIn(up, 'Customer code', 'D.02');
@@ -137,14 +138,14 @@ module.exports = {
     const base = await up.locator('.ei-fd-answer').innerText();
     ctx.check(/In PKR/.test(base) && base.includes('224,000.00') && base.includes('+54.89 USD') && base.includes('+15,369.20'), '5 the PKR equivalent is shown: 800 x 280 = 224,000.00; the coil spread 54.89 USD = 15,369.20 PKR', base.replace(/\s+/g, ' ').slice(0, 200));
     await ctx.shot(up, 'feeding_usd');
-    await up.getByRole('button', { name: 'Save coil (draft)' }).click(); await up.waitForTimeout(1200);
-    await up.getByRole('button', { name: 'Send for review' }).click(); await up.waitForTimeout(1200);
+    await up.getByRole('button', { name: 'Save Draft' }).click(); await up.waitForTimeout(1200);
+    await up.getByRole('button', { name: 'Save & Continue' }).click(); await up.waitForTimeout(1200);
     const early = new Date(Date.parse(today.slice(0, 8) + '01T00:00:00Z') - 86400000).toISOString().slice(0, 10);
     const oldName = usdName + '-OLD';
     await feedUsd(oldName, early);
     ctx.check(/No USD rate/.test(await up.locator('.ei-fd-dahead').innerText()), '5 a USD DA dated before any USD rate says so before it is sent');
-    await up.getByRole('button', { name: 'Save coil (draft)' }).click(); await up.waitForTimeout(1200);
-    await up.getByRole('button', { name: 'Send for review' }).click(); await up.waitForTimeout(1200);
+    await up.getByRole('button', { name: 'Save Draft' }).click(); await up.waitForTimeout(1200);
+    await up.getByRole('button', { name: 'Save & Continue' }).click(); await up.waitForTimeout(1200);
     await u.clean('5 the USD entries are clean', m);
     await u.close();
     const ap2 = await new Session(ctx, browser, 'demo.contractapprover', 'demo').start();

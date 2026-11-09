@@ -10,14 +10,15 @@ from odoo.addons.ei_legacy_master.models.parsing import check_hs
 class EiSupplierIntake(models.Model):
     _name = 'ei.supplier.intake'
     _description = 'Supplier invoice intake (checked before any bill exists)'
-    _inherit = ['mail.thread', 'mail.activity.mixin']
+    _inherit = ['mail.thread', 'mail.activity.mixin', 'ei.two.currency.mixin']
     _order = 'id desc'
 
     name = fields.Char(readonly=True, copy=False, default='New')
     kind = fields.Selection([('in_invoice', 'Supplier invoice'), ('in_refund', 'Supplier credit note')],
                             required=True, default='in_invoice')
     company_id = fields.Many2one('res.company', required=True, default=lambda s: s.env.company, index=True)
-    currency_id = fields.Many2one('res.currency', required=True, default=lambda s: s.env.company.currency_id)
+    currency_id = fields.Many2one('res.currency', required=True, default=lambda s: s.env.company.currency_id,
+                                  domain="[('name', 'in', ('PKR', 'USD'))]")
     partner_id = fields.Many2one('res.partner', string='Supplier (parent company)', required=True, tracking=True)
     invoice_number = fields.Char('Supplier invoice no.', required=True, tracking=True)
     invoice_date = fields.Date(required=True)

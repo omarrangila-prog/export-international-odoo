@@ -59,6 +59,7 @@ class TestBrowserDesktop(EiBrowserCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        cls.env['ei.approval.policy'].sudo().set_all(True)        # these tests check the second-person controls (policy on)
         mk = cls.person
         cls.ceo = mk('b_ceo', 'ei_management_dashboard.group_ei_management')
         cls.accountant = mk('b_acct', 'account.group_account_user', 'ei_contract_da.group_ei_formula_approver')
@@ -232,6 +233,7 @@ class TestBrowserPhone(EiBrowserCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        cls.env['ei.approval.policy'].sudo().set_all(True)        # these tests check the second-person controls (policy on)
         cls.ceo = cls.person('p_ceo', 'ei_management_dashboard.group_ei_management')
         cls.officer = cls.person('p_bank', 'ei_bank_operations.group_ei_bank_officer')
 

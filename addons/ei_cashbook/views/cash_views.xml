@@ -37,7 +37,9 @@
         <field name="arch" type="xml">
             <form>
                 <header>
-                    <button name="action_submit" string="Submit" type="object" class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_confirm" string="Save &amp; Continue" type="object" class="btn-primary" invisible="state != 'draft' or approval_mode != 'direct'" data-hotkey="s"/>
+                    <field name="approval_mode" invisible="1"/>
+                    <button name="action_submit" string="Submit" type="object" class="btn-primary" invisible="state != 'draft' or approval_mode == 'direct'"/>
                     <button name="action_approve" string="Approve and post" type="object" class="btn-primary"
                             invisible="state != 'submitted'" groups="ei_cashbook.group_ei_cash_approver"/>
                     <button name="%(ei_cash_decision_action)d" string="Reject" type="action"
@@ -49,6 +51,9 @@
                     <field name="state" widget="statusbar" statusbar_visible="draft,submitted,posted"/>
                 </header>
                 <sheet>
+                    <div class="o_row mb-2" title="Off by default: you confirm it yourself. Tick to have a second person check it.">
+                        <field name="review_requested" readonly="state != 'draft'" widget="boolean_toggle"/><label for="review_requested"/>
+                    </div>
                     <div class="oe_title"><h1><field name="name"/></h1></div>
                     <group>
                         <group>
