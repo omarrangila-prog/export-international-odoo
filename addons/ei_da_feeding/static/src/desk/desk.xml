@@ -259,6 +259,7 @@
 
                                     <!-- the answer -->
                                     <t t-set="p" t-value="this.state.preview"/>
+                                    <p t-if="p and p.code_issue" class="ei-fd-warnbox ei-fd-codewarn" role="alert" t-out="p.code_issue"/>
                                     <div t-if="p and p.ok" t-att-class="'ei-fd-answer is-' + p.result" aria-live="polite">
                                         <dl class="ei-fd-figs">
                                             <div><dt>Purchase / MTL</dt><dd class="ei-fd-num" t-out="this.fmt(p.purchase_rate)"/></div>

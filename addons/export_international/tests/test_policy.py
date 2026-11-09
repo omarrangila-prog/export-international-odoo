@@ -62,6 +62,8 @@ class TestPolicy(AccountTestInvoicingCommon):
         c.line_ids.with_user(self.checker).action_set_ownership('direct_dispatch', 'synthetic')
         lift = self.env['ei.lifting'].with_user(self.op).create({'da_line_id': d.line_ids.id, 'vehicle_no': 'T-1', 'gate_pass_no': 'GP-P1', 'claimed_mtl': 4})
         self.attach(lift)
+        ev = self.env['ei.approval.evidence'].with_user(self.op).get_evidence('ei.lifting', lift.id, 'action_verify')
+        self.assertEqual((ev['blocked'], ev['you']['direct']), ('', True))   # the confirmation box lets the maker confirm, too
         lift.with_user(self.op).action_verify()     # verified by the person who entered it: policy off
         self.assertEqual(lift.state, 'verified')
 
@@ -134,3 +136,16 @@ class TestPolicy(AccountTestInvoicingCommon):
         old.notes = 'kept'                                         # editing other fields of an old record still works
         self.assertEqual((old.currency_id, old.notes), (eur, 'kept'))
         self.assertEqual(self.env['ei.contract']._fields['currency_id'].domain, "[('name', 'in', ('PKR', 'USD'))]")
+
+    def test_cash_count_shows_the_book_side_while_counting(self):
+        cash = self.company_data['default_journal_cash']
+        cat = self.env['ei.cash.category'].sudo().create({'name': 'Tea', 'account_id': self.company_data['default_account_expense'].id})
+        v = self.env['ei.cash.voucher'].with_user(self.cashier).create({'journal_id': cash.id, 'kind': 'payment', 'amount': 500,
+                                                                        'description': 'tea', 'category_id': cat.id})
+        self.attach(v)
+        v.with_user(self.cashier).action_confirm()
+        c = self.env['ei.cash.count'].with_user(self.cashier).create({'journal_id': cash.id, 'counted_amount': 1000})
+        self.assertEqual(c.counted_amount, 1000)                             # a typed total is kept (no notes listed)
+        self.assertEqual((c.now_payments, c.now_book), (500, -500))          # the book side is live before the day is closed
+        self.assertEqual(c.now_difference, 1500)
+        self.assertIn(cash.name, c.display_name)

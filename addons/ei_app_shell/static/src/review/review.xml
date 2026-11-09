@@ -21,7 +21,7 @@
                     <dl class="ei-ap-facts">
                         <dt>Prepared by</dt><dd><t t-out="this.ev.maker.name or '-'"/><span t-if="this.ev.maker.when" class="ei-ap-muted"> · <t t-out="this.ev.maker.when"/></span></dd>
                         <dt>Last changed by</dt><dd><t t-out="this.ev.last.name or '-'"/><span t-if="this.ev.last.when" class="ei-ap-muted"> · <t t-out="this.ev.last.when"/></span></dd>
-                        <dt>You</dt><dd><t t-out="this.ev.you.name"/><span class="ei-ap-muted"> · <t t-if="this.ev.you.has_role">holds the role "<t t-out="this.ev.you.role"/>"</t><t t-else="">does not hold the role "<t t-out="this.ev.you.role"/>"</t></span></dd>
+                        <dt>You</dt><dd><t t-out="this.ev.you.name"/><span class="ei-ap-muted"> · <t t-if="this.ev.you.direct and this.ev.you.has_role">approval is off for this work: you confirm it yourself</t><t t-elif="this.ev.you.has_role">holds the role "<t t-out="this.ev.you.role"/>"</t><t t-else="">does not hold the role "<t t-out="this.ev.you.role"/>"</t></span></dd>
                     </dl>
                 </section>
 

@@ -5,12 +5,12 @@
         <field name="model">ei.bank.balance.check</field>
         <field name="arch" type="xml">
             <list editable="top" decoration-danger="state == 'difference'" decoration-success="state == 'matched'">
-                <field name="date"/><field name="journal_id"/><field name="currency_id" column_invisible="1"/>
-                <field name="confirmed_via"/><field name="bank_balance"/>
-                <field name="ledger_balance"/><field name="difference"/><field name="unexplained_difference" optional="show"/>
+                <field name="date" width="100px"/><field name="journal_id" width="150px"/><field name="currency_id" column_invisible="1"/>
+                <field name="confirmed_via" width="130px"/><field name="bank_balance"/>
+                <field name="ledger_balance"/><field name="difference"/><field name="unexplained_difference" optional="hide"/>
                 <field name="evidence_state" widget="badge" decoration-success="evidence_state == 'evidenced'" decoration-warning="evidence_state == 'stated'" optional="show"/>
                 <field name="state" widget="badge"/>
-                <field name="note"/><field name="entered_by"/><field name="entered_at"/>
+                <field name="note" optional="show"/><field name="entered_by" optional="hide"/><field name="entered_at" optional="hide"/>
                 <button name="action_explain" type="object" string="Mark explained" invisible="state != 'difference'"/>
                 <button name="action_open_form" type="object" string="Proof, timing items, sign-off" icon="fa-list-alt"/>
             </list>

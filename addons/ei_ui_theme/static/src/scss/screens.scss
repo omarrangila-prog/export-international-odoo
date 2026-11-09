@@ -101,16 +101,19 @@
 .o_form_view .o_horizontal_separator { text-transform: none; font-size: 15px; letter-spacing: -.01em; color: var(--ei-ink); font-weight: 800; border-bottom: 0; margin: 30px 0 12px; padding: 0; }
 .o_form_view .o_group { row-gap: 4px; }
 // boxed inputs: a person sees where to type before touching anything
-.o_form_view .o_field_widget:not(.o_readonly_modifier):not(.o_field_boolean):not(.o_field_statusbar):not(.o_field_badge) .o_input,
+.o_form_view .o_field_widget:not(.o_readonly_modifier):not(.o_field_boolean):not(.o_field_statusbar):not(.o_field_badge) .o_input:not(.position-absolute),
 .o_form_view .o_field_widget:not(.o_readonly_modifier) input:not([type=checkbox]):not([type=radio]),
 .o_form_view .o_field_widget:not(.o_readonly_modifier) textarea, .o_form_view .o_field_widget:not(.o_readonly_modifier) select,
-.modal .o_field_widget:not(.o_readonly_modifier) .o_input, .modal .o_field_widget:not(.o_readonly_modifier) input:not([type=checkbox]):not([type=radio]), .modal .o_field_widget:not(.o_readonly_modifier) select, .modal .o_field_widget:not(.o_readonly_modifier) textarea {
+.modal .o_field_widget:not(.o_readonly_modifier) .o_input:not(.position-absolute), .modal .o_field_widget:not(.o_readonly_modifier) input:not([type=checkbox]):not([type=radio]), .modal .o_field_widget:not(.o_readonly_modifier) select, .modal .o_field_widget:not(.o_readonly_modifier) textarea {
     border: 1px solid var(--ei-line-strong) !important; border-radius: 12px !important; background: var(--ei-card) !important; padding: 9px 13px !important; min-height: 42px; color: var(--ei-text);
     transition: border-color .15s, box-shadow .15s;
     &:hover { border-color: var(--ei-faint) !important; }
     &:focus, &:focus-within { border-color: var(--ei-primary) !important; box-shadow: 0 0 0 4px var(--ei-primary-soft) !important; outline: none; }
 }
 .o_form_view .o_field_widget.o_field_many2one .o_input_dropdown, .modal .o_field_widget.o_field_many2one .o_input_dropdown { width: 100%; }
+// Odoo's money field lays the currency label over the real input (an absolutely placed .o_input): it must stay see-through,
+// or the boxed-input background above hides every amount typed (found on 9 Nov 2026 in the training film: amounts looked empty)
+.o_field_monetary .o_input.position-absolute { background: transparent !important; border-color: transparent !important; box-shadow: none !important; padding: 10px 0 !important; align-items: center; color: var(--ei-muted); }
 .o_form_view .o_field_widget input::placeholder, .modal .o_field_widget input::placeholder { color: var(--ei-faint); }
 .o_form_view .o_field_widget a, .o_form_view .o_form_uri { color: var(--ei-primary); font-weight: 600; }
 .o_form_view .o_field_invalid .o_input, .o_form_view .o_field_invalid input { border-color: var(--ei-bad) !important; box-shadow: 0 0 0 4px var(--ei-bad-soft) !important; }

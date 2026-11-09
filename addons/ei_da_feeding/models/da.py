@@ -142,19 +142,23 @@ class EiDaLine(models.Model):
     def _code_problem(self, hard_only=False):
         """Plain-words reason the customer code cannot be trusted for this coil, or ''."""
         self.ensure_one()
-        c = self.customer_code_id
+        return self._code_problem_for(self.customer_code_id, self.customer_id, self.da_id.printed_customer,
+                                      self.code_override_reason, hard_only)
+
+    @api.model
+    def _code_problem_for(self, c, customer, printed, override=False, hard_only=False):
+        """The same check for values not saved yet (the desk warns while the coil is being typed)."""
         if not c:
             return _("Choose the customer's code from the code list.")
         if c.verification_status != 'approved' or c.linked_model != 'res.partner' or not c.linked_res_id:
             return _("Code %(c)s (%(n)s) is not yet verified against a customer. Leave it for the accountant to verify; do not guess.",
                      c=c.legacy_code, n=c.original_name)
         partner = self.env['res.partner'].browse(c.linked_res_id)
-        if self.customer_id and partner != self.customer_id:
-            return _("Code %(c)s belongs to %(p)s, not to %(x)s.", c=c.legacy_code, p=partner.display_name, x=self.customer_id.display_name)
+        if customer and partner != customer:
+            return _("Code %(c)s belongs to %(p)s, not to %(x)s.", c=c.legacy_code, p=partner.display_name, x=customer.display_name)
         if hard_only:
             return ''
-        printed = self.da_id.printed_customer
-        if printed and not self.code_override_reason and not (name_tokens(printed) & (name_tokens(c.original_name) | name_tokens(partner.name))):
+        if printed and not override and not (name_tokens(printed) & (name_tokens(c.original_name) | name_tokens(partner.name))):
             return _("The DA prints '%(p)s' but code %(c)s is '%(n)s'. Check the paper; an approver must record why before it can be used.",
                      p=printed, c=c.legacy_code, n=c.original_name)
         return ''

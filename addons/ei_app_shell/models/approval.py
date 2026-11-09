@@ -121,6 +121,16 @@ class EiApprovalEvidence(models.AbstractModel):
         self_made = bool(maker) and maker == me
         role = self.env.ref(group, raise_if_not_found=False)
         has_role = bool(role) and me.has_group(group)
+        # the client's default: routine approval is off, so the person entering the record confirms it; posting to the cash
+        # book still needs accounting rights (a security right, not an approval)
+        direct = 'review_requested' in rec._fields and not rec._approval_required()
+        if direct:
+            self_made = False
+            if model == 'ei.cash.voucher':
+                role = self.env.ref('account.group_account_user', raise_if_not_found=False)
+                has_role = me.has_group('account.group_account_user')
+            else:
+                has_role = True
         blocked = ''
         if not has_role:
             blocked = _("You do not hold the role this needs (%s). Ask someone who does.", role.name if role else group)
@@ -144,6 +154,6 @@ class EiApprovalEvidence(models.AbstractModel):
             kind=Model._description, name=rec.display_name, facts=facts, warnings=warnings, effect=_(effect),
             maker=dict(name=maker.name or rec.create_uid.name or '', when=format_datetime(self.env, rec.create_date, dt_format='dd MMM yyyy HH:mm') if rec.create_date else ''),
             last=dict(name=rec.write_uid.name or '', when=format_datetime(self.env, rec.write_date, dt_format='dd MMM yyyy HH:mm') if rec.write_date else ''),
-            you=dict(name=me.name, role=role.name if role else '', has_role=has_role, self_made=self_made),
+            you=dict(name=me.name, role=role.name if role else '', has_role=has_role, self_made=self_made, direct=direct),
             blocked=blocked, changes=changes[:12], documents=docs,
         )

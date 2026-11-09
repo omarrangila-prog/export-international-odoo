@@ -192,7 +192,10 @@ class EiFeedingDesk(models.AbstractModel):
         except fe.FeedingError as e:
             return {'ok': False, 'error': str(e)}
         res = out(r)
-        res.update(ok=True, currency=d.currency_id.name, base=self._base(d, r))
+        code = self.env['ei.legacy.code'].browse(int(vals['customer_code_id'])) if vals.get('customer_code_id') else self.env['ei.legacy.code']
+        customer = self.env['res.partner'].browse(int(vals['customer_id'])) if vals.get('customer_id') else self.env['res.partner']
+        res.update(ok=True, currency=d.currency_id.name, base=self._base(d, r),
+                   code_issue=self.env['ei.da.line']._code_problem_for(code.exists(), customer.exists(), d.printed_customer))
         return res
 
     def _base(self, d, r):

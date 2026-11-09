@@ -4,6 +4,7 @@ access_ei_cash_voucher_clerk,voucher clerk,ei.cash.voucher,group_ei_cash_clerk,c
 access_ei_cash_voucher_approver,voucher approver,ei.cash.voucher,group_ei_cash_approver,cru,
 access_ei_cash_category_auditor,category auditor,ei.cash.category,ei_legacy_master.group_ei_auditor,r,
 access_ei_cash_category_approver,category approver,ei.cash.category,group_ei_cash_approver,cru,
+access_ei_cash_category_clerk,category clerk (choose a category on a voucher),ei.cash.category,group_ei_cash_clerk,r,
 access_ei_cash_count_auditor,count auditor,ei.cash.count,ei_legacy_master.group_ei_auditor,r,
 access_ei_cash_count_clerk,count clerk,ei.cash.count,group_ei_cash_clerk,cru,
 access_ei_cash_count_approver,count approver,ei.cash.count,group_ei_cash_approver,cru,

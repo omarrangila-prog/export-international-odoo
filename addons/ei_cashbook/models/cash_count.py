@@ -33,11 +33,37 @@ class EiCashCount(models.Model):
         for r in self:
             r.currency_id = r.journal_id.currency_id or r.journal_id.company_id.currency_id
 
+    # while the count is open, the book side is worked out live, so the person counting sees the difference at once;
+    # closing the day freezes these figures in the stored fields above
+    now_opening = fields.Monetary('Cash at start of day', compute='_compute_now', currency_field='currency_id')
+    now_receipts = fields.Monetary('Cash received', compute='_compute_now', currency_field='currency_id')
+    now_payments = fields.Monetary('Cash paid out', compute='_compute_now', currency_field='currency_id')
+    now_book = fields.Monetary('Cash according to books', compute='_compute_now', currency_field='currency_id')
+    now_difference = fields.Monetary('Difference', compute='_compute_now', currency_field='currency_id')
+
+    @api.depends('journal_id', 'date', 'counted_amount', 'state')
+    def _compute_now(self):
+        for r in self:
+            if r.journal_id and r.date and r.journal_id.default_account_id:
+                opening, rec, pay = r._figures()
+            else:
+                opening = rec = pay = 0.0
+            book = opening + rec - pay
+            r.now_opening, r.now_receipts, r.now_payments, r.now_book = opening, rec, pay, book
+            r.now_difference = r.currency_id.round((r.counted_amount or 0.0) - book) if r.currency_id else 0.0
+
+    @api.depends('journal_id', 'date')
+    def _compute_display_name(self):
+        for r in self:
+            r.display_name = _("Cash count %(j)s %(d)s", j=r.journal_id.name or '', d=r.date or '') if r.journal_id else _("New cash count")
+
     @api.depends('line_ids.subtotal')
     def _compute_amounts(self):
         for r in self:
             if r.line_ids:
                 r.counted_amount = sum(r.line_ids.mapped('subtotal'))
+            else:
+                r.counted_amount = r.counted_amount     # a total typed by hand stays when no notes and coins are listed
 
     def _figures(self):
         self.ensure_one()
