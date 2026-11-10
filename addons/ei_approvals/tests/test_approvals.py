@@ -334,3 +334,39 @@ class TestMakerChecker(AccountTestInvoicingCommon):
         data = self.R.with_user(req.approver_id).center_data(tab='pending')
         self.assertIn(req.id, [r['id'] for r in data['rows']])
         self.assertEqual(data['tabs']['pending'], data['counts']['pending_for_me'])
+
+    # the second-person steps of other modules come into the same centre: the daily cash count as the example
+    def test_queue_cash_count_through_the_centre(self):
+        cash = self.company_data['default_journal_cash']
+        count = self.env['ei.cash.count'].with_user(self.clerk).create({'journal_id': cash.id, 'counted_amount': 0})
+        self.R._queue_sync(force=True)
+        req = self.R._pending_for(count)
+        self.assertEqual((req.flow, req.maker_id, req.approver_id), ('cashcount', self.clerk, self.cashier))
+        self.assertTrue(self.notices(self.cashier, 'request').filtered(lambda n: n.request_id == req))
+        self.assertFalse(self.R.with_user(self.cashier).browse(req.id)._row()['can_reject'])          # a count is corrected, not rejected
+        with self.assertRaises(AccessError):
+            self.R.with_user(self.clerk).decide(req.id, 'approve')                                    # the counter never closes their own count
+        self.R.with_user(self.cashier).decide(req.id, 'return', 'Count the coins again')
+        self.R._queue_sync(force=True)
+        self.assertFalse(self.R._pending_for(count))                                                  # not reopened until the count changes
+        count.with_user(self.clerk).write({'counted_amount': 0.0, 'discrepancy_note': 'recounted'})
+        self.env.flush_all()                                  # the correction is saved later than the return (a later day, in real use)
+        self.env.cr.execute("UPDATE ei_cash_count SET write_date = now() + interval '1 hour' WHERE id = %s", [count.id])
+        count.invalidate_recordset()
+        self.R._queue_sync(force=True)
+        req2 = self.R._pending_for(count)
+        self.assertEqual(req2.round, 2)
+        self.R.with_user(self.cashier).decide(req2.id, 'approve', 'Checked')
+        self.assertEqual((count.state, req2.state, req2.decided_by), ('closed', 'approved', self.cashier))
+
+    def test_queue_decided_on_the_document_closes_the_request(self):
+        cash = self.company_data['default_journal_cash']
+        count = self.env['ei.cash.count'].with_user(self.clerk).create({'journal_id': cash.id, 'counted_amount': 0, 'date': fields.Date.today() - timedelta(days=3)})
+        self.R._queue_sync(force=True)
+        req = self.R._pending_for(count)
+        count.with_user(self.cashier).action_close()                                                 # the old button on the count itself
+        self.assertEqual((count.state, req.state, req.decided_by), ('closed', 'approved', self.cashier))
+        self.assertIn('approved', req.event_ids.mapped('kind'))
+        other = self.env['ei.cash.count'].with_user(self.clerk).create({'journal_id': cash.id, 'counted_amount': 0, 'date': fields.Date.today() - timedelta(days=4)})
+        with self.assertRaises(AccessError):
+            other.with_user(self.clerk).action_close()                                                # never the person who counted

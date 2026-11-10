@@ -7,7 +7,9 @@ from odoo import api, fields, models, _
 from odoo.exceptions import UserError
 
 FLOW_SELECTION = [('contract', "Contract"), ('da', "Delivery advice (DA)"), ('order', "Daily order request"),
-                  ('cash', "Cash voucher"), ('lifting', "Truck loading")]
+                  ('cash', "Cash voucher"), ('lifting', "Truck loading"),
+                  ('bank', "Bank statement"), ('intake', "Supplier invoice mismatch"), ('recon', "Parent statement sign-off"),
+                  ('cashcount', "Daily cash count"), ('formula', "Rate formula"), ('close', "Day / month-end close")]
 
 
 class EiApprovalRule(models.Model):

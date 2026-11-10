@@ -6,7 +6,7 @@
                'top-bar counter and notifications, an approvals centre and a full audit timeline.',
     'author': 'Odoovations',
     'license': 'LGPL-3',
-    'depends': ['ei_app_shell', 'ei_da_feeding', 'bus'],
+    'depends': ['ei_app_shell', 'ei_da_feeding', 'ei_close', 'bus'],
     'data': [
         'security/ir.access.csv',
         'data/rules.xml',

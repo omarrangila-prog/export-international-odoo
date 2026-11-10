@@ -17,4 +17,22 @@
     <record id="rule_lifting" model="ei.approval.rule">
         <field name="name">Truck loadings: a lifting reviewer verifies</field><field name="flow">lifting</field>
         <field name="approver_group_id" ref="ei_material_lifting.group_ei_lifting_reviewer"/></record>
+    <record id="rule_bank" model="ei.approval.rule">
+        <field name="name">Bank statements: a bank approver approves</field><field name="flow">bank</field>
+        <field name="approver_group_id" ref="ei_bank_operations.group_ei_bank_approver"/></record>
+    <record id="rule_intake" model="ei.approval.rule">
+        <field name="name">Supplier invoice mismatches: an invoice approver accepts or rejects</field><field name="flow">intake</field>
+        <field name="approver_group_id" ref="ei_invoice_extensions.group_ei_invoice_approver"/></record>
+    <record id="rule_recon" model="ei.approval.rule">
+        <field name="name">Parent statements: a reconciliation approver signs off</field><field name="flow">recon</field>
+        <field name="approver_group_id" ref="ei_parent_reconciliation.group_ei_recon_approver"/></record>
+    <record id="rule_cashcount" model="ei.approval.rule">
+        <field name="name">Daily cash count: a cash approver closes the day</field><field name="flow">cashcount</field>
+        <field name="approver_group_id" ref="ei_cashbook.group_ei_cash_approver"/></record>
+    <record id="rule_formula" model="ei.approval.rule">
+        <field name="name">Rate formulas: a formula approver (accountant) approves</field><field name="flow">formula</field>
+        <field name="approver_group_id" ref="ei_contract_da.group_ei_formula_approver"/></record>
+    <record id="rule_close" model="ei.approval.rule">
+        <field name="name">Day / month-end close: an accounting manager signs off</field><field name="flow">close</field>
+        <field name="approver_group_id" ref="account.group_account_manager"/></record>
 </odoo>

@@ -163,7 +163,7 @@
                             <button type="button" class="ei-ap-btn is-ghost" t-on-click="() => this.openDocument()">Open the document</button>
                             <span class="ei-ap-spacer"/>
                             <t t-if="row.can_decide">
-                                <button type="button" class="ei-ap-btn is-bad" t-on-click="() => this.ask('reject')">Reject</button>
+                                <button t-if="row.can_reject !== false" type="button" class="ei-ap-btn is-bad" t-on-click="() => this.ask('reject')">Reject</button>
                                 <button type="button" class="ei-ap-btn is-warn" t-on-click="() => this.ask('return')">Return for correction</button>
                                 <button type="button" class="ei-ap-btn is-primary" t-att-disabled="rv.changed_since" t-on-click="() => this.ask('approve')">Approve</button>
                             </t>

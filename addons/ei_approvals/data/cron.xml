@@ -9,4 +9,13 @@
         <field name="interval_type">hours</field>
         <field name="active">True</field>
     </record>
+    <record id="cron_queue_sync" model="ir.cron">
+        <field name="name">Approvals: open requests for documents waiting for a second person</field>
+        <field name="model_id" ref="model_ei_approval_request"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_queue_sync()</field>
+        <field name="interval_number">5</field>
+        <field name="interval_type">minutes</field>
+        <field name="active">True</field>
+    </record>
 </odoo>

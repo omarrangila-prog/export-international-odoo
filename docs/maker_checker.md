@@ -26,17 +26,20 @@ DRAFT --Submit for Approval--> PENDING APPROVAL --Approve--> APPROVED --> next s
 
 **Why the daily order is approved separately:** the order request is a separate commitment, sent to the mill. It bundles the day's approved DAs, and its quantities can be split across days. Approving it is not a repeat of the DA approval.
 
-**Existing second-person controls, unchanged and not yet in the approvals centre:**
-- bank statement approve and post (`ei_bank_operations`);
-- supplier-invoice mismatch acceptance (`ei_invoice_extensions`);
-- parent-statement sign-off (`ei_parent_reconciliation`);
-- cash-count difference posting;
-- formula approval;
-- LC verification;
-- day-end and month-end close (`ei_close`);
-- customer invoices, credit notes and accounting corrections, which keep Odoo's own posting rights.
+**The second-person steps that already existed in other modules are in the same centre too (10 Nov 2026).** Their own rules are unchanged. A request opens by itself when the document reaches its waiting state, and the checker decides in the centre or on the document; either way the document's own method runs, as the checker.
 
-These each already require a second person or a posting right. Moving them into the centre is a next step, and it should follow the client's written policy for each.
+| Document | Waits when | The checker's step (role) | Reject from the centre |
+|---|---|---|---|
+| Bank statement | lines checked, nothing open | Approve (bank approver) | Yes (rejects the batch) |
+| Supplier invoice mismatch | the checks found a mismatch | Accept, with the note as the reason (invoice approver) | Yes (cancels the intake) |
+| Parent statement | every exception resolved | Sign off (reconciliation approver) | No: return it |
+| Daily cash count | counted, not closed | Close the day (cash approver) | No: return it |
+| Rate formula | draft with steps and test cases | Approve (formula approver) | No: return it |
+| Day / month-end close | checked, no open blocker | Sign off (accounting manager) | No: return it |
+
+**Not routed through the centre:**
+- **Bank statement posting:** the second step on an approved statement stays on the statement and in My Work, by a person with posting rights, never the importer.
+- **Customer invoices, credit notes and accounting corrections:** these are Odoo journal entries. They keep Odoo's own posting rights. Putting a second person in front of Odoo's posting on the live ledger is a separate decision for the client.
 
 ## What is enforced on the server
 
@@ -59,7 +62,7 @@ The rules are under *Approvals › Approval rules*, and only administrators can 
 - an optional amount from which the rule applies;
 - the hours before a request counts as overdue, and who is told then (management by default; an hourly job marks it once).
 
-One checker per document, as the client asked. "Two checkers" is not offered until the client gives a written policy.
+One checker per document, as the client confirmed (10 Nov 2026). There is no two-checker option.
 
 ## Notifications and screens
 

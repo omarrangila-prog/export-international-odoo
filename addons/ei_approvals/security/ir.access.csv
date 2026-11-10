@@ -1,11 +1,11 @@
 id,name,model_id,group_id/id,operation,domain
 access_ei_approval_rule_user,approval rule: read,ei.approval.rule,ei_legacy_master.group_ei_user,r,
 access_ei_approval_rule_admin,approval rule: administrator,ei.approval.rule,base.group_system,crud,
-access_ei_approval_request_involved,approval request: the people involved,ei.approval.request,ei_legacy_master.group_ei_user,r,"['|', '|', '|', ('maker_id', '=', user.id), ('approver_id', '=', user.id), ('eligible_user_ids', 'in', [user.id]), ('decided_by', '=', user.id)]"
+access_ei_approval_request_involved,approval request: the people involved,ei.approval.request,base.group_user,r,"['|', '|', '|', ('maker_id', '=', user.id), ('approver_id', '=', user.id), ('eligible_user_ids', 'in', [user.id]), ('decided_by', '=', user.id)]"
 access_ei_approval_request_management,approval request: management,ei.approval.request,ei_management_dashboard.group_ei_management,r,
 access_ei_approval_request_auditor,approval request: auditor,ei.approval.request,ei_legacy_master.group_ei_auditor,r,
 access_ei_approval_request_admin,approval request: administrator,ei.approval.request,base.group_system,r,
 rule_ei_approval_request_company,approval request: own companies,ei.approval.request,,crud,"[('company_id', 'in', company_ids)]"
-access_ei_approval_event_user,approval timeline: read with its request,ei.approval.event,ei_legacy_master.group_ei_user,r,
+access_ei_approval_event_user,approval timeline: read with its request,ei.approval.event,base.group_user,r,
 rule_ei_approval_event_visible,approval timeline: only of visible requests,ei.approval.event,,crud,"[('request_id.company_id', 'in', company_ids)]"
-access_ei_approval_notice_own,approval notification: own,ei.approval.notice,ei_legacy_master.group_ei_user,r,"[('user_id', '=', user.id)]"
+access_ei_approval_notice_own,approval notification: own,ei.approval.notice,base.group_user,r,"[('user_id', '=', user.id)]"

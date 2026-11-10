@@ -44,6 +44,10 @@ class EiApprovalMixin(models.AbstractModel):
             r.approval_can_submit = bool(r.id) and r._approval_required() and r._ei_ap_submittable() and not (req and req.state == 'pending')
 
     # ---- what every document provides (overridden below)
+    def _ei_ap_company(self):
+        """The company a request belongs to (a rate formula has none of its own: it serves every company)."""
+        return self.company_id if 'company_id' in self._fields and self.company_id else self.env.company
+
     def _ei_ap_maker(self):
         return self.maker_id if 'maker_id' in self._fields and self.maker_id else self.create_uid
 
@@ -98,7 +102,8 @@ class EiApprovalMixin(models.AbstractModel):
                 if r.state not in r._ei_ap_waiting:
                     raise UserError(_("%(n)s is %(s)s; it has to be submitted for approval first.", n=r.display_name, s=r._ei_ap_state_label()))
                 req = Req._submit(r)
-            req.with_context(ei_ap_deciding=False).action_approve()
+            # decide as the person who pressed the button (the engine reads requests with sudo; the decision never runs with it)
+            self.env['ei.approval.request'].browse(req.id).with_context(ei_ap_deciding=False).action_approve()
         rest = self - todo
         if rest:
             rest.with_context(ei_ap_deciding=True)._ei_ap_do_approve()

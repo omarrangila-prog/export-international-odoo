@@ -114,7 +114,7 @@ class EiApprovalRequest(models.Model):
         """Users who may check this document: the document's own role, the rule's role or named list, same company, active, not the maker."""
         Users = self.env['res.users'].sudo()
         need = self.env.ref(rec._ei_ap_group)
-        dom = [('share', '=', False), ('active', '=', True), ('all_group_ids', 'in', [need.id]), ('company_ids', 'in', [rec.company_id.id])]
+        dom = [('share', '=', False), ('active', '=', True), ('all_group_ids', 'in', [need.id]), ('company_ids', 'in', [rec._ei_ap_company().id])]
         if rule and rule.approver_group_id:
             dom.append(('all_group_ids', 'in', [rule.approver_group_id.id]))
         users = Users.search(dom)
@@ -145,15 +145,15 @@ class EiApprovalRequest(models.Model):
             return existing
         maker = rec._ei_ap_maker() or self.env.user
         info = rec._ei_ap_info()
-        rule = self.env['ei.approval.rule']._for(rec._ei_ap_flow, rec.company_id, info.get('amount') or 0.0, maker)
+        rule = self.env['ei.approval.rule']._for(rec._ei_ap_flow, rec._ei_ap_company(), info.get('amount') or 0.0, maker)
         eligible = self._eligible(rec, rule, maker)
         approver = self._pick(eligible)
         prev = self._latest_for(rec)
         rnd = (prev.round + 1) if prev else 1
         now = fields.Datetime.now()
-        due_hours = rule.due_hours if rule else int(float(self.env['ir.config_parameter'].sudo().get_param('ei_ui_theme.approval_overdue_days', 2)) * 24)
+        due_hours = rule.due_hours if rule else int(self.env['ir.config_parameter'].sudo().get_float('ei_ui_theme.approval_overdue_days', 2.0) * 24)
         req = self.sudo().create({
-            'name': info['name'], 'flow': rec._ei_ap_flow, 'res_model': rec._name, 'res_id': rec.id, 'company_id': rec.company_id.id,
+            'name': info['name'], 'flow': rec._ei_ap_flow, 'res_model': rec._name, 'res_id': rec.id, 'company_id': rec._ei_ap_company().id,
             'partner_id': info.get('partner') and info['partner'].id, 'amount': info.get('amount') or 0.0,
             'currency_id': info.get('currency') and info['currency'].id, 'maker_id': maker.id, 'approver_id': approver.id or False,
             'eligible_user_ids': [(6, 0, eligible.ids)], 'needs_assignment': not approver, 'rule_id': rule.id or False,
