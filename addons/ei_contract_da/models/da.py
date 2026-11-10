@@ -180,7 +180,7 @@ class EiDaLine(models.Model):
     _description = 'DA line'
     _order = 'da_id, sequence, id'
 
-    da_id = fields.Many2one('ei.da', required=True, ondelete='cascade', index=True)
+    da_id = fields.Many2one('ei.da', string='DA', required=True, ondelete='cascade', index=True)
     sequence = fields.Integer(default=10)
     state = fields.Selection(related='da_id.state', store=True)
     company_id = fields.Many2one(related='da_id.company_id', store=True, index=True)
