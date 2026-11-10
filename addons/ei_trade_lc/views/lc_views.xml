@@ -57,6 +57,6 @@
         <field name="name">Seed register from legacy 16.xx codes</field>
         <field name="model_id" ref="model_ei_trade_lc"/>
         <field name="state">code</field>
-        <field name="code">model.seed_from_legacy()</field>
+        <field name="code">action = model.action_seed_from_legacy()</field>
     </record>
 </odoo>

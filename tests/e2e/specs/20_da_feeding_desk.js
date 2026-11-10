@@ -64,7 +64,7 @@ module.exports = {
     await p.locator('.ei-fd-main .ei-fd-field.is-wide input').last().fill('M/S DEMO PRINTED TRADERS');
     await p.getByRole('button', { name: 'Create draft DA' }).click();
     await p.waitForSelector('.ei-fd-daname', { timeout: 15000 });
-    await p.locator('.ei-fd-paper input[type="file"]').setInputFiles({ name: 'da.pdf', mimeType: 'application/pdf', buffer: Buffer.from('%PDF-1.4\n% synthetic DA for the browser suite\n') });
+    await p.locator('.ei-fd-paper input[type="file"]').setInputFiles(require('../lib').synthPdf());
     await p.waitForTimeout(1200);
     ctx.check(await p.locator('.ei-fd-docframe').count() === 1, '2 the attached paper is shown beside the entry');
     const shownTime = await p.locator('.ei-fd-work input[type="datetime-local"]').first().inputValue();
@@ -119,7 +119,7 @@ module.exports = {
       await up.locator('.ei-fd-main .ei-fd-field.is-wide input').last().fill('M/S DEMO CUSTOMER - NOOR STEEL');
       await up.getByRole('button', { name: 'Create draft DA' }).click();
       await up.waitForSelector('.ei-fd-daname', { timeout: 15000 });
-      await up.locator('.ei-fd-paper input[type="file"]').setInputFiles({ name: 'da.pdf', mimeType: 'application/pdf', buffer: Buffer.from('%PDF-1.4\n% synthetic\n') });
+      await up.locator('.ei-fd-paper input[type="file"]').setInputFiles(require('../lib').synthPdf());
       await up.waitForTimeout(1000);
       await up.getByRole('button', { name: 'Add Coil' }).click();
       await up.fill('#ei-fd-coil', name + '-C1');

@@ -66,6 +66,15 @@ class EiTradeLc(models.Model):
             self.create({'name': '%s %s' % (c.legacy_code, c.original_name), 'legacy_code_ids': [(6, 0, c.ids)]})
         return len(todo)
 
+    def action_seed_from_legacy(self):
+        """The menu entry: load, then say what happened and open the register (a bare count showed the person nothing at all)."""
+        n = self.seed_from_legacy()
+        reg = self.env['ir.actions.act_window']._for_xml_id('ei_trade_lc.ei_trade_lc_action')
+        return {'type': 'ir.actions.client', 'tag': 'display_notification', 'params': {
+            'type': 'success' if n else 'info', 'sticky': False, 'next': reg,
+            'title': _("LC register"),
+            'message': _("%s old LC code(s) added to the register.", n) if n else _("Every old LC code is already in the register; nothing was added.")}}
+
     def action_group(self):
         """Merge selected unverified records into the first (e.g. an LC and its sales codes)."""
         if not self.env.user.has_group('ei_trade_lc.group_ei_trade_manager'):

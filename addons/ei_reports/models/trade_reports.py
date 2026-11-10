@@ -85,4 +85,5 @@ class EiReportLifting(models.Model):
 
     def action_open_source(self):
         self.ensure_one()
-        return {'type': 'ir.actions.act_window', 'name': _("Truck loading"), 'res_model': 'ei.lifting', 'res_id': self.id, 'views': [[False, 'form']], 'target': 'current'}
+        return self._if_allowed({'type': 'ir.actions.act_window', 'name': _("Truck loading"), 'res_model': 'ei.lifting', 'res_id': self.id,
+                                 'views': [[False, 'form']], 'target': 'current'})

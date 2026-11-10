@@ -46,8 +46,8 @@ class EiReportBankFreshness(models.Model):
 
     def action_open_source(self):
         self.ensure_one()
-        return {'type': 'ir.actions.act_window', 'name': _("Bank balance confirmations"), 'res_model': 'ei.bank.balance.check',
-                'domain': [('journal_id', '=', self.journal_id.id)], 'views': [[False, 'list'], [False, 'form']], 'target': 'current'}
+        return self._if_allowed({'type': 'ir.actions.act_window', 'name': _("Bank balance confirmations"), 'res_model': 'ei.bank.balance.check',
+                                 'domain': [('journal_id', '=', self.journal_id.id)], 'views': [[False, 'list'], [False, 'form']], 'target': 'current'})
 
 
 class EiReportBankUnmatched(models.Model):
@@ -88,5 +88,5 @@ class EiReportBankUnmatched(models.Model):
 
     def action_open_source(self):
         self.ensure_one()
-        return {'type': 'ir.actions.act_window', 'name': _("Bank line"), 'res_model': 'ei.bank.import.line', 'res_id': self.id,
-                'views': [[False, 'form']], 'target': 'current'}
+        return self._if_allowed({'type': 'ir.actions.act_window', 'name': _("Bank line"), 'res_model': 'ei.bank.import.line', 'res_id': self.id,
+                                 'views': [[False, 'form']], 'target': 'current'})

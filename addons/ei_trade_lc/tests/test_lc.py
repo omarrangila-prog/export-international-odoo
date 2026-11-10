@@ -29,6 +29,17 @@ class TestLc(TransactionCase):
         self.assertIn('16.10', covered.mapped('legacy_code'))
         self.assertEqual(set(self.LC.search([]).mapped('state')), {'unverified'})
 
+    def test_01b_the_menu_entry_says_what_it_loaded_and_opens_the_register(self):
+        """Found by the every-page browser walk (10 Nov 2026): the menu returned a bare number, so the person saw nothing happen."""
+        act = self.LC.with_user(self.mgr).action_seed_from_legacy()
+        self.assertEqual((act['tag'], act['params']['type']), ('display_notification', 'success'))
+        self.assertIn('58', act['params']['message'])
+        self.assertEqual(act['params']['next']['res_model'], 'ei.trade.lc')
+        again = self.LC.with_user(self.mgr).action_seed_from_legacy()
+        self.assertEqual(again['params']['type'], 'info')                       # nothing new: it says so, and adds nothing
+        self.assertEqual(self.LC.search_count([]), 58)
+        self.assertIn('action = model.action_seed_from_legacy()', self.env.ref('ei_trade_lc.ei_trade_lc_seed_server').code)
+
     def test_02_grouping_keeps_every_code(self):
         self.LC.with_user(self.mgr).seed_from_legacy()
         a = self.LC.search([('name', 'like', '16.01 ')])

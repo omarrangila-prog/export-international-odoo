@@ -161,3 +161,16 @@ class TestReports(TestJourney):
             self.assertTrue(user.has_group('base.group_allow_export'), user.login)        # management and the finance approvers export what they may read
         for user in (self.dispatch, self.cashclerk, self.maker, self.officer):
             self.assertFalse(user.has_group('base.group_allow_export'), user.login)       # operators and data entry do not
+
+    def test_r11_a_row_whose_document_belongs_to_another_team_says_so_instead_of_an_access_error(self):
+        """Found by the every-page browser walk (10 Nov 2026): an accountant opening a row of 'Bank book against bank confirmation'
+        got an Access Error. The access rules stay as they are; the row now explains."""
+        acct = self.env['res.users'].with_context(no_reset_password=True).create({
+            'name': 'r_acct', 'login': 'r_acct', 'group_ids': [Command.set([self.env.ref('account.group_account_user').id])]})
+        self.assertFalse(self.env['ei.bank.balance.check'].with_user(acct).has_access('read'))
+        row = self.env['ei.report.bank.freshness'].with_user(acct).search([], limit=1)
+        self.assertTrue(row, 'the accountant sees the report rows')
+        act = row.action_open_source()
+        self.assertEqual((act['type'], act['tag'], act['params']['type']), ('ir.actions.client', 'display_notification', 'info'))
+        own = self.env['ei.report.bank.freshness'].with_user(self.officer).search([('id', '=', row.id)]).action_open_source()
+        self.assertEqual(own['res_model'], 'ei.bank.balance.check')            # the bank team still opens the confirmations
