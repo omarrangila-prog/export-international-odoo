@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <!-- Home: the approvals block (my entries / my approvals / across the company). Every card opens the approvals centre on that list. -->
+    <t t-inherit="ei_ui_theme.Home" t-inherit-mode="extension">
+        <xpath expr="//section[hasclass('ei-summary')]" position="before">
+            <section t-if="sec === 'approvals' and d.approvals" class="ei-section ei-ap-home" aria-labelledby="ei-h-approvals">
+                <h2 class="ei-h2" id="ei-h-approvals">Approvals</h2>
+                <div t-foreach="d.approvals.groups" t-as="g" t-key="g.title" class="ei-ap-home-group">
+                    <h3 class="ei-ap-home-title" t-out="g.title"/>
+                    <div class="ei-ap-home-grid">
+                        <button t-foreach="g.cards" t-as="c" t-key="c.key" type="button" t-att-class="'ei-ap-home-card is-' + c.tone"
+                                t-att-aria-label="c.label + ': ' + c.value + '. ' + c.sub + '. Open the list.'"
+                                t-on-click="() => this.action.doAction({type: 'ir.actions.client', tag: 'ei_approvals.center', name: 'Approvals', params: {tab: c.tab, state: c.state || '', request_id: c.request_id || false}})">
+                            <span class="ei-ap-home-label" t-out="c.label"/>
+                            <b class="ei-ap-home-value" t-out="c.value"/>
+                            <span class="ei-ap-home-sub" t-out="c.sub"/>
+                        </button>
+                    </div>
+                    <div t-if="g.by_flow and g.by_flow.length" class="ei-ap-home-flows" role="group" aria-label="Pending by document type">
+                        <span class="ei-ap-muted">Pending by type:</span>
+                        <button t-foreach="g.by_flow" t-as="f" t-key="f.flow" type="button" class="ei-ap-sumchip"
+                                t-on-click="() => this.action.doAction({type: 'ir.actions.client', tag: 'ei_approvals.center', name: 'Approvals', params: {tab: 'all', state: 'pending', flow: f.flow}})">
+                            <t t-out="f.label"/> <b t-out="f.value"/></button>
+                    </div>
+                </div>
+            </section>
+        </xpath>
+    </t>
+</templates>

@@ -1,5 +1,6 @@
-"""The client's final decisions (9 Nov 2026): routine approval OFF by default, optional per workflow and per record;
-new entries in PKR or USD only. Security (rights, posting rights, checks) is never switched off. Synthetic data only."""
+"""Approval switched OFF by an administrator (the 9 Nov 2026 decision, superseded on 10 Nov 2026 by maker-checker ON by default; see
+ei_approvals/tests). With approval off the person entering a record confirms it, and security (rights, posting rights, checks) still
+applies. New entries in PKR or USD only. Synthetic data only."""
 from odoo import Command
 from odoo.exceptions import AccessError, UserError
 from odoo.addons.account.tests.common import AccountTestInvoicingCommon
@@ -12,6 +13,7 @@ class TestPolicy(AccountTestInvoicingCommon):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        cls.env['ei.approval.policy'].sudo().set_all(False)          # an administrator switched routine approval off
         mk = lambda login, *gs: cls.env['res.users'].with_context(no_reset_password=True).create({
             'name': login, 'login': login, 'company_id': cls.env.company.id, 'company_ids': [Command.set([cls.env.company.id])],
             'group_ids': [Command.set([cls.env.ref(g).id for g in gs])]})
@@ -44,7 +46,7 @@ class TestPolicy(AccountTestInvoicingCommon):
         return d
 
     # AP-01
-    def test_ap01_routine_approval_is_off_by_default(self):
+    def test_ap01_an_administrator_can_switch_routine_approval_off(self):
         self.assertEqual({s['flow']: s['on'] for s in self.env['ei.approval.policy'].summary()},
                          {'contract': False, 'da': False, 'order': False, 'cash': False, 'lifting': False})
 

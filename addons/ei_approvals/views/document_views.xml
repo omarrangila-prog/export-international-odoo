@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- The five maker-checker documents: "Submit for Approval", a status line with the checker, and the way into the approvals centre. -->
+    <record id="contract_form_approvals" model="ir.ui.view">
+        <field name="name">ei.contract.form.approvals</field><field name="model">ei.contract</field><field name="inherit_id" ref="ei_contract_da.ei_contract_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_review']" position="attributes"><attribute name="string">Submit for Approval</attribute></xpath>
+            <xpath expr="//header" position="inside">
+                <field name="approval_state" invisible="1"/><field name="approval_can_submit" invisible="1"/><field name="approval_needs_assignment" invisible="1"/>
+            </xpath>
+            <xpath expr="//sheet" position="before">
+                <div class="ei-ap-banner is-pending" role="status" invisible="approval_state != 'pending' or approval_needs_assignment">
+                    <strong>Pending approval.</strong> Checker: <field name="approval_approver_id" readonly="1" class="d-inline" options="{'no_open': True}"/>.
+                    <button name="action_open_approval" type="object" string="Open in Approvals" class="btn btn-link p-0 ms-2"/>
+                </div>
+                <div class="ei-ap-banner is-bad" role="alert" invisible="approval_state != 'pending' or not approval_needs_assignment">
+                    <strong>Assignment required.</strong> No other person holds the checker role for this document yet; an administrator has been told.
+                    <button name="action_open_approval" type="object" string="Open in Approvals" class="btn btn-link p-0 ms-2"/>
+                </div>
+                <div class="ei-ap-banner is-warn" role="alert" invisible="approval_state not in ('returned', 'superseded')">
+                    <strong invisible="approval_state != 'returned'">Returned for correction.</strong>
+                    <strong invisible="approval_state != 'superseded'">Changed after submission.</strong>
+                    <field name="approval_note" readonly="1" class="d-inline"/> Correct it, then submit it again.
+                    <button name="action_open_approval" type="object" string="History" class="btn btn-link p-0 ms-2"/>
+                </div>
+                <div class="ei-ap-banner is-bad" role="alert" invisible="approval_state != 'rejected'">
+                    <strong>Rejected.</strong> <field name="approval_note" readonly="1" class="d-inline"/>
+                    <button name="action_open_approval" type="object" string="History" class="btn btn-link p-0 ms-2"/>
+                </div>
+            </xpath>
+            <xpath expr="//field[@name='review_requested']/.." position="attributes">
+                <attribute name="invisible">approval_mode == 'review' and not review_requested</attribute>
+            </xpath>
+        </field>
+    </record>
+    <record id="da_form_approvals" model="ir.ui.view">
+        <field name="name">ei.da.form.approvals</field><field name="model">ei.da</field><field name="inherit_id" ref="ei_contract_da.ei_da_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_review']" position="attributes"><attribute name="string">Submit for Approval</attribute></xpath>
+            <xpath expr="//header" position="inside">
+                <field name="approval_state" invisible="1"/><field name="approval_can_submit" invisible="1"/><field name="approval_needs_assignment" invisible="1"/>
+            </xpath>
+            <xpath expr="//sheet" position="before">
+                <div class="ei-ap-banner is-pending" role="status" invisible="approval_state != 'pending' or approval_needs_assignment">
+                    <strong>Pending approval.</strong> Checker: <field name="approval_approver_id" readonly="1" class="d-inline" options="{'no_open': True}"/>.
+                    <button name="action_open_approval" type="object" string="Open in Approvals" class="btn btn-link p-0 ms-2"/>
+                </div>
+                <div class="ei-ap-banner is-bad" role="alert" invisible="approval_state != 'pending' or not approval_needs_assignment">
+                    <strong>Assignment required.</strong> No other person holds the checker role for this document yet; an administrator has been told.
+                    <button name="action_open_approval" type="object" string="Open in Approvals" class="btn btn-link p-0 ms-2"/>
+                </div>
+                <div class="ei-ap-banner is-warn" role="alert" invisible="approval_state not in ('returned', 'superseded')">
+                    <strong invisible="approval_state != 'returned'">Returned for correction.</strong>
+                    <strong invisible="approval_state != 'superseded'">Changed after submission.</strong>
+                    <field name="approval_note" readonly="1" class="d-inline"/> Correct it, then submit it again.
+                    <button name="action_open_approval" type="object" string="History" class="btn btn-link p-0 ms-2"/>
+                </div>
+                <div class="ei-ap-banner is-bad" role="alert" invisible="approval_state != 'rejected'">
+                    <strong>Rejected.</strong> <field name="approval_note" readonly="1" class="d-inline"/>
+                    <button name="action_open_approval" type="object" string="History" class="btn btn-link p-0 ms-2"/>
+                </div>
+            </xpath>
+            <xpath expr="//field[@name='review_requested']/.." position="attributes">
+                <attribute name="invisible">approval_mode == 'review' and not review_requested</attribute>
+            </xpath>
+        </field>
+    </record>
+    <record id="order_form_approvals" model="ir.ui.view">
+        <field name="name">ei.daily.order.form.approvals</field><field name="model">ei.daily.order</field><field name="inherit_id" ref="ei_daily_orders.ei_daily_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_approve']" position="before">
+                <button name="action_submit_for_approval" string="Submit for Approval" type="object" class="btn-primary" invisible="not approval_can_submit"/>
+            </xpath>
+            <xpath expr="//header" position="inside">
+                <field name="approval_state" invisible="1"/><field name="approval_can_submit" invisible="1"/><field name="approval_needs_assignment" invisible="1"/>
+            </xpath>
+            <xpath expr="//sheet" position="before">
+                <div class="ei-ap-banner is-pending" role="status" invisible="approval_state != 'pending' or approval_needs_assignment">
+                    <strong>Pending approval.</strong> Checker: <field name="approval_approver_id" readonly="1" class="d-inline" options="{'no_open': True}"/>.
+                    <button name="action_open_approval" type="object" string="Open in Approvals" class="btn btn-link p-0 ms-2"/>
+                </div>
+                <div class="ei-ap-banner is-bad" role="alert" invisible="approval_state != 'pending' or not approval_needs_assignment">
+                    <strong>Assignment required.</strong> No other person holds the checker role for this document yet; an administrator has been told.
+                    <button name="action_open_approval" type="object" string="Open in Approvals" class="btn btn-link p-0 ms-2"/>
+                </div>
+                <div class="ei-ap-banner is-warn" role="alert" invisible="approval_state not in ('returned', 'superseded')">
+                    <strong invisible="approval_state != 'returned'">Returned for correction.</strong>
+                    <strong invisible="approval_state != 'superseded'">Changed after submission.</strong>
+                    <field name="approval_note" readonly="1" class="d-inline"/> Correct it, then submit it again.
+                    <button name="action_open_approval" type="object" string="History" class="btn btn-link p-0 ms-2"/>
+                </div>
+                <div class="ei-ap-banner is-bad" role="alert" invisible="approval_state != 'rejected'">
+                    <strong>Rejected.</strong> <field name="approval_note" readonly="1" class="d-inline"/>
+                    <button name="action_open_approval" type="object" string="History" class="btn btn-link p-0 ms-2"/>
+                </div>
+            </xpath>
+            <xpath expr="//field[@name='review_requested']/.." position="attributes">
+                <attribute name="invisible">approval_mode == 'review' and not review_requested</attribute>
+            </xpath>
+        </field>
+    </record>
+    <record id="voucher_form_approvals" model="ir.ui.view">
+        <field name="name">ei.cash.voucher.form.approvals</field><field name="model">ei.cash.voucher</field><field name="inherit_id" ref="ei_cashbook.ei_cash_voucher_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_submit']" position="attributes"><attribute name="string">Submit for Approval</attribute></xpath>
+            <xpath expr="//header" position="inside">
+                <field name="approval_state" invisible="1"/><field name="approval_can_submit" invisible="1"/><field name="approval_needs_assignment" invisible="1"/>
+            </xpath>
+            <xpath expr="//sheet" position="before">
+                <div class="ei-ap-banner is-pending" role="status" invisible="approval_state != 'pending' or approval_needs_assignment">
+                    <strong>Pending approval.</strong> Checker: <field name="approval_approver_id" readonly="1" class="d-inline" options="{'no_open': True}"/>.
+                    <button name="action_open_approval" type="object" string="Open in Approvals" class="btn btn-link p-0 ms-2"/>
+                </div>
+                <div class="ei-ap-banner is-bad" role="alert" invisible="approval_state != 'pending' or not approval_needs_assignment">
+                    <strong>Assignment required.</strong> No other person holds the checker role for this document yet; an administrator has been told.
+                    <button name="action_open_approval" type="object" string="Open in Approvals" class="btn btn-link p-0 ms-2"/>
+                </div>
+                <div class="ei-ap-banner is-warn" role="alert" invisible="approval_state not in ('returned', 'superseded')">
+                    <strong invisible="approval_state != 'returned'">Returned for correction.</strong>
+                    <strong invisible="approval_state != 'superseded'">Changed after submission.</strong>
+                    <field name="approval_note" readonly="1" class="d-inline"/> Correct it, then submit it again.
+                    <button name="action_open_approval" type="object" string="History" class="btn btn-link p-0 ms-2"/>
+                </div>
+                <div class="ei-ap-banner is-bad" role="alert" invisible="approval_state != 'rejected'">
+                    <strong>Rejected.</strong> <field name="approval_note" readonly="1" class="d-inline"/>
+                    <button name="action_open_approval" type="object" string="History" class="btn btn-link p-0 ms-2"/>
+                </div>
+            </xpath>
+            <xpath expr="//field[@name='review_requested']/.." position="attributes">
+                <attribute name="invisible">approval_mode == 'review' and not review_requested</attribute>
+            </xpath>
+        </field>
+    </record>
+    <record id="lifting_form_approvals" model="ir.ui.view">
+        <field name="name">ei.lifting.form.approvals</field><field name="model">ei.lifting</field><field name="inherit_id" ref="ei_material_lifting.ei_lifting_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="(//button[@name='action_verify'])[2]" position="before">
+                <button name="action_submit_for_approval" string="Submit for Approval" type="object" class="btn-primary" invisible="not approval_can_submit"/>
+            </xpath>
+            <xpath expr="//header" position="inside">
+                <field name="approval_state" invisible="1"/><field name="approval_can_submit" invisible="1"/><field name="approval_needs_assignment" invisible="1"/>
+            </xpath>
+            <xpath expr="//sheet" position="before">
+                <div class="ei-ap-banner is-pending" role="status" invisible="approval_state != 'pending' or approval_needs_assignment">
+                    <strong>Pending approval.</strong> Checker: <field name="approval_approver_id" readonly="1" class="d-inline" options="{'no_open': True}"/>.
+                    <button name="action_open_approval" type="object" string="Open in Approvals" class="btn btn-link p-0 ms-2"/>
+                </div>
+                <div class="ei-ap-banner is-bad" role="alert" invisible="approval_state != 'pending' or not approval_needs_assignment">
+                    <strong>Assignment required.</strong> No other person holds the checker role for this document yet; an administrator has been told.
+                    <button name="action_open_approval" type="object" string="Open in Approvals" class="btn btn-link p-0 ms-2"/>
+                </div>
+                <div class="ei-ap-banner is-warn" role="alert" invisible="approval_state not in ('returned', 'superseded')">
+                    <strong invisible="approval_state != 'returned'">Returned for correction.</strong>
+                    <strong invisible="approval_state != 'superseded'">Changed after submission.</strong>
+                    <field name="approval_note" readonly="1" class="d-inline"/> Correct it, then submit it again.
+                    <button name="action_open_approval" type="object" string="History" class="btn btn-link p-0 ms-2"/>
+                </div>
+                <div class="ei-ap-banner is-bad" role="alert" invisible="approval_state != 'rejected'">
+                    <strong>Rejected.</strong> <field name="approval_note" readonly="1" class="d-inline"/>
+                    <button name="action_open_approval" type="object" string="History" class="btn btn-link p-0 ms-2"/>
+                </div>
+            </xpath>
+            <xpath expr="//field[@name='review_requested']/.." position="attributes">
+                <attribute name="invisible">approval_mode == 'review' and not review_requested</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>

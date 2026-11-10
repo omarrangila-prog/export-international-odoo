@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- One rule per document, as the client asked: a single checker, who holds the document's own approval role and did not make it.
+         An administrator can name checkers, add a company or an amount from which a rule applies, and change the overdue time. -->
+    <record id="rule_contract" model="ei.approval.rule">
+        <field name="name">Contracts: a contract approver checks</field><field name="flow">contract</field>
+        <field name="approver_group_id" ref="ei_contract_da.group_ei_contract_approver"/></record>
+    <record id="rule_da" model="ei.approval.rule">
+        <field name="name">Delivery advices: a contract approver checks</field><field name="flow">da</field>
+        <field name="approver_group_id" ref="ei_contract_da.group_ei_contract_approver"/></record>
+    <record id="rule_order" model="ei.approval.rule">
+        <field name="name">Daily order requests: an order approver checks</field><field name="flow">order</field>
+        <field name="approver_group_id" ref="ei_daily_orders.group_ei_order_approver"/></record>
+    <record id="rule_cash" model="ei.approval.rule">
+        <field name="name">Cash vouchers: a cash approver checks</field><field name="flow">cash</field>
+        <field name="approver_group_id" ref="ei_cashbook.group_ei_cash_approver"/></record>
+    <record id="rule_lifting" model="ei.approval.rule">
+        <field name="name">Truck loadings: a lifting reviewer verifies</field><field name="flow">lifting</field>
+        <field name="approver_group_id" ref="ei_material_lifting.group_ei_lifting_reviewer"/></record>
+</odoo>

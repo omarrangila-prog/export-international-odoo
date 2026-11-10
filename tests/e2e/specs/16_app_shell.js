@@ -83,7 +83,7 @@ module.exports = {
       await p.goto(ctx.base + '/odoo'); await p.waitForSelector('.ei-tabs'); await p.waitForTimeout(1200);
       const titles = async () => p.locator('.ei-tab-link').allInnerTexts();
       ctx.check((await titles()).join('|') === 'Home', '3 the first tab is the page you opened', (await titles()).join('|'));
-      await p.locator('.o_menu_sections').getByText('Customers & Suppliers').first().click(); await p.waitForTimeout(1800);
+      await s.menu('Customers & Suppliers'); await p.waitForTimeout(1800);      // directly, or through "+" when the bar folds it (the approvals bell takes room)
       ctx.check((await titles()).length === 2 && await p.locator('.ei-tab.is-on .ei-tab-link').innerText() !== 'Home', '3 a new place opens as a new tab and the page you left stays as a tab', (await titles()).join('|'));
       const party = (await titles())[1];
       await p.locator('.ei-tab-link').first().click(); await p.waitForSelector('.ei-home', { timeout: 15000 }).catch(() => {}); await p.waitForTimeout(500);

@@ -35,7 +35,9 @@ export class EiBottomNav extends Component {
         this.action = useService("action");
         this.tabs = useService("ei_tabs");
         this.mq = window.matchMedia(PHONE);
-        this.state = proxy({ phone: this.mq.matches, sheet: null, keyboard: false, tick: 0 });
+        this.state = proxy({ phone: this.mq.matches, sheet: null, keyboard: false, tick: 0, badges: {} });
+        // other modules may put a count on a section ("Approvals": 3) by triggering EI_BADGES on the bus
+        this.onBadges = (ev) => { this.state.badges = Object.assign({}, this.state.badges, ev.detail || {}); };
         this.onMq = () => { this.state.phone = this.mq.matches; this.sync(); };
         this.onUi = () => { this.state.tick++; };
         this.onViewport = () => {
@@ -46,6 +48,7 @@ export class EiBottomNav extends Component {
         onMounted(() => {
             this.mq.addEventListener("change", this.onMq);
             this.env.bus.addEventListener("ACTION_MANAGER:UI-UPDATED", this.onUi);
+            this.env.bus.addEventListener("EI_BADGES", this.onBadges);
             window.visualViewport?.addEventListener("resize", this.onViewport);
             document.addEventListener("keydown", this.onKey);
             this.sync();
@@ -55,6 +58,7 @@ export class EiBottomNav extends Component {
         onWillUnmount(() => {
             this.mq.removeEventListener("change", this.onMq);
             this.env.bus.removeEventListener("ACTION_MANAGER:UI-UPDATED", this.onUi);
+            this.env.bus.removeEventListener("EI_BADGES", this.onBadges);
             window.visualViewport?.removeEventListener("resize", this.onViewport);
             document.removeEventListener("keydown", this.onKey);
             document.body.classList.remove("ei-has-bn");

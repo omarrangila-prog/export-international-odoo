@@ -276,4 +276,4 @@ class TestContracts(TransactionCase):
         self.assertEqual((new.revision, new.state, new.previous_id), (1, 'draft', c))
         self.env['ir.attachment'].sudo().create({'name': 'r.pdf', 'res_model': 'ei.contract', 'res_id': new.id, 'raw': b'x'})
         new.with_user(self.maker).action_review(); new.with_user(self.checker).action_approve()
-        self.assertEqual((c.state, new.state, pending.state), ('amended', 'approved', 'cancelled'))
+        self.assertEqual((c.state, new.state, pending.state), ('amended', 'active', 'cancelled'))      # approval activates it (Nov 2026)

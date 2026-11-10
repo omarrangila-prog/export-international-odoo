@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ei_settings_maker_checker" model="ir.ui.view">
+        <field name="name">res.config.settings.ei.maker.checker</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="ei_legacy_master.ei_res_config_settings_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//block[@name='ei_approval_block']" position="attributes">
+                <attribute name="title">Maker-checker approval (on: a different person approves)</attribute>
+            </xpath>
+            <xpath expr="//setting[@id='ei_approval_intro']" position="attributes">
+                <attribute name="help">On (the client's process): the person entering a record submits it, and a different authorised person approves, returns or rejects it. Off: the person entering it confirms it with one click. Access rights, posting rights, duplicate checks and the customer-code check apply either way.</attribute>
+            </xpath>
+            <xpath expr="//setting[@id='ei_approval_intro']/div" position="inside">
+                <button name="%(ei_approvals.ei_approval_rule_action)d" type="action" string="Who checks what: approval rules" class="btn-link p-0 mt-2" icon="fa-arrow-right"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

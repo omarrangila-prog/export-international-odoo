@@ -6,6 +6,7 @@
                     t-att-aria-haspopup="b.section and b.section.home ? false : 'dialog'" t-on-click="() => this.press(b)">
                 <svg class="ei-bn-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path t-att-d="b.icon"/></svg>
                 <span class="ei-bn-label" t-out="b.label"/>
+                <span t-if="this.state.badges[b.label]" class="ei-bn-badge" t-att-aria-label="this.state.badges[b.label] + ' waiting'" t-out="this.state.badges[b.label]"/>
             </button>
         </nav>
         <div t-if="this.state.sheet" class="ei-sheet-wrap" t-on-click.self="() => this.close()">

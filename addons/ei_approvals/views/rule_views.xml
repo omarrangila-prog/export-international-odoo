@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ei_approval_rule_list" model="ir.ui.view">
+        <field name="name">ei.approval.rule.list</field><field name="model">ei.approval.rule</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="sequence" widget="handle"/><field name="name"/><field name="flow"/><field name="company_id" optional="show"/>
+                <field name="approver_group_id"/><field name="approver_user_ids" widget="many2many_tags"/><field name="min_amount" optional="show"/>
+                <field name="due_hours" optional="show"/><field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+    <record id="ei_approval_rule_form" model="ir.ui.view">
+        <field name="name">ei.approval.rule.form</field><field name="model">ei.approval.rule</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_title"><h1><field name="name" placeholder="e.g. Delivery advices: a contract approver checks"/></h1></div>
+                    <group>
+                        <group string="Which documents">
+                            <field name="flow"/><field name="company_id" placeholder="Every company"/>
+                            <field name="maker_group_id" placeholder="Anyone who may enter it"/>
+                            <field name="min_amount"/><field name="currency_id" invisible="1"/>
+                        </group>
+                        <group string="Who checks">
+                            <field name="approver_group_id"/>
+                            <field name="approver_user_ids" widget="many2many_tags" placeholder="Anyone with the checker role"/>
+                            <field name="approvals_needed"/>
+                        </group>
+                        <group string="When it waits too long">
+                            <field name="due_hours"/><field name="escalate_group_id"/>
+                        </group>
+                        <group><field name="active"/><field name="sequence"/></group>
+                    </group>
+                    <p class="text-muted">A checker must also hold the role the document itself needs, and is never the person who entered it.
+                        If nobody qualifies, the request shows "Assignment required" and administrators are told; it is never approved by itself.</p>
+                    <field name="note" placeholder="Why this rule (the client's written policy)"/>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    <record id="ei_approval_rule_action" model="ir.actions.act_window">
+        <field name="name">Approval rules</field><field name="res_model">ei.approval.rule</field><field name="view_mode">list,form</field>
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">No approval rule yet</p>
+            <p>A rule says who checks a kind of document. Without one, anyone holding the document's approval role checks it, never its maker.</p></field>
+    </record>
+</odoo>

@@ -105,7 +105,7 @@ export class EiHome extends Component {
         if (key === "activity") { return d.activity.length > 0; }
         if (key === "quick") { return d.quick.length > 0; }
         if (key === "system") { return !!d.system; }
-        return false;
+        return !!d[key];                     // a section added by another module (e.g. "approvals") shows when that module sent its data
     }
     // one figure, one place: a figure on a tile is not repeated as a smaller tile further down
     get kpis() {

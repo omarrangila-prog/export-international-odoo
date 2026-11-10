@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="ei_approvals.Center">
+        <div class="o_action ei-ap">
+            <div class="ei-ap-page">
+                <header class="ei-ap-head">
+                    <div>
+                        <h1 class="ei-ap-title">Approvals</h1>
+                        <p class="ei-ap-sub">One person enters and submits; a different authorised person checks. Nothing is approved by the person who made it.</p>
+                    </div>
+                    <div class="ei-ap-inline-tray"><EiApprovalsTray/></div>
+                    <div t-if="this.state.data" class="ei-ap-kpis" role="group" aria-label="Approval figures">
+                        <button type="button" t-att-class="'ei-ap-kpi' + (this.state.tab === 'pending' ? ' is-on' : '')" t-on-click="() => this.setTab('pending')">
+                            <span>Waiting for me</span><b t-out="this.state.data.counts.pending_for_me"/></button>
+                        <button type="button" t-att-class="'ei-ap-kpi' + (this.state.data.counts.overdue_for_me ? ' is-bad' : '') + (this.state.tab === 'urgent' ? ' is-on' : '')" t-on-click="() => this.setTab('urgent')">
+                            <span>Overdue for me</span><b t-out="this.state.data.counts.overdue_for_me"/></button>
+                        <button type="button" t-att-class="'ei-ap-kpi' + (this.state.data.counts.returned_to_me ? ' is-warn' : '') + (this.state.tab === 'mine' ? ' is-on' : '')" t-on-click="() => this.setTab('mine')">
+                            <span>Returned to me</span><b t-out="this.state.data.counts.returned_to_me"/></button>
+                    </div>
+                </header>
+
+                <nav class="ei-ap-tabs" role="tablist" aria-label="Approval lists">
+                    <button t-foreach="this.tabs" t-as="t" t-key="t[0]" type="button" role="tab" t-att-aria-selected="this.state.tab === t[0] ? 'true' : 'false'"
+                            t-att-class="'ei-ap-tab' + (this.state.tab === t[0] ? ' is-on' : '')" t-on-click="() => this.setTab(t[0])">
+                        <t t-out="t[1]"/> <span class="ei-ap-tabcount" t-out="this.tabCount(t[0])"/>
+                    </button>
+                </nav>
+
+                <div class="ei-ap-filters" role="search">
+                    <label class="ei-ap-f is-grow"><span>Search</span><input type="search" class="ei-ap-in" placeholder="Document, party, maker or checker" t-att-value="this.state.search" t-on-input="(ev) => this.onSearch(ev)"/></label>
+                    <label class="ei-ap-f"><span>Type</span>
+                        <select class="ei-ap-in" t-on-change="(ev) => this.setFilter('flow', ev)"><option value="">All types</option>
+                            <option t-foreach="this.state.data ? this.state.data.flows : []" t-as="f" t-key="f.key" t-att-value="f.key" t-att-selected="this.state.flow === f.key" t-out="f.label"/></select></label>
+                    <label class="ei-ap-f"><span>Status</span>
+                        <select class="ei-ap-in" t-on-change="(ev) => this.setFilter('status', ev)"><option value="">Any status</option>
+                            <option t-foreach="this.state.data ? this.state.data.states : []" t-as="f" t-key="f.key" t-att-value="f.key" t-att-selected="this.state.status === f.key" t-out="f.label"/></select></label>
+                    <label class="ei-ap-f"><span>From</span><input type="date" class="ei-ap-in" t-att-value="this.state.dateFrom" t-on-change="(ev) => this.setFilter('dateFrom', ev)"/></label>
+                    <label class="ei-ap-f"><span>To</span><input type="date" class="ei-ap-in" t-att-value="this.state.dateTo" t-on-change="(ev) => this.setFilter('dateTo', ev)"/></label>
+                    <button t-if="this.hasFilters()" type="button" class="ei-ap-linkbtn" t-on-click="() => this.clearFilters()">Clear</button>
+                </div>
+
+                <div t-att-class="'ei-ap-body' + (this.state.review ? ' has-review' : '')">
+                    <section class="ei-ap-listwrap" aria-label="Requests">
+                        <div t-if="this.state.data and this.state.data.rows.length" class="ei-ap-tablewrap" tabindex="0" role="region" aria-label="Requests table">
+                            <table class="ei-ap-table">
+                                <thead><tr>
+                                    <th t-foreach="this.cols" t-as="c" t-key="c[0]" scope="col" t-att-aria-sort="this.ariaSort(c[0])" t-att-class="c[0] === 'amount' ? 'is-r' : ''">
+                                        <button type="button" class="ei-ap-sort" t-on-click="() => this.sortBy(c[0])"><t t-out="c[1]"/><t t-out="this.sortMark(c[0])"/></button></th>
+                                    <th scope="col">Priority</th><th scope="col"><span class="visually-hidden">Actions</span></th>
+                                </tr></thead>
+                                <tbody>
+                                    <tr t-foreach="this.state.data.rows" t-as="r" t-key="r.id" t-att-class="(this.state.review and this.state.review.row.id === r.id ? 'is-sel' : '') + (r.priority === 'urgent' ? ' is-urgent' : '')"
+                                        t-on-click="() => this.openReview(r.id)">
+                                        <th scope="row"><button type="button" class="ei-ap-rowlink" t-on-click.stop="() => this.openReview(r.id)" t-out="r.name"/>
+                                            <small t-if="r.round > 1" class="ei-ap-muted"> · round <t t-out="r.round"/></small></th>
+                                        <td t-out="r.type"/>
+                                        <td t-out="r.party"/>
+                                        <td t-out="r.maker"/>
+                                        <td><t t-if="r.needs_assignment"><span class="ei-ap-chip is-bad">Assignment required</span></t><t t-else="" t-out="r.approver"/></td>
+                                        <td><span t-out="r.submitted"/></td>
+                                        <td class="is-r ei-ap-num" t-out="r.amount_text"/>
+                                        <td><span t-att-class="'ei-ap-chip ' + this.statusClass(r)" t-out="this.statusText(r)"/></td>
+                                        <td><span t-if="r.priority === 'urgent'" class="ei-ap-chip is-warn">Urgent</span><span t-else="" class="ei-ap-muted">Normal</span></td>
+                                        <td class="is-r"><button type="button" t-att-class="'ei-ap-btn is-sm' + (r.can_decide ? ' is-primary' : '')" t-on-click.stop="() => this.openReview(r.id)" t-out="r.can_decide ? 'Review' : 'Open'"/></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <ul class="ei-ap-cards">
+                                <li t-foreach="this.state.data.rows" t-as="r" t-key="r.id">
+                                    <button type="button" t-att-class="'ei-ap-card' + (r.priority === 'urgent' ? ' is-urgent' : '') + (this.state.review and this.state.review.row.id === r.id ? ' is-sel' : '')" t-on-click="() => this.openReview(r.id)">
+                                        <span class="ei-ap-card-top"><b t-out="r.name"/><span t-att-class="'ei-ap-chip ' + this.statusClass(r)" t-out="this.statusText(r)"/></span>
+                                        <span class="ei-ap-card-meta"><t t-out="r.type"/><t t-if="r.party"> · <t t-out="r.party"/></t></span>
+                                        <span class="ei-ap-card-meta">By <t t-out="r.maker"/> · <t t-out="r.submitted"/><t t-if="r.approver"> · checker <t t-out="r.approver"/></t></span>
+                                        <span t-if="r.amount_text" class="ei-ap-card-amt ei-ap-num" t-out="r.amount_text"/>
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+                        <div t-elif="this.state.data" class="ei-ap-emptybox">
+                            <b t-if="this.state.tab === 'pending'">Nothing waits for you.</b><b t-else="">No requests here.</b>
+                            <p>When someone submits an entry that you may check, it appears in <i>Pending for me</i> and the counter at the top lights up.</p>
+                        </div>
+                        <div t-if="this.state.data and this.state.data.total > this.state.limit" class="ei-ap-pager">
+                            <button type="button" class="ei-ap-btn is-sm" t-att-disabled="this.state.page === 0" t-on-click="() => this.page(-1)">Previous</button>
+                            <span t-out="this.pageText"/>
+                            <button type="button" class="ei-ap-btn is-sm" t-att-disabled="(this.state.page + 1) * this.state.limit >= this.state.data.total" t-on-click="() => this.page(1)">Next</button>
+                        </div>
+                    </section>
+
+                    <aside t-if="this.state.review" class="ei-ap-review" aria-label="Review">
+                        <t t-set="rv" t-value="this.state.review"/>
+                        <t t-set="row" t-value="rv.row"/>
+                        <div class="ei-ap-rv-head">
+                            <button type="button" class="ei-ap-btn is-sm is-ghost ei-ap-back" t-on-click="() => this.closeReview()" aria-label="Close the review">← Back</button>
+                            <div class="ei-ap-rv-title">
+                                <h2 t-out="row.name"/>
+                                <span t-att-class="'ei-ap-chip ' + this.statusClass(row)" t-out="this.statusText(row)"/>
+                                <span t-if="row.priority === 'urgent' and row.state === 'pending'" class="ei-ap-chip is-warn">Urgent</span>
+                            </div>
+                            <p class="ei-ap-muted"><t t-out="row.type"/> · submitted by <b t-out="row.maker"/> on <t t-out="row.submitted"/><t t-if="row.round > 1"> (round <t t-out="row.round"/>)</t>
+                                · checker <b t-out="row.approver or 'not assigned'"/> · stage now: <t t-out="row.record_state"/></p>
+                        </div>
+                        <div class="ei-ap-rv-scroll">
+                            <p t-if="rv.changed_since" class="ei-ap-alert is-bad" role="alert">This entry was changed after it was submitted. It cannot be approved as it is; it goes back to the maker to resubmit.</p>
+                            <p t-if="row.needs_assignment" class="ei-ap-alert is-bad" role="alert">Assignment required: no other person holds the checker role for this document. An administrator has been told.</p>
+                            <p t-if="row.state !== 'pending' and row.decision_note" t-att-class="'ei-ap-alert ' + this.statusClass(row)"><b t-out="row.state_label"/> by <t t-out="row.decided_by"/>: <t t-out="row.decision_note"/></p>
+                            <p t-if="rv.submit_note" class="ei-ap-alert is-info"><b>Note from <t t-out="row.maker"/>:</b> <t t-out="rv.submit_note"/></p>
+
+                            <section class="ei-ap-sec"><h3>The entry</h3>
+                                <dl class="ei-ap-facts"><div t-foreach="rv.detail.head" t-as="h" t-key="h_index"><dt t-out="h[0]"/><dd t-out="h[1] or '-'"/></div></dl>
+                                <ul t-if="rv.detail.warnings and rv.detail.warnings.length" class="ei-ap-warns"><li t-foreach="rv.detail.warnings" t-as="w" t-key="w_index" t-out="w"/></ul>
+                            </section>
+                            <section t-if="rv.detail.rows and rv.detail.rows.length" class="ei-ap-sec"><h3>Lines, rates and spread</h3>
+                                <div class="ei-ap-tablewrap is-inner" tabindex="0" role="region" aria-label="Lines">
+                                    <table class="ei-ap-mini"><thead><tr><th t-foreach="rv.detail.columns" t-as="c" t-key="c_index" scope="col" t-out="c"/></tr></thead>
+                                        <tbody><tr t-foreach="rv.detail.rows" t-as="lr" t-key="lr_index"><td t-foreach="lr" t-as="cell" t-key="cell_index" t-att-class="this.cellClass(cell)" t-out="cell"/></tr></tbody></table>
+                                </div>
+                            </section>
+                            <section t-if="rv.detail.totals and rv.detail.totals.length" class="ei-ap-sec">
+                                <dl class="ei-ap-totals"><div t-foreach="rv.detail.totals" t-as="tt" t-key="tt_index"><dt t-out="tt[0]"/><dd class="ei-ap-num" t-out="tt[1]"/></div></dl>
+                                <p class="ei-ap-muted">Spreads are gross, before costs and taxes; not booked profit.</p>
+                            </section>
+                            <section class="ei-ap-sec"><h3>Source documents <span class="ei-ap-muted" t-out="'(' + rv.documents.length + ')'"/></h3>
+                                <p t-if="!rv.documents.length" class="ei-ap-alert is-warn">No document is attached.</p>
+                                <ul class="ei-ap-docs">
+                                    <li t-foreach="rv.documents" t-as="d" t-key="d.id">
+                                        <img t-if="this.isImage(d)" t-att-src="d.url" t-att-alt="d.name" class="ei-ap-thumb"/>
+                                        <a t-att-href="d.url or d.download" target="_blank" rel="noopener" t-out="d.name"/>
+                                        <small class="ei-ap-muted"> · <t t-out="d.who"/>, <t t-out="d.when"/></small>
+                                    </li>
+                                </ul>
+                            </section>
+                            <section t-if="rv.rounds.length > 1" class="ei-ap-sec"><h3>Earlier submissions</h3>
+                                <ul class="ei-ap-rounds"><li t-foreach="rv.rounds" t-as="o" t-key="o.id" t-att-class="o.current ? 'is-cur' : ''">
+                                    Round <t t-out="o.round"/>: <span t-att-class="'ei-ap-chip ' + this.statusClass(o)" t-out="o.state_label"/>
+                                    <t t-if="o.decided_by"> by <t t-out="o.decided_by"/></t><t t-if="o.decision_note">: <i t-out="o.decision_note"/></t></li></ul>
+                            </section>
+                            <section class="ei-ap-sec"><h3>Timeline</h3>
+                                <ol class="ei-ap-timeline">
+                                    <li t-foreach="rv.timeline" t-as="e" t-key="e_index" t-att-class="'is-' + e.kind">
+                                        <span class="ei-ap-tl-dot" aria-hidden="true"/>
+                                        <div><b t-out="e.label"/> · <t t-out="e.who"/> <small class="ei-ap-muted" t-out="e.when"/>
+                                            <small t-if="e.round > 1" class="ei-ap-muted"> · round <t t-out="e.round"/></small>
+                                            <p t-if="e.note" t-out="e.note"/></div>
+                                    </li>
+                                </ol>
+                            </section>
+                            <section class="ei-ap-sec"><h3>Comment</h3>
+                                <div class="ei-ap-commentrow">
+                                    <textarea class="ei-ap-in" rows="2" placeholder="A question or note for the maker and the checker" t-att-value="this.state.comment" t-on-input="(ev) => this.state.comment = ev.target.value"/>
+                                    <button type="button" class="ei-ap-btn is-sm" t-on-click="() => this.addComment()">Add</button>
+                                </div>
+                            </section>
+                            <section t-if="rv.reassign_to.length and row.state === 'pending'" class="ei-ap-sec"><h3>Reassign</h3>
+                                <div class="ei-ap-commentrow">
+                                    <select class="ei-ap-in" t-on-change="(ev) => this.state.reassign = ev.target.value"><option value="">Choose a checker…</option>
+                                        <option t-foreach="rv.reassign_to" t-as="u" t-key="u.id" t-att-value="u.id" t-out="u.name"/></select>
+                                    <button type="button" class="ei-ap-btn is-sm" t-on-click="() => this.reassign()">Reassign</button>
+                                </div>
+                            </section>
+                        </div>
+                        <div class="ei-ap-actions">
+                            <button type="button" class="ei-ap-btn is-ghost" t-on-click="() => this.openDocument()">Open the document</button>
+                            <span class="ei-ap-spacer"/>
+                            <t t-if="row.can_decide">
+                                <button type="button" class="ei-ap-btn is-bad" t-on-click="() => this.ask('reject')">Reject</button>
+                                <button type="button" class="ei-ap-btn is-warn" t-on-click="() => this.ask('return')">Return for correction</button>
+                                <button type="button" class="ei-ap-btn is-primary" t-att-disabled="rv.changed_since" t-on-click="() => this.ask('approve')">Approve</button>
+                            </t>
+                            <button t-elif="rv.can_withdraw" type="button" class="ei-ap-btn is-warn" t-on-click="() => this.ask('withdraw')">Withdraw to correct</button>
+                            <span t-elif="row.state === 'pending' and row.mine" class="ei-ap-muted">You submitted this; a different person checks it.</span>
+                        </div>
+                        <div t-if="this.state.ask" class="ei-ap-askwrap" role="dialog" aria-modal="true" t-att-aria-label="this.state.ask.title">
+                            <div class="ei-ap-ask">
+                                <h3 t-out="this.state.ask.title"/>
+                                <p t-out="this.state.ask.body"/>
+                                <label t-if="this.state.ask.need or this.state.ask.kind === 'approve'" class="ei-ap-f is-grow">
+                                    <span t-out="this.state.ask.need ? 'Reason (required, the maker sees it)' : 'Note (optional)'"/>
+                                    <textarea class="ei-ap-in" rows="3" t-att-value="this.state.ask.note" t-on-input="(ev) => this.state.ask.note = ev.target.value"/></label>
+                                <p t-if="this.state.ask.error" class="ei-ap-alert is-bad" role="alert" t-out="this.state.ask.error"/>
+                                <div class="ei-ap-ask-btns">
+                                    <button type="button" class="ei-ap-btn" t-on-click="() => this.state.ask = null">Cancel</button>
+                                    <button type="button" t-att-class="'ei-ap-btn is-primary ' + this.state.ask.tone" t-att-disabled="this.state.reviewBusy" t-on-click="() => this.confirm()" t-out="this.state.ask.button"/>
+                                </div>
+                            </div>
+                        </div>
+                    </aside>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

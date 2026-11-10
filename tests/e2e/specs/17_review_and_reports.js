@@ -131,7 +131,7 @@ module.exports = {
       await p.locator('button[name=action_approve]').first().click(); await p.waitForSelector('.ei-ap-confirm');
       await p.locator('.ei-ap-confirm').click(); await p.waitForTimeout(2500);
       state = (await admin.rpc('ei.contract', 'read', [[c.id], ['state']]))[0].state;
-      ctx.check(state === 'approved', '4 pressing Approve in the dialog approves it', state);
+      ctx.check(state === 'active', '4 pressing Approve in the dialog approves it (and, under maker-checker, makes it active)', state);
       await s.clean('4 the approval flow opens clean', m);
       await s.close();
       // phone: the documents cover the screen and Close returns

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- The Approvals section opens on the approvals centre; the older per-document lists stay below it. -->
+    <menuitem id="menu_ei_approvals_center" name="Approvals centre" parent="ei_management_dashboard.menu_ei_approvals" action="ei_approvals_center_action" sequence="1"/>
+    <menuitem id="menu_ei_approvals_list" name="All requests (list)" parent="ei_management_dashboard.menu_ei_approvals" action="ei_approval_request_action" sequence="2"/>
+    <menuitem id="menu_ei_approval_rules" name="Approval rules" parent="ei_management_dashboard.menu_ei_approvals" action="ei_approval_rule_action" sequence="99"
+              groups="base.group_system"/>
+</odoo>

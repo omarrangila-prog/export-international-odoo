@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="ei_approvals.Tray">
+        <div class="ei-ap-tray d-flex align-items-center">
+            <button t-if="this.showPill" type="button" t-att-class="'ei-ap-pill' + (this.pending ? ' has-items' : '') + (this.overdue ? ' is-overdue' : '')"
+                    t-on-click="() => this.openCenter('pending')" t-att-aria-label="'Approvals waiting for you: ' + this.pending"
+                    t-att-title="this.overdue ? this.overdue + ' overdue' : 'Requests waiting for your approval'">
+                <span class="ei-ap-pill-label">Approvals</span>
+                <span class="ei-ap-pill-count" t-out="this.pending"/>
+            </button>
+            <div class="ei-ap-bellwrap">
+                <button type="button" t-att-class="'ei-ap-bell' + (this.unread ? ' has-unread' : '')" t-on-click="() => this.toggle()"
+                        t-att-aria-expanded="this.state.open ? 'true' : 'false'" aria-haspopup="true"
+                        t-att-aria-label="'Notifications' + (this.unread ? ', ' + this.unread + ' unread' : '') + (this.pending ? ', ' + this.pending + ' approvals waiting for you' : '')">
+                    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M12 22a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22Zm7-6V11a7 7 0 0 0-5.5-6.84V3.5a1.5 1.5 0 0 0-3 0v.66A7 7 0 0 0 5 11v5l-1.7 1.7A1 1 0 0 0 4 19.4h16a1 1 0 0 0 .7-1.7Z"/></svg>
+                    <span t-if="this.unread" class="ei-ap-bell-count" t-out="this.unread > 99 ? '99+' : this.unread"/>
+                    <span t-if="this.pending" class="ei-ap-bell-pending" t-out="this.pending"/>
+                </button>
+                <div t-if="this.state.open" class="ei-ap-panel" role="dialog" aria-label="Approval notifications">
+                    <div class="ei-ap-panel-head">
+                        <strong>Notifications</strong>
+                        <button t-if="this.unread" type="button" class="ei-ap-linkbtn" t-on-click="() => this.markAll()">Mark all as read</button>
+                    </div>
+                    <div t-if="this.state.counts and (this.pending or this.overdue)" class="ei-ap-panel-sum">
+                        <button type="button" class="ei-ap-sumchip" t-on-click="() => this.openCenter('pending')"><b t-out="this.pending"/> waiting for you</button>
+                        <button t-if="this.overdue" type="button" class="ei-ap-sumchip is-bad" t-on-click="() => this.openCenter('urgent')"><b t-out="this.overdue"/> overdue</button>
+                    </div>
+                    <ul class="ei-ap-items">
+                        <li t-foreach="this.state.items" t-as="it" t-key="it.id">
+                            <button type="button" t-att-class="'ei-ap-item ' + this.tone(it) + (it.read ? '' : ' is-unread')" t-on-click="() => this.openItem(it)">
+                                <span class="ei-ap-dot" aria-hidden="true"/>
+                                <span class="ei-ap-item-main">
+                                    <span class="ei-ap-item-top"><b t-out="it.label"/><small t-out="it.when"/></span>
+                                    <span class="ei-ap-item-name" t-out="it.name"/>
+                                    <span class="ei-ap-item-meta"><t t-out="it.type"/> · by <t t-out="it.maker"/><t t-if="it.party"> · <t t-out="it.party"/></t><t t-if="it.amount_text"> · <t t-out="it.amount_text"/></t></span>
+                                    <span t-if="it.note and (it.kind === 'returned' or it.kind === 'rejected')" class="ei-ap-item-note" t-out="it.note"/>
+                                </span>
+                                <span t-if="it.overdue and it.state === 'pending'" class="ei-ap-chip is-bad">Overdue</span>
+                                <span t-elif="it.urgent and it.state === 'pending'" class="ei-ap-chip is-warn">Urgent</span>
+                            </button>
+                        </li>
+                    </ul>
+                    <p t-if="!this.state.items.length" class="ei-ap-empty">No notifications yet. New requests, and decisions on your entries, appear here.</p>
+                    <div class="ei-ap-panel-foot"><button type="button" class="ei-ap-linkbtn" t-on-click="() => this.openCenter('all')">Open the approvals centre</button></div>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

@@ -1,5 +1,7 @@
 # Client decisions, 9 November 2026: approval off by default, PKR and USD only
 
+> **Superseded on 10 November 2026 for approval:** the client confirmed maker-checker. Approval is now **on** by default, and a different person approves; see `docs/maker_checker.md`. The PKR/USD rule and the fixes below still apply.
+
 These decisions come from the client's final handoff. They replace earlier "second person approves everything" designs.
 
 ## 1. Routine approval is optional and off by default

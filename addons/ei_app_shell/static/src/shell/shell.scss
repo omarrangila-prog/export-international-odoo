@@ -45,3 +45,8 @@ button, [role="button"], a, .o_menu_toggle, .o_nav_entry { touch-action: manipul
 @keyframes ei-rise { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
 @keyframes ei-fade { from { opacity: 0; } to { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .ei-sheet, .ei-sheet-wrap { animation: none; } }
+
+// a count on a section of the phone bar (for example the approvals waiting for this person)
+.ei-bn-item { position: relative; }
+.ei-bn-badge { position: absolute; top: 2px; left: calc(50% + 6px); min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; background: var(--ei-primary);
+    color: var(--ei-on-primary); font-size: 11px; font-weight: 700; line-height: 18px; text-align: center; font-variant-numeric: tabular-nums; box-shadow: 0 0 0 2px var(--ei-card); }

@@ -52,8 +52,9 @@ class TestCashbook(AccountTestInvoicingCommon):
         with self.assertRaises(AccessError):
             v.with_user(self.clerk).action_approve()
         self.cash.ei_self_approve_limit = 1500
-        v.with_user(self.clerk).action_approve()
-        self.assertEqual(v.state, 'posted')
+        with self.assertRaises(AccessError):              # maker-checker (Nov 2026): no self-approval, whatever the amount
+            v.with_user(self.clerk).action_approve()
+        self.assertEqual(v.state, 'submitted')
         big = self.voucher(2000)
         big.action_submit()
         with self.assertRaises(AccessError):

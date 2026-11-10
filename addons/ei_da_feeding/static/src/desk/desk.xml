@@ -122,11 +122,13 @@
                             </div>
                             <div class="ei-fd-actions">
                                 <span class="ei-fd-muted"><b class="ei-fd-num" t-out="this.fmt(d.total_mtl, 3)"/> MTL on <t t-out="d.lines.length"/> coil(s)</span>
-                                <label t-if="d.editable" class="ei-fd-review" title="Off by default. Tick only when someone else should check this DA first.">
-                                    <input type="checkbox" t-att-checked="this.state.review or d.approval_on" t-att-disabled="d.approval_on" t-on-change="(ev) => this.state.review = ev.target.checked"/>
-                                    <span t-out="d.approval_on ? 'Approval is switched on for DAs' : 'Send for review'"/>
+                                <label t-if="d.editable and !d.approval_on" class="ei-fd-review" title="Tick only when someone else should check this DA first.">
+                                    <input type="checkbox" t-att-checked="this.state.review" t-on-change="(ev) => this.state.review = ev.target.checked"/>
+                                    <span>Send for review</span>
                                 </label>
-                                <button t-if="d.editable" class="ei-fd-btn is-primary" t-att-disabled="this.state.busy or !d.lines.length" t-on-click="() => this.submit()">Save &amp; Continue</button>
+                                <span t-elif="d.editable" class="ei-fd-muted" title="Maker-checker: a different authorised person approves every DA.">A different person approves it</span>
+                                <button t-if="d.editable" class="ei-fd-btn is-primary" t-att-disabled="this.state.busy or !d.lines.length" t-on-click="() => this.submit()"
+                                        t-out="d.approval_on ? 'Submit for Approval' : 'Save &amp; Continue'"/>
                             </div>
                         </div>
                         <div t-if="this.state.next or d.state === 'approved'" class="ei-fd-done" role="status">
@@ -135,7 +137,16 @@
                             <t t-elif="this.state.next"> Next task: daily order request <b t-out="this.state.next.name"/> (<t t-out="this.state.next.state"/>).
                                 <button class="ei-fd-btn is-primary is-sm" t-on-click="() => this.openNext()">Open the daily order</button></t>
                         </div>
-                        <div t-elif="d.state === 'under_review'" class="ei-fd-done is-wait" role="status"><b>Waiting for review.</b> An approver checks this DA before it is confirmed.</div>
+                        <div t-elif="d.state === 'under_review'" class="ei-fd-done is-wait" role="status">
+                            <t t-if="d.approval and d.approval.needs_assignment"><b>Assignment required.</b> No other person holds the approver role yet; an administrator has been told.</t>
+                            <t t-elif="d.approval and d.approval.approver"><b>Pending approval.</b> Checker: <b t-out="d.approval.approver"/>. You will be told when it is approved or returned.</t>
+                            <t t-else=""><b>Waiting for review.</b> An approver checks this DA before it is confirmed.</t>
+                            <button t-if="d.approval and d.approval.request_id" class="ei-fd-btn is-sm" t-on-click="() => this.openApproval()">Open in Approvals</button>
+                        </div>
+                        <div t-elif="d.approval and (d.approval.state === 'returned' or d.approval.state === 'superseded' or d.approval.state === 'withdrawn')" class="ei-fd-warnbox" role="alert">
+                            <b t-out="d.approval.state === 'withdrawn' ? 'Withdrawn from approval.' : 'Returned for correction'"/><t t-if="d.approval.decided_by and d.approval.state === 'returned'"> by <t t-out="d.approval.decided_by"/></t><t t-if="d.approval.note and d.approval.state !== 'withdrawn'">: <i t-out="d.approval.note"/></t>.
+                            Correct the coils, then press Submit for Approval again.
+                        </div>
                         <div class="ei-fd-split">
                             <!-- the paper -->
                             <div class="ei-fd-card ei-fd-paper" aria-label="The DA paper">

@@ -60,7 +60,7 @@ class TestApprovalEvidence(TestJourney):
         with self.assertRaises(AccessError):
             self.c.with_user(self.maker).action_approve()                   # whatever the screen shows, the method still refuses
         self.c.with_user(self.capprover).action_approve()
-        self.assertEqual(self.c.state, 'approved')
+        self.assertEqual(self.c.state, 'active')                              # maker-checker (Nov 2026): approval moves it to its next stage
 
     def test_e04_only_known_buttons_and_only_readable_records(self):
         self.assertFalse(self.E.with_user(self.capprover).get_evidence('ei.contract', self.c.id, 'unlink'))

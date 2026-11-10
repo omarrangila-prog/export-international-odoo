@@ -8,7 +8,8 @@ class AccountJournal(models.Model):
                                       help="Person accountable for this cash box / safe.")
     ei_self_approve_limit = fields.Monetary(
         'Self-approval limit', currency_field='currency_id', default=0.0,
-        help="Vouchers up to this amount may be approved by their own maker. 0 = a second person always approves.")
+        help="Not used while cash vouchers need approval: under maker-checker a voucher is never approved by its own maker, "
+             "whatever the amount. Kept only for when an administrator switches cash approval off.")
     ei_receipt_required_over = fields.Monetary(
         'Receipt attachment required over', currency_field='currency_id', default=0.0,
         help="Payment vouchers above this amount need an attached receipt. 0 = always required.")

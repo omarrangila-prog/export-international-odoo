@@ -2,7 +2,7 @@
 // "Save & Continue" and goes straight on to the daily order; "Send for review" on one DA (or the policy switched on) sends it
 // to a second person. Only PKR and USD are offered for new entries. Staging copy, DEMO data.
 module.exports = {
-  name: '21 optional approval (off by default) and PKR/USD only',
+  name: '21 approval switched off by an administrator, and PKR/USD only',
   async run(ctx, browser) {
     const { Session } = require('../lib');
     const admin = await new Session(ctx, browser, 'admin', 'admin').start();
@@ -75,7 +75,7 @@ module.exports = {
       await p.getByRole('tab', { name: /Real entry/ }).click();
       const reviewed = await feed('DA-E2E-REV-' + stamp, true);
       ctx.check(reviewed.state === 'under_review', '4 "Send for review" ticked: the DA waits for a second person', reviewed.state);
-      ctx.check(/Waiting for review/.test(await p.locator('.ei-fd-done').innerText()), '4 and the desk says it is waiting for review');
+      ctx.check(/Pending approval|Waiting for review/.test(await p.locator('.ei-fd-done').innerText()), '4 and the desk says it is waiting for a checker');
       let selfApprove = '';
       try { await s.rpc('ei.da', 'action_approve', [[(await admin.rpc('ei.da', 'search', [[['name', '=', 'DA-E2E-REV-' + stamp]]]))[0]]]); } catch (e) { selfApprove = String(e.message); }
       ctx.check(/approver|Maker-checker/.test(selfApprove), '4 the person who entered it cannot approve it themselves', selfApprove.slice(0, 120));
@@ -87,7 +87,7 @@ module.exports = {
       await admin.goto('/odoo/settings'); await ad.waitForTimeout(2500);
       await ad.getByText('Export International', { exact: true }).first().click(); await ad.waitForTimeout(1000);
       const txt = await ad.locator('body').innerText();
-      ctx.check(/Optional approval/.test(txt) && /Require approval: delivery advices/.test(txt), '6 the administrator finds "Require approval" per workflow in Settings');
+      ctx.check(/Maker-checker approval/.test(txt) && /Require approval: delivery advices/.test(txt), '6 the administrator finds "Require approval" per workflow in Settings');
     } finally {
       await admin.rpc('ei.approval.policy', 'set_all', [true]);
       await admin.close();

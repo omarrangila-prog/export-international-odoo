@@ -89,7 +89,7 @@ module.exports = {
     await p.getByRole('button', { name: 'Save Draft' }).click(); await p.waitForTimeout(1500);
     const row = await p.locator('.ei-fd-table tbody tr').first().innerText();
     ctx.check(/E2E-COIL-1/.test(row) && /Code to check/.test(row), '2 the saved coil is listed, flagged because its customer code is not verified', row.replace(/\s+/g, ' '));
-    await p.getByRole('button', { name: 'Save & Continue' }).click(); await p.waitForTimeout(1500);
+    await p.getByRole('button', { name: /Save & Continue|Submit for Approval/ }).click(); await p.waitForTimeout(1500);
     const da = (await admin.rpc('ei.da', 'search_read', [[['name', '=', daName]], ['state', 'total_mtl']]))[0];
     ctx.check(da && da.state === 'under_review' && Math.abs(da.total_mtl - 4.574) < 1e-9, '2 the DA went to review with 4.574 MTL', JSON.stringify(da));
     await s.clean('2 real entry is clean', m);
@@ -139,13 +139,13 @@ module.exports = {
     ctx.check(/In PKR/.test(base) && base.includes('224,000.00') && base.includes('+54.89 USD') && base.includes('+15,369.20'), '5 the PKR equivalent is shown: 800 x 280 = 224,000.00; the coil spread 54.89 USD = 15,369.20 PKR', base.replace(/\s+/g, ' ').slice(0, 200));
     await ctx.shot(up, 'feeding_usd');
     await up.getByRole('button', { name: 'Save Draft' }).click(); await up.waitForTimeout(1200);
-    await up.getByRole('button', { name: 'Save & Continue' }).click(); await up.waitForTimeout(1200);
+    await up.getByRole('button', { name: /Save & Continue|Submit for Approval/ }).click(); await up.waitForTimeout(1200);
     const early = new Date(Date.parse(today.slice(0, 8) + '01T00:00:00Z') - 86400000).toISOString().slice(0, 10);
     const oldName = usdName + '-OLD';
     await feedUsd(oldName, early);
     ctx.check(/No USD rate/.test(await up.locator('.ei-fd-dahead').innerText()), '5 a USD DA dated before any USD rate says so before it is sent');
     await up.getByRole('button', { name: 'Save Draft' }).click(); await up.waitForTimeout(1200);
-    await up.getByRole('button', { name: 'Save & Continue' }).click(); await up.waitForTimeout(1200);
+    await up.getByRole('button', { name: /Save & Continue|Submit for Approval/ }).click(); await up.waitForTimeout(1200);
     await u.clean('5 the USD entries are clean', m);
     await u.close();
     const ap2 = await new Session(ctx, browser, 'demo.contractapprover', 'demo').start();

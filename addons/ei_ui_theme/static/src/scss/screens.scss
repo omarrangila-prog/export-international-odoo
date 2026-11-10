@@ -202,6 +202,7 @@ body.ei-density-compact { .o_list_table tbody tr.o_data_row td { padding-block: 
 // the environment badge: not the live system
 .ei-env-badge { display: inline-flex; align-items: center; height: 26px; padding: 0 11px; margin-inline: 6px; border-radius: 999px; background: var(--ei-warn-soft); color: var(--ei-warn); border: 1px solid var(--ei-warn-line); font-size: 11.5px; font-weight: 700; letter-spacing: .03em; white-space: nowrap; .ei-env-short { display: none; } }
 @media (max-width: 1199.98px) { .ei-env-badge { margin-inline: 2px; padding: 0 8px; .ei-env-full { display: none; } .ei-env-short { display: inline; } } }
+@media (max-width: 1023.98px) { .ei-env-badge { margin-inline: 0; padding: 0 6px; letter-spacing: 0; } }
 
 // ---------------------------------------------------------------- pop-ups: dialogs, menus, notices
 .modal-content { border: 0 !important; border-radius: 22px !important; box-shadow: var(--ei-shadow-pop) !important; background: var(--ei-card); overflow: hidden; animation: ei-page-in .22s ease backwards; }

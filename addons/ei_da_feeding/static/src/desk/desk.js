@@ -153,9 +153,14 @@ export class EiDaFeeding extends Component {
         try {
             const r = await this.call("submit", [this.state.da.id, this.state.review]);
             this.setDa(r); this.state.next = r.next; await this.loadList();
+            const who = r.approval && r.approval.approver ? ` to ${r.approval.approver}` : "";
             this.toast(r.state === "approved" ? "DA confirmed." + (r.next && !r.next.error ? " Next: the daily order request is ready." : "")
-                : "Sent for review. The approver checks it next.");
+                : (r.approval && r.approval.needs_assignment ? "Submitted. Assignment required: an administrator has been told." : `Submitted for approval${who}.`));
         } catch { /* shown */ } finally { this.state.busy = false; }
+    }
+    openApproval() {
+        const a = this.state.da.approval;
+        this.action.doAction({ type: "ir.actions.client", tag: "ei_approvals.center", name: "Approvals", params: { tab: "mine", request_id: a.request_id } });
     }
     openNext() {
         const n = this.state.next;
