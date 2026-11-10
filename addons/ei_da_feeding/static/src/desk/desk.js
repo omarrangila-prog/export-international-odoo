@@ -117,6 +117,9 @@ export class EiDaFeeding extends Component {
     setDa(da) {
         this.state.da = da;
         this.state.header = { printed_customer: da.printed_customer, order_datetime: da.order_datetime, ship_date: da.ship_date, date: da.date };
+        // keep the DA list on the left in step with the DA open on the right (coil count and tons change with every saved coil)
+        const row = this.state.list && this.state.list.rows.find((x) => x.id === da.id);
+        if (row) { row.coils = da.lines.length; row.mtl = da.total_mtl; }
     }
     startNewDa() {
         this.state.next = null;
