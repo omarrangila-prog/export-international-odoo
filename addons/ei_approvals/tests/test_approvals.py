@@ -1,6 +1,6 @@
 """Maker-checker (client requirement, 10 Nov 2026). The numbers are the brief's TEST 01..24; each test says which.
-Synthetic people and data only. 'Nauman' and 'Rehan' below are stand-in TEST users with the roles the brief describes, not the
-client's accounts (those are mapped only after the client confirms their roles)."""
+Synthetic people and data only. 'senior_a' and 'senior_b' stand for the two senior people of the brief (TEST 15 / 16): each enters
+and each checks the other's entries. They are TEST users, not the client's accounts."""
 from datetime import timedelta
 
 from odoo import Command, fields
@@ -28,8 +28,8 @@ class TestMakerChecker(AccountTestInvoicingCommon):
         cls.checker = mk('t_checker', 'TEST Checker', staff, appr, 'ei_daily_orders.group_ei_order_approver')
         cls.checker2 = mk('t_checker2', 'TEST Checker Two', staff, appr)
         cls.stranger = mk('t_stranger', 'TEST Staff without approval role', staff)
-        cls.nauman = mk('t_nauman', 'TEST stand-in Nauman', staff, appr, 'ei_management_dashboard.group_ei_management')
-        cls.rehan = mk('t_rehan', 'TEST stand-in Rehan', staff, appr, 'ei_management_dashboard.group_ei_management')
+        cls.senior_a = mk('t_senior_a', 'TEST Senior A', staff, appr, 'ei_management_dashboard.group_ei_management')
+        cls.senior_b = mk('t_senior_b', 'TEST Senior B', staff, appr, 'ei_management_dashboard.group_ei_management')
         cls.clerk = mk('t_cash', 'TEST Cash clerk', 'ei_cashbook.group_ei_cash_clerk')
         cls.cashier = mk('t_cashier', 'TEST Cash approver', 'ei_cashbook.group_ei_cash_clerk', 'ei_cashbook.group_ei_cash_approver', 'account.group_account_user')
         cls.parent = cls.env['res.partner'].create({'name': 'TEST Mill'})
@@ -74,12 +74,12 @@ class TestMakerChecker(AccountTestInvoicingCommon):
         d.with_user(self.maker).action_confirm()                                                                # 02 Submit for Approval
         req = self.R._pending_for(d)
         self.assertEqual((d.state, req.state, req.maker_id), ('under_review', 'pending', self.maker))
-        self.assertIn(req.approver_id, self.checker | self.checker2 | self.nauman | self.rehan)
+        self.assertIn(req.approver_id, self.checker | self.checker2 | self.senior_a | self.senior_b)
         self.assertNotEqual(req.approver_id, self.maker)
         chk = req.approver_id
         self.assertEqual(len(self.notices(chk, 'request').filtered(lambda n: n.request_id == req)), 1)          # 03
         after = self.R.with_user(self.checker).counts()['pending_for_me'] + self.R.with_user(self.checker2).counts()['pending_for_me'] \
-            + self.R.with_user(self.nauman).counts()['pending_for_me'] + self.R.with_user(self.rehan).counts()['pending_for_me']
+            + self.R.with_user(self.senior_a).counts()['pending_for_me'] + self.R.with_user(self.senior_b).counts()['pending_for_me']
         self.assertGreaterEqual(after, before + 1)                                                              # 04
         mine = self.R.with_user(chk).counts()['pending_for_me']
         act = self.R.with_user(chk).open_record_action(req.id)
@@ -130,17 +130,17 @@ class TestMakerChecker(AccountTestInvoicingCommon):
 
     # TEST 13: the maker never approves their own entry, even holding the approver role, through any door
     def test_13_maker_cannot_approve_own(self):
-        d = self.da('T-DA-13', user=self.nauman); d.with_user(self.nauman).action_confirm()
+        d = self.da('T-DA-13', user=self.senior_a); d.with_user(self.senior_a).action_confirm()
         req = self.R._pending_for(d)
-        self.assertNotEqual(req.approver_id, self.nauman)
-        self.assertNotIn(self.nauman, req.eligible_user_ids)
-        for attempt in (lambda: self.R.with_user(self.nauman).decide(req.id, 'approve'),
-                        lambda: d.with_user(self.nauman).action_approve(),
-                        lambda: self.R.with_user(self.nauman).decide(req.id, 'return', 'x')):
+        self.assertNotEqual(req.approver_id, self.senior_a)
+        self.assertNotIn(self.senior_a, req.eligible_user_ids)
+        for attempt in (lambda: self.R.with_user(self.senior_a).decide(req.id, 'approve'),
+                        lambda: d.with_user(self.senior_a).action_approve(),
+                        lambda: self.R.with_user(self.senior_a).decide(req.id, 'return', 'x')):
             with self.assertRaises(AccessError):
                 attempt()
         self.assertEqual((d.state, req.state), ('under_review', 'pending'))
-        self.assertFalse(self.R.with_user(self.nauman).browse(req.id).review_data()['row']['can_decide'])
+        self.assertFalse(self.R.with_user(self.senior_a).browse(req.id).review_data()['row']['can_decide'])
 
     # TEST 14: someone without the approver role cannot decide someone else's entry
     def test_14_unauthorised_employee(self):
@@ -154,19 +154,19 @@ class TestMakerChecker(AccountTestInvoicingCommon):
             self.R.with_user(self.clerk).decide(req.id, 'approve')          # cannot even read it
         self.assertEqual(req.state, 'pending')
 
-    # TEST 15 / 16: the two senior users (stand-ins): each creates; the other one checks
-    def test_15_16_nauman_creates_rehan_checks_and_back(self):
-        d = self.da('T-DA-15', user=self.nauman); d.with_user(self.nauman).action_confirm()
+    # TEST 15 / 16: the two senior users : each creates; the other one checks
+    def test_15_16_one_senior_creates_the_other_checks_and_back(self):
+        d = self.da('T-DA-15', user=self.senior_a); d.with_user(self.senior_a).action_confirm()
         req = self.R._pending_for(d)
-        self.assertIn(self.rehan, req.eligible_user_ids)
-        rv = self.R.with_user(self.rehan).browse(req.id).review_data()                                         # 16
+        self.assertIn(self.senior_b, req.eligible_user_ids)
+        rv = self.R.with_user(self.senior_b).browse(req.id).review_data()                                         # 16
         self.assertTrue(rv['row']['can_decide'])
-        self.R.with_user(self.rehan).decide(req.id, 'approve')
-        self.assertEqual((d.state, req.decided_by), ('approved', self.rehan))
-        d2 = self.da('T-DA-15b', user=self.rehan); d2.with_user(self.rehan).action_confirm()
+        self.R.with_user(self.senior_b).decide(req.id, 'approve')
+        self.assertEqual((d.state, req.decided_by), ('approved', self.senior_b))
+        d2 = self.da('T-DA-15b', user=self.senior_b); d2.with_user(self.senior_b).action_confirm()
         r2 = self.R._pending_for(d2)
-        self.R.with_user(self.nauman).decide(r2.id, 'approve')
-        self.assertEqual(r2.decided_by, self.nauman)
+        self.R.with_user(self.senior_a).decide(r2.id, 'approve')
+        self.assertEqual(r2.decided_by, self.senior_a)
 
     # TEST 17: two checkers cannot both finalise the same request
     def test_17_no_double_decision(self):
@@ -292,19 +292,19 @@ class TestMakerChecker(AccountTestInvoicingCommon):
     # the approval rule can name the checkers; the role still applies, and the maker is still excluded
     def test_rule_named_checker_and_threshold(self):
         rule = self.env.ref('ei_approvals.rule_da')
-        rule.sudo().approver_user_ids = [Command.set([self.rehan.id, self.nauman.id])]
+        rule.sudo().approver_user_ids = [Command.set([self.senior_b.id, self.senior_a.id])]
         d = self.da('T-DA-R1'); d.with_user(self.maker).action_confirm()
-        self.assertEqual(self.R._pending_for(d).eligible_user_ids, self.rehan | self.nauman)
-        big = self.env['ei.approval.rule'].sudo().create({'name': 'Big DAs: Nauman only', 'flow': 'da', 'min_amount': 5000000,
+        self.assertEqual(self.R._pending_for(d).eligible_user_ids, self.senior_b | self.senior_a)
+        big = self.env['ei.approval.rule'].sudo().create({'name': 'Big DAs: Senior A only', 'flow': 'da', 'min_amount': 5000000,
                                                            'approver_group_id': self.env.ref('ei_contract_da.group_ei_contract_approver').id,
-                                                           'approver_user_ids': [Command.set([self.nauman.id])]})
+                                                           'approver_user_ids': [Command.set([self.senior_a.id])]})
         d2 = self.da('T-DA-R2', mtl=30); d2.with_user(self.maker).action_confirm()           # 30 x 200,000 = 6,000,000
         r2 = self.R._pending_for(d2)
-        self.assertEqual((r2.rule_id, r2.approver_id), (big, self.nauman))
+        self.assertEqual((r2.rule_id, r2.approver_id), (big, self.senior_a))
         with self.assertRaises(AccessError):
-            self.R.with_user(self.rehan).decide(r2.id, 'approve')                             # not a checker under that rule
+            self.R.with_user(self.senior_b).decide(r2.id, 'approve')                             # not a checker under that rule
         with self.assertRaises(AccessError):
-            self.env['ei.approval.rule'].with_user(self.nauman).create({'name': 'x', 'flow': 'da'})   # only administrators change rules
+            self.env['ei.approval.rule'].with_user(self.senior_a).create({'name': 'x', 'flow': 'da'})   # only administrators change rules
 
     # overdue requests are marked once and management is told once
     def test_overdue_escalates_once(self):
@@ -315,7 +315,7 @@ class TestMakerChecker(AccountTestInvoicingCommon):
         self.R._cron_escalate(); self.R._cron_escalate()
         self.assertEqual((req.urgent, req.priority), (True, 'urgent'))
         self.assertEqual(len(req.event_ids.filtered(lambda e: e.kind == 'escalated')), 1)
-        self.assertEqual(len(self.notices(self.nauman, 'escalated').filtered(lambda n: n.request_id == req)), 1)
+        self.assertEqual(len(self.notices(self.senior_a, 'escalated').filtered(lambda n: n.request_id == req)), 1)
         self.assertGreaterEqual(self.R.with_user(req.approver_id).counts()['overdue_for_me'], 1)
 
     # the timeline cannot be rewritten; a maker sees their own requests, not other people's
