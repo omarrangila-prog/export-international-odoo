@@ -8,7 +8,8 @@ import { _t } from "@web/core/l10n/translation";
 const PHONE = "(max-width: 767.98px)";
 const HOME = "ei_ui_theme.menu_ei_home";
 const ROOT = "ei_legacy_master.menu_ei_root";
-const PRIORITY = ["Money", "Orders & Trucks", "Approvals", "Customers & Suppliers", "Bills & Invoices", "Month-end", "Reports", "Setup"];
+const PRIORITY = ["Online Feeding", "New Feeding Entry", "Approvals", "Cash Book", "Daily Entries", "Ledgers", "Reports", "More",
+    "Money", "Orders & Trucks", "Customers & Suppliers", "Bills & Invoices", "Month-end", "Setup"];
 const MAX_BUTTONS = 4;           // Home + three; the fifth place is "More"
 const ICONS = {
     Home: "M3 11.5L12 4l9 7.5M5.5 10v10h13V10",
@@ -21,6 +22,11 @@ const ICONS = {
     Reports: "M5 20V10M12 20V4M19 20v-7",
     Setup: "M12 15.2a3.2 3.2 0 100-6.4 3.2 3.2 0 000 6.4M19 12l1.7-1-1.5-2.7-1.9.5a6.7 6.7 0 00-1.6-.9L15.3 5h-3l-.4 2.1a6.7 6.7 0 00-1.6.9l-1.9-.5L6.9 10l1.7 1a6.8 6.8 0 000 1.9L6.9 14l1.5 2.7 1.9-.5c.5.4 1 .7 1.6.9l.4 2.1h3l.4-2.1c.6-.2 1.1-.5 1.6-.9l1.9.5 1.5-2.7-1.7-1c.1-.6.1-1.3 0-1.9",
     More: "M5 12h.01M12 12h.01M19 12h.01",
+    "Online Feeding": "M3 7h18v11H3zM3 10.5h18M7 15h3",
+    "New Feeding Entry": "M12 5v14M5 12h14",
+    "Cash Book": "M5 4h11l3 3v13H5zM9 9h6M9 13h6M9 17h3",
+    "Daily Entries": "M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01",
+    Ledgers: "M4 5h7v14H4zM13 5h7v14h-7M6.5 9h2M15.5 9h2",
     chevron: "M9 6l6 6-6 6",
     close: "M6 6l12 12M18 6L6 18",
 };

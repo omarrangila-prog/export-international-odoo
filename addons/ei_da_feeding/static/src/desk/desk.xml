@@ -4,10 +4,10 @@
         <div class="o_action ei-fd">
             <header class="ei-fd-head">
                 <div>
-                    <h1 class="ei-fd-title">DA feeding desk</h1>
-                    <p class="ei-fd-sub">Choose the method, type only what the paper shows, and see exactly how the purchase rate, sale rate and spread are worked out.</p>
+                    <h1 class="ei-fd-title">Feeding entry</h1>
+                    <p class="ei-fd-sub">One screen: the DA, the three parties, the coils, the codes and the rates. Amounts in PKR. Save Draft, then Submit for Approval.</p>
                 </div>
-                <div class="ei-fd-tabs" role="tablist" aria-label="Mode">
+                <div t-if="this.showPractice" class="ei-fd-tabs" role="tablist" aria-label="Mode">
                     <button role="tab" t-att-aria-selected="this.state.tab === 'practice' ? 'true' : 'false'" t-att-class="'ei-fd-tab' + (this.state.tab === 'practice' ? ' is-on' : '')" t-on-click="() => this.setTab('practice')">Practice <small>nothing is posted</small></button>
                     <button role="tab" t-att-aria-selected="this.state.tab === 'real' ? 'true' : 'false'" t-att-class="'ei-fd-tab' + (this.state.tab === 'real' ? ' is-on' : '')" t-on-click="() => this.setTab('real')">Real entry <small>draft, then approval</small></button>
                 </div>
@@ -147,6 +147,7 @@
                             </div>
                             <div class="ei-fd-actions">
                                 <span class="ei-fd-muted"><b class="ei-fd-num" t-out="this.fmt(d.total_mtl, 3)"/> MTL on <t t-out="d.lines.length"/> coil(s)</span>
+                                <button t-if="d.editable and this.state.list and this.state.list.can_delete" class="ei-fd-btn is-ghost ei-fd-danger is-sm" t-on-click="() => this.deleteDa()">Delete draft</button>
                                 <label t-if="d.editable and !d.approval_on" class="ei-fd-review" title="Tick only when someone else should check this DA first.">
                                     <input type="checkbox" t-att-checked="this.state.review" t-on-change="(ev) => this.state.review = ev.target.checked"/>
                                     <span>Send for review</span>
@@ -206,7 +207,9 @@
                                 <!-- the coils -->
                                 <div class="ei-fd-card">
                                     <div class="ei-fd-listhead"><h3 class="ei-fd-step"><span>2</span>Coils</h3>
-                                        <button t-if="d.editable and !this.state.line" class="ei-fd-btn is-primary is-sm" t-on-click="() => this.newLine()">Add Coil</button></div>
+                                        <span t-if="d.editable and !this.state.line" class="ei-fd-actions">
+                                            <button t-if="d.lines.length" class="ei-fd-btn is-sm" t-on-click="() => this.copyPrevious()">Copy Previous</button>
+                                            <button class="ei-fd-btn is-primary is-sm" t-on-click="() => this.newLine()">Add Coil</button></span></div>
                                     <p t-if="!d.lines.length" class="ei-fd-muted">No coil yet. Add each coil printed on the DA.</p>
                                     <div t-else="" class="ei-fd-tablewrap" tabindex="0" role="region" aria-label="Coils on this DA">
                                         <table class="ei-fd-table">
@@ -330,6 +333,7 @@
                                     <p t-elif="this.state.previewBusy" class="ei-fd-muted">Working it out…</p>
                                     <p t-else="" class="ei-fd-muted">Choose the material, type the weight and pick a method: the calculation appears here.</p>
 
+                                    <p t-if="this.state.error" class="ei-fd-error" role="alert" t-out="this.state.error"/>
                                     <div class="ei-fd-actions is-sticky">
                                         <button t-if="l.id" class="ei-fd-btn is-ghost ei-fd-danger" t-on-click="() => this.deleteLine(l)">Remove coil</button>
                                         <span class="ei-fd-spacer"/>

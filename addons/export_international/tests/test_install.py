@@ -10,7 +10,7 @@ class TestOneInstall(TransactionCase):
         me = Module.search([('name', '=', 'export_international')])
         self.assertTrue(me.application)
         wanted = Manifest.for_addon('export_international').get('depends')
-        self.assertEqual(len(wanted), 22)
+        self.assertEqual(len(wanted), 23)
         self.assertIn('ei_da_feeding', wanted)
         self.assertIn('ei_approvals', wanted)
         self.assertEqual(set(Module.search([('name', 'in', wanted), ('state', '=', 'installed')]).mapped('name')), set(wanted))

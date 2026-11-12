@@ -69,7 +69,7 @@ module.exports = {
       const da = `DA-ENTRY-${stamp}`;
       let orderLink = false;
       await step('DA: created in the feeding desk, coil fed, Save & Continue confirms it and prepares the daily order', async () => {
-        await go('ei_da_feeding.action_ei_da_feeding'); await p.waitForSelector('.ei-fd-method', { timeout: 30000 });
+        await go('ei_da_feeding.action_ei_da_feeding'); await p.waitForSelector('.ei-fd-tabs', { timeout: 30000 });
         await p.getByRole('tab', { name: /Real entry/ }).click(); await p.getByRole('button', { name: 'New DA' }).click(); await p.waitForSelector('.ei-fd-more', { state: 'attached', timeout: 15000 }); await p.evaluate(() => { document.querySelector('.ei-fd-more').open = true; });
         await p.waitForFunction((r) => [...document.querySelectorAll('#ei-fd-contract option')].some((o) => o.textContent.includes(r)), ref);
         const opts = await p.locator('#ei-fd-contract option').evaluateAll((os) => os.map((o) => [o.value, o.textContent]));

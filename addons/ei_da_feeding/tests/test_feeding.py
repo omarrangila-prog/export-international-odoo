@@ -360,3 +360,31 @@ class TestFeeding(TransactionCase):
         self.assertIn('Purchase (IN)', str(e.exception))                                  # the printed name is compared with Purchase (IN)
         wrong = dict(vals, customer_id=self.cust.id, customer_code_id=self.code_gamma.id)
         self.assertIn('belongs to', self.desk.preview(d.id, wrong)['code_issue'] if d.state == 'draft' else self.env['ei.da.line']._code_problem_for(self.code_gamma, self.cust, False))
+
+    def test_24_an_unsold_coil_and_a_line_without_target_carry_no_phantom_customer(self):
+        """Found while filming (12 Nov 2026): an empty customer came to the screen as the text 'res.partner()', which the screen took
+        for a chosen Sold (OUT) customer with no name."""
+        d, cl = self.entry(sold=False)
+        self.desk.save_line(d.id, False, {'contract_line_id': cl, 'coil_no': 'UNSOLD-1', 'weight_kg': '1000', 'method': 'direct_no_commission',
+                                          'purchase_rate': '1000', 'sale_rate': '1001'})
+        load = self.desk.da_load(d.id)
+        self.assertIsNone(load['contract_lines'][0]['target_customer'])
+        self.assertIsNone(load['lines'][0]['customer'])
+        self.assertIsNone(load['sold_out'])
+
+    def test_25_draft_delete_and_item_size(self):
+        d, cl = self.entry('SYN-DEL-1')
+        name = d.name
+        self.desk.da_delete(d.id)
+        self.assertFalse(self.env['ei.da'].search([('name', '=', name)]))
+        d2, cl2 = self.entry('SYN-DEL-2')
+        d2.with_context(ei_system=True).write({'state': 'under_review'})
+        with self.assertRaises(UserError):
+            self.desk.da_delete(d2.id)
+        sized = self.env['product.product'].create({'name': 'SYN GI COIL 0.50X1219'})
+        r = self.desk.ensure_line(d.id if d.exists() else self.entry('SYN-DEL-3')[0].id, sized.id)
+        self.assertEqual(r['dims'], {'thickness': '0.50', 'width': '1219'})
+        with self.assertRaisesRegex(UserError, 'width 1000'):
+            self.desk.save_line(r['da']['id'], False, {'contract_line_id': r['contract_line_id'], 'coil_no': 'SZ-1', 'weight_kg': '1000',
+                                                       'method': 'direct_no_commission', 'purchase_rate': '1000', 'sale_rate': '1001',
+                                                       'thickness': '0.50', 'width': '1000'})

@@ -6,7 +6,7 @@ module.exports = {
     const { Session } = require('../lib');
     const ceo = await new Session(ctx, browser, 'demo.ceo', 'demo').start();
     const p = ceo.page, m = ceo.mark();
-    await ceo.menu('Setup', 'Automation rules');
+    await ceo.menu('More', 'Automation rules');
     await p.waitForSelector('.o_list_view');
     const text = await p.locator('.o_list_view').innerText();
     ctx.check(await p.locator('.o_data_row').count() === 4, 'the Rules & Controls list shows the four automations');

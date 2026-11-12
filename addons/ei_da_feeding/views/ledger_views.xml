@@ -13,7 +13,9 @@
                 <field name="mtl" string="Qty in (MTL)" sum="MTL"/><field name="lifted_mtl" string="Lifted" optional="hide"/>
                 <field name="remaining_to_lift" string="Remaining" optional="show"/>
                 <field name="purchase_rate"/><field name="sale_rate"/><field name="spread_per_mtl" string="P&amp;L / MTL"/>
-                <field name="net_cn" string="CN / MTL" optional="hide"/>
+                <field name="net_cn" string="CN / MTL" optional="show"/>
+                <field name="trace_invoice" optional="show"/><field name="trace_hs" optional="show"/>
+                <field name="lifting_status" widget="badge" optional="show" decoration-success="lifting_status == 'done'" decoration-warning="lifting_status == 'part'"/>
                 <field name="purchase_amount" sum="Purchase" optional="show"/><field name="sale_amount" sum="Sale" optional="show"/>
                 <field name="gross_spread" sum="Gross spread"/>
                 <field name="customer_code_id" string="Sales code" optional="show"/><field name="trade_code_id" string="Purchase code" optional="show"/>

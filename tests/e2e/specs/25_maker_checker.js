@@ -17,7 +17,7 @@ module.exports = {
     // the maker feeds one coil in the desk and submits it
     const feed = async (s, da, kg = '4000') => {
       const p = s.page;
-      await p.goto(`${ctx.base}/odoo/action-ei_da_feeding.action_ei_da_feeding`); await p.waitForSelector('.ei-fd-method', { timeout: 30000 });
+      await p.goto(`${ctx.base}/odoo/action-ei_da_feeding.action_ei_da_feeding`); await p.waitForSelector('.ei-fd-tabs', { timeout: 30000 });
       await p.getByRole('tab', { name: /Real entry/ }).click(); await p.getByRole('button', { name: 'New DA' }).click(); await p.waitForSelector('.ei-fd-more', { state: 'attached', timeout: 15000 }); await p.evaluate(() => { document.querySelector('.ei-fd-more').open = true; });
       await p.waitForFunction(() => [...document.querySelectorAll('#ei-fd-contract option')].some((o) => /DEMO\/ISL\/002/.test(o.textContent)));
       const opts = await p.locator('#ei-fd-contract option').evaluateAll((os) => os.map((o) => [o.value, o.textContent]));
@@ -122,7 +122,7 @@ module.exports = {
     await c.close();
     s = await new Session(ctx, browser, 'demo.contracts', 'demo', [1440, 900], { timeout: 30000 }).start();
     p = s.page;
-    await p.goto(`${ctx.base}/odoo/action-ei_da_feeding.action_ei_da_feeding`); await p.waitForSelector('.ei-fd-method');
+    await p.goto(`${ctx.base}/odoo/action-ei_da_feeding.action_ei_da_feeding`); await p.waitForSelector('.ei-fd-tabs');
     await p.getByRole('tab', { name: /Real entry/ }).click(); await p.locator('.ei-fd-darow', { hasText: daB }).click(); await p.waitForSelector('.ei-fd-daname');
     const why = await p.locator('.ei-fd-warnbox').first().innerText().catch(() => '');
     ctx.check(/Returned for correction/.test(why) && /4,800/.test(why), 'B3 the maker opens the DA and reads why it came back', why.replace(/\s+/g, ' '));

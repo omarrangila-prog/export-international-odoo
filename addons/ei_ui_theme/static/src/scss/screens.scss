@@ -227,3 +227,10 @@ body.ei-density-compact { .o_list_table tbody tr.o_data_row td { padding-block: 
     .o_form_view .o-mail-ChatterContainer.o-aside { margin: 4px var(--ei-gutter) var(--ei-gutter); }
 }
 @media (prefers-reduced-motion: reduce) { .o_list_renderer, .o_kanban_record, .o_form_sheet, .modal-content { animation: none !important; } .btn, .o_data_row td { transition: none !important; } }
+// Phones: Odoo keeps the control panel (New, breadcrumbs) stuck at the top while a form scrolls; the status bar was stuck at the same
+// place, so the two rows slid over each other ("New" on top of "Save & Submit"). On a phone the status bar scrolls with the form, and
+// the stuck control panel gets a solid background (found while filming, 12 Nov 2026).
+@media (max-width: 767.98px) {
+    .o_form_view .o_form_sheet_bg > .o_form_statusbar { position: static; }
+    .o_web_client .o_control_panel { background: var(--ei-bg) !important; }
+}

@@ -12,7 +12,7 @@ module.exports = {
       const p = s.page;
       const m = s.mark();
       const act = (await admin.rpc('ir.model.data', 'search_read', [[['module', '=', 'ei_da_feeding'], ['name', '=', 'action_ei_da_feeding']], ['res_id']]))[0].res_id;
-      await s.goto(`/odoo/action-${act}`); await p.waitForSelector('.ei-fd-method', { timeout: 30000 });
+      await s.goto(`/odoo/action-${act}`); await p.waitForSelector('.ei-fd-tabs', { timeout: 30000 });
       await p.getByRole('tab', { name: /Real entry/ }).click();
       await p.getByRole('button', { name: 'New DA' }).click(); await p.waitForSelector('.ei-fd-more', { state: 'attached', timeout: 15000 }); await p.evaluate(() => { document.querySelector('.ei-fd-more').open = true; });
       ctx.check(!(await p.locator('.ei-fd-curseg').count()), '1 a new entry has no currency selector (PKR only)');
@@ -66,7 +66,7 @@ module.exports = {
       ctx.check(/Next task: daily order request/.test(await p.locator('.ei-fd-done').innerText()), '3 and the next task (the daily order request) is ready');
       await p.getByRole('button', { name: 'Open the daily order' }).click(); await p.waitForSelector('.o_form_view', { timeout: 15000 });
       ctx.check(await p.locator('.o_form_view').innerText().then((t) => t.includes('DA-E2E-OFF-' + stamp)), '3 "Open the daily order" opens the order made from this DA');
-      await s.goto(`/odoo/action-${act}`); await p.waitForSelector('.ei-fd-method', { timeout: 30000 });
+      await s.goto(`/odoo/action-${act}`); await p.waitForSelector('.ei-fd-tabs', { timeout: 30000 });
       await p.getByRole('tab', { name: /Real entry/ }).click();
       const reviewed = await feed('DA-E2E-REV-' + stamp, true);
       ctx.check(reviewed.state === 'under_review', '4 "Send for review" ticked: the DA waits for a second person', reviewed.state);

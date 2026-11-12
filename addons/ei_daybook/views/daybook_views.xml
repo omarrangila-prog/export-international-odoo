@@ -1,0 +1,289 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ============ the entry: one page, credit code / debit code / amount, as fed in the old system ============ -->
+    <record id="ei_daybook_form" model="ir.ui.view">
+        <field name="name">ei.daybook.entry.form</field>
+        <field name="model">ei.daybook.entry</field>
+        <field name="arch" type="xml">
+            <form string="Online / cash book entry">
+                <header>
+                    <button name="action_submit" type="object" string="Save &amp; Submit" class="btn-primary" invisible="state != 'draft'"
+                            data-hotkey="s"/>
+                    <button name="action_withdraw" type="object" string="Withdraw" invisible="state != 'submitted'"
+                            confirm="Take this entry back from the checker to correct it?"/>
+                    <button name="action_approve" type="object" string="Approve" class="btn-primary" invisible="state != 'submitted'"
+                            groups="ei_bank_operations.group_ei_bank_approver,ei_cashbook.group_ei_cash_approver"/>
+                    <button name="action_open_approval" type="object" string="Open in Approvals" invisible="not approval_request_id"/>
+                    <button name="action_open_reverse_wizard" type="object" string="Reverse" invisible="state != 'approved' or reversal_of_id"
+                            groups="ei_bank_operations.group_ei_bank_approver,ei_cashbook.group_ei_cash_approver"/>
+                    <button name="action_open_ledger" type="object" string="View ledgers" invisible="not credit_code_id and not debit_code_id"/>
+                    <button name="action_delete_draft" type="object" string="Delete draft" class="btn-outline-danger" invisible="state != 'draft' or not id"
+                            confirm="Delete this draft? It has not been approved and is in no ledger. The deletion is recorded."/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,submitted,approved"/>
+                </header>
+                <sheet>
+                    <div class="alert alert-warning mb-2" role="alert" invisible="not code_warning"><field name="code_warning" nolabel="1" readonly="1"/></div>
+                    <div class="alert alert-info mb-2" role="status" invisible="approval_state != 'pending'">
+                        Waiting for approval. Checker: <field name="approval_approver_id" readonly="1" class="d-inline"/>
+                        <span invisible="not approval_needs_assignment"> Assignment required: no other person holds the checker role yet.</span>
+                    </div>
+                    <div class="alert alert-danger mb-2" role="alert" invisible="approval_state not in ('returned', 'rejected')">
+                        <b invisible="approval_state != 'returned'">Returned for correction: </b><b invisible="approval_state != 'rejected'">Rejected: </b>
+                        <field name="approval_note" readonly="1" class="d-inline"/>
+                    </div>
+                    <div class="oe_title"><h1><field name="name" readonly="1"/></h1></div>
+                    <group>
+                        <group string="The entry">
+                            <field name="kind" widget="radio" options="{'horizontal': true}" readonly="state != 'draft'"/>
+                            <field name="date" readonly="state != 'draft'"/>
+                            <field name="particular_date" readonly="state != 'draft'"/>
+                            <field name="amount" readonly="state != 'draft'" string="Amount (PKR)"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                        <group string="Proof">
+                            <field name="chq_no" readonly="state != 'draft'" invisible="kind == 'opening'"/>
+                            <field name="slip_no" readonly="state != 'draft'" invisible="kind == 'opening'"/>
+                            <field name="proof_ref" readonly="state != 'draft'" invisible="kind != 'online'"/>
+                            <field name="bank_status" invisible="kind != 'online'" widget="badge" decoration-success="bank_status == 'confirmed'"
+                                   decoration-warning="bank_status != 'confirmed'"/>
+                            <field name="bank_line_id" invisible="kind != 'online'" options="{'no_create': True}"
+                                   groups="ei_bank_operations.group_ei_bank_officer,ei_bank_operations.group_ei_bank_approver"/>
+                            <field name="attachment_count" string="Papers / screenshots attached"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="CREDIT" invisible="kind == 'opening' and debit_code_id">
+                            <field name="credit_code_id" string="Credit code" options="{'no_create': True, 'no_open': True}" readonly="state != 'draft'"
+                                   placeholder="Type the code (1.24) or the name"/>
+                            <field name="credit_name" string="Name"/>
+                            <field name="credit_sheet" string="Code list"/>
+                            <field name="credit_narration" readonly="state != 'draft'" invisible="kind == 'opening'"/>
+                        </group>
+                        <group string="DEBIT" invisible="kind == 'opening' and credit_code_id">
+                            <field name="debit_code_id" string="Debit code" options="{'no_create': True, 'no_open': True}" readonly="state != 'draft'"
+                                   placeholder="Type the code or the name (online: the bank, 5.xx)"/>
+                            <field name="debit_name" string="Name"/>
+                            <field name="debit_sheet" string="Code list"/>
+                            <field name="debit_narration" readonly="state != 'draft'" invisible="kind == 'opening'"/>
+                        </group>
+                    </group>
+                    <div class="text-muted small mb-2" invisible="kind != 'opening'">
+                        A balance brought forward is ONE code and an amount: the balance carried from before. It is printed apart and never
+                        counted as the day's receipts or payments.
+                    </div>
+                    <group string="When a code on the paper is not in the code list" invisible="kind == 'opening'">
+                        <field name="missing_code" readonly="state != 'draft'" placeholder="e.g. 99.99 - leave empty when every code is in the list"/>
+                        <field name="missing_side" readonly="state != 'draft'" invisible="not missing_code"/>
+                    </group>
+                    <group invisible="kind == 'opening'">
+                        <field name="duplicate_ok_reason" readonly="state != 'draft'"/>
+                    </group>
+                    <group string="Who and when">
+                        <group>
+                            <field name="maker_id"/>
+                            <field name="approved_by" invisible="not approved_by"/>
+                            <field name="approved_at" invisible="not approved_at"/>
+                        </group>
+                        <group>
+                            <field name="reject_reason" invisible="not reject_reason"/>
+                            <field name="reversal_id" invisible="not reversal_id"/>
+                            <field name="reverse_reason" invisible="not reverse_reason"/>
+                            <field name="reversal_of_id" invisible="not reversal_of_id"/>
+                            <field name="approval_state"/>
+                            <field name="approval_request_id" invisible="1"/>
+                            <field name="approval_needs_assignment" invisible="1"/>
+                        </group>
+                    </group>
+                    <p class="text-muted small"><field name="books_note" readonly="1" nolabel="1"/></p>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="ei_daybook_list" model="ir.ui.view">
+        <field name="name">ei.daybook.entry.list</field>
+        <field name="model">ei.daybook.entry</field>
+        <field name="arch" type="xml">
+            <list decoration-muted="state in ('rejected', 'reversed')" decoration-info="state == 'submitted'" decoration-warning="state == 'draft'">
+                <field name="date"/><field name="name"/><field name="kind" optional="show"/>
+                <field name="credit_code_id" string="Credit code"/><field name="credit_name" string="Credit name" optional="show"/>
+                <field name="debit_code_id" string="Debit code"/><field name="debit_name" string="Debit name" optional="show"/>
+                <field name="amount" sum="Total" string="Amount (PKR)"/>
+                <field name="chq_no" optional="hide"/><field name="slip_no" optional="hide"/><field name="proof_ref" optional="hide"/>
+                <field name="credit_narration" optional="hide"/><field name="debit_narration" optional="hide"/>
+                <field name="missing_code" optional="show" decoration-danger="missing_code"/>
+                <field name="bank_status" optional="show" widget="badge" decoration-success="bank_status == 'confirmed'"/>
+                <field name="maker_id" optional="show"/>
+                <field name="state" widget="badge" decoration-success="state == 'approved'" decoration-info="state == 'submitted'"/>
+                <field name="currency_id" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="ei_daybook_search" model="ir.ui.view">
+        <field name="name">ei.daybook.entry.search</field>
+        <field name="model">ei.daybook.entry</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="credit_code_id" string="Credit code or name"/>
+                <field name="debit_code_id" string="Debit code or name"/>
+                <field name="proof_ref"/><field name="chq_no"/><field name="slip_no"/>
+                <field name="amount"/>
+                <filter name="f_online" string="Online feeding" domain="[('kind', '=', 'online')]"/>
+                <filter name="f_cash" string="Cash book" domain="[('kind', '=', 'cash')]"/>
+                <filter name="f_opening" string="Brought forward" domain="[('kind', '=', 'opening')]"/>
+                <separator/>
+                <filter name="f_draft" string="Drafts" domain="[('state', '=', 'draft')]"/>
+                <filter name="f_waiting" string="Waiting for approval" domain="[('state', '=', 'submitted')]"/>
+                <filter name="f_approved" string="Approved" domain="[('state', '=', 'approved')]"/>
+                <filter name="f_reversed" string="Reversed" domain="[('state', '=', 'reversed')]"/>
+                <filter name="f_rejected" string="Rejected" domain="[('state', '=', 'rejected')]"/>
+                <separator/>
+                <filter name="f_mine" string="Entered by me" domain="[('maker_id', '=', uid)]"/>
+                <filter name="f_missing" string="Code not in the list" domain="[('missing_code', '!=', False)]"/>
+                <filter name="f_unconfirmed" string="Online, not bank-confirmed" domain="[('kind', '=', 'online'), ('bank_line_id', '=', False)]"/>
+                <separator/>
+                <filter name="f_today" string="Today" domain="[('date', '=', context_today().strftime('%Y-%m-%d'))]"/>
+                <filter name="f_date" string="Date" date="date"/>
+                <group>
+                    <filter name="g_date" string="Date" context="{'group_by': 'date:day'}"/>
+                    <filter name="g_kind" string="Kind" context="{'group_by': 'kind'}"/>
+                    <filter name="g_state" string="Status" context="{'group_by': 'state'}"/>
+                    <filter name="g_debit" string="Debit code" context="{'group_by': 'debit_code_id'}"/>
+                    <filter name="g_credit" string="Credit code" context="{'group_by': 'credit_code_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="ei_daybook_online_action" model="ir.actions.act_window">
+        <field name="name">Online Feeding</field>
+        <field name="res_model">ei.daybook.entry</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('kind', '=', 'online')]</field>
+        <field name="context">{'default_kind': 'online'}</field>
+        <field name="search_view_id" ref="ei_daybook_search"/>
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">No online entry yet</p>
+            <p>Press New: the date, the amount, the CREDIT code (who paid) and the DEBIT code (the bank that received it). Save &amp; Submit sends it to a different person to approve.</p></field>
+    </record>
+    <record id="ei_daybook_cash_action" model="ir.actions.act_window">
+        <field name="name">Cash Book</field>
+        <field name="res_model">ei.daybook.entry</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('kind', 'in', ('cash', 'opening'))]</field>
+        <field name="context">{'default_kind': 'cash'}</field>
+        <field name="search_view_id" ref="ei_daybook_search"/>
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">No cash book entry yet</p>
+            <p>Press New for a cash entry (credit code, debit code, amount, CHQ # and SLIP #, narrations), or choose "Balance brought forward" for the balance carried from before.</p></field>
+    </record>
+    <record id="ei_daybook_all_action" model="ir.actions.act_window">
+        <field name="name">Online and cash entries</field>
+        <field name="res_model">ei.daybook.entry</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="ei_daybook_search"/>
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">No online or cash entry yet</p><p>Online feeding and cash book entries together, to find one by code, name, amount, cheque or slip number.</p></field>
+    </record>
+
+    <!-- ============ the ledgers by code (one row per side of an entry) ============ -->
+    <record id="ei_daybook_leg_list" model="ir.ui.view">
+        <field name="name">ei.daybook.leg.list</field>
+        <field name="model">ei.daybook.leg</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0" delete="0" decoration-muted="state in ('reversed', 'rejected')" decoration-info="is_opening">
+                <field name="date"/><field name="entry_id"/><field name="kind" optional="show"/>
+                <field name="code_id"/><field name="code_list" optional="hide"/><field name="other_code_id" string="Other side" optional="show"/>
+                <field name="narration" optional="show"/>
+                <field name="is_opening" optional="show"/>
+                <field name="debit" string="Dr" sum="Dr"/><field name="credit" string="Cr" sum="Cr"/>
+                <field name="movement_debit" optional="hide" sum="Dr (day)"/><field name="movement_credit" optional="hide" sum="Cr (day)"/>
+                <field name="state" widget="badge" optional="show"/>
+                <field name="currency_id" column_invisible="1"/>
+                <button name="action_open_entry" type="object" string="Open entry" icon="fa-external-link"/>
+            </list>
+        </field>
+    </record>
+    <record id="ei_daybook_leg_search" model="ir.ui.view">
+        <field name="name">ei.daybook.leg.search</field>
+        <field name="model">ei.daybook.leg</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="code_id" string="Code or name"/><field name="other_code_id"/><field name="entry_id"/><field name="narration"/>
+                <filter name="f_approved" string="Approved (and reversed with their reversal)" domain="[('state', 'in', ('approved', 'reversed'))]"/>
+                <filter name="f_waiting" string="Draft or waiting" domain="[('state', 'in', ('draft', 'submitted'))]"/>
+                <separator/>
+                <filter name="f_online" string="Online feeding" domain="[('kind', '=', 'online')]"/>
+                <filter name="f_cash" string="Cash book" domain="[('kind', 'in', ('cash', 'opening'))]"/>
+                <filter name="f_moves" string="Movements only (no brought forward)" domain="[('is_opening', '=', False)]"/>
+                <separator/>
+                <filter name="f_date" string="Date" date="date"/>
+                <group>
+                    <filter name="g_code" string="Code" context="{'group_by': 'code_id'}"/>
+                    <filter name="g_date" string="Date" context="{'group_by': 'date:day'}"/>
+                    <filter name="g_list" string="Code list" context="{'group_by': 'code_list'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    <record id="ei_daybook_bank_ledger_action" model="ir.actions.act_window">
+        <field name="name">Bank &amp; cash ledger (by code)</field>
+        <field name="res_model">ei.daybook.leg</field>
+        <field name="view_mode">list</field>
+        <field name="domain">[('code_list', '=', 'BANK')]</field>
+        <field name="context">{'search_default_f_approved': 1, 'search_default_g_code': 1}</field>
+        <field name="search_view_id" ref="ei_daybook_leg_search"/>
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">No approved bank or cash entry yet</p><p>Every BANK code (banks, the safe) with its Dr and Cr lines from the online feeding and the cash book. Balances brought forward are marked.</p></field>
+    </record>
+    <record id="ei_daybook_party_ledger_action" model="ir.actions.act_window">
+        <field name="name">Party ledger (by code)</field>
+        <field name="res_model">ei.daybook.leg</field>
+        <field name="view_mode">list</field>
+        <field name="domain">[('code_list', '!=', 'BANK')]</field>
+        <field name="context">{'search_default_f_approved': 1, 'search_default_g_code': 1}</field>
+        <field name="search_view_id" ref="ei_daybook_leg_search"/>
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">No approved party entry yet</p><p>Every customer, purchase and other code with the money fed against it.</p></field>
+    </record>
+
+    <!-- ============ print ============ -->
+    <record id="ei_daybook_print_form" model="ir.ui.view">
+        <field name="name">ei.daybook.print.form</field>
+        <field name="model">ei.daybook.print</field>
+        <field name="arch" type="xml">
+            <form string="Print the day book">
+                <group>
+                    <field name="kind"/><field name="date_from" string="From"/><field name="date_to" string="To"/>
+                    <field name="include_waiting"/>
+                </group>
+                <footer>
+                    <button name="action_print" type="object" string="Print" class="btn-primary"/>
+                    <button special="cancel" string="Close"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+    <record id="ei_daybook_print_action" model="ir.actions.act_window">
+        <field name="name">Print the day book</field>
+        <field name="res_model">ei.daybook.print</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="help" type="html"><p>Choose the dates and the book, then Print.</p></field>
+    </record>
+
+    <record id="ei_daybook_deleted_list" model="ir.ui.view">
+        <field name="name">ei.daybook.deleted.list</field>
+        <field name="model">ei.daybook.deleted</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0" delete="0">
+                <field name="deleted_at"/><field name="name"/><field name="kind"/><field name="date"/><field name="amount"/>
+                <field name="credit"/><field name="debit"/><field name="deleted_by"/>
+            </list>
+        </field>
+    </record>
+    <record id="ei_daybook_deleted_action" model="ir.actions.act_window">
+        <field name="name">Deleted draft entries</field>
+        <field name="res_model">ei.daybook.deleted</field>
+        <field name="view_mode">list</field>
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">No draft has been deleted</p><p>Every deleted draft is listed here with who deleted it and when.</p></field>
+    </record>
+</odoo>

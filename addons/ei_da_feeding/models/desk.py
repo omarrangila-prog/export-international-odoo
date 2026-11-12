@@ -3,6 +3,7 @@
 Every number on the screen comes from here, worked out again on the server from what was typed. Practice writes
 NOTHING to the database. Real entry writes only draft DA lines, through the DA's own rules and permissions."""
 import base64
+import re
 from datetime import datetime
 
 import pytz
@@ -20,6 +21,34 @@ LAB_DEFAULTS = {'basic_rate': '229500', 'weight_kg': '4574.00', 'cn_amount': '10
                 'params': {'sales_tax_pct': '18', 'additional_pct': '0.1', 'commission_pct': '1.32', 'cn_commission_pct': '1.32'},
                 'offsets': {k: str(v[2]) for k, v in fe.METHODS.items() if v[2] is not None}}
 SHEETS = {'customer': 'CUSTOMER', 'trade': 'FOR PURCHASE', 'pl': 'PROFIT & LOSS'}
+DIMS = re.compile(r'(?<![0-9.])(\d*\.\d+|\d+)\s*[xX\u00d7]\s*(\d+(?:\.\d+)?)')
+
+
+def item_dims(name):
+    """'GI COIL 0.50X1219 PRIME' -> (Decimal('0.50'), Decimal('1219')); None when the name carries no size."""
+    m = DIMS.search(name or '')
+    return (Decimal(m.group(1)), Decimal(m.group(2))) if m else None
+
+
+def dims_problem(item_name, thickness, width):
+    """Plain words when the typed thickness / width disagree with the size in the item's name (old system: a stale size could stay
+    on screen after the item was changed). Empty when they agree or the name carries no size."""
+    d = item_dims(item_name)
+    if not d:
+        return ''
+    bad = []
+    for typed, want, label in ((thickness, d[0], _("thickness")), (width, d[1], _("width"))):
+        if typed in (None, '', False):
+            continue
+        try:
+            if Decimal(str(typed).strip()) != want:
+                bad.append(_("%(l)s %(t)s", l=label, t=typed))
+        except InvalidOperation:
+            bad.append(_("%(l)s %(t)r is not a number", l=label, t=typed))
+    if bad:
+        return _("The item is %(i)s (%(a)s x %(b)s), but %(x)s is typed. Correct it, or choose the right item.",
+                 i=item_name, a=d[0], b=d[1], x=_(" and ").join(bad))
+    return ''
 
 
 def num(v, what):
@@ -119,7 +148,10 @@ class EiFeedingDesk(models.AbstractModel):
                                'parent_id': c.parent_partner_id.id, 'currency': c.currency_id.name}
                               for c in self.env['ei.contract'].search([('state', '=', 'active'), ('contract_type', '!=', 'feeding'),
                                                                        ('currency_id.name', '=', 'PKR')], limit=200)],
-                'suppliers': self._parties('ei_is_supplier_mill'), 'purchase_ins': self._parties('ei_is_purchase_in')}
+                'suppliers': self._parties('ei_is_supplier_mill'), 'purchase_ins': self._parties('ei_is_purchase_in'),
+                # practice (sample numbers, nothing saved) is for training copies only; the client's screens show the real entry alone
+                'show_practice': self.env['ir.config_parameter'].sudo().get_bool('ei_da_feeding.show_practice', False),
+                'can_delete': DA.has_access('unlink')}
 
     def _parties(self, flag):
         P = self.env['res.partner']
@@ -160,7 +192,7 @@ class EiFeedingDesk(models.AbstractModel):
         for l in d.line_ids:
             lines.append({'id': l.id, 'coil_no': l.coil_no or '', 'grade': l.coil_grade or '', 'weight_kg': l.weight_kg, 'mtl': l.mtl,
                           'contract_line_id': l.contract_line_id.id, 'product': l.product_id.display_name,
-                          'customer': l.customer_id and {'id': l.customer_id.id, 'name': l.customer_id.display_name},
+                          'customer': l.customer_id and {'id': l.customer_id.id, 'name': l.customer_id.display_name} or None,
                           'customer_code': self._code_out(l.customer_code_id), 'trade_code': self._code_out(l.trade_code_id),
                           'pl_code': self._code_out(l.pl_code_id), 'method': l.feeding_method or '',
                           'method_label': dict(l._fields['feeding_method'].selection).get(l.feeding_method, _("Not worked out")),
@@ -182,7 +214,7 @@ class EiFeedingDesk(models.AbstractModel):
             'contract_lines': [{'id': cl.id, 'name': '%s%s' % (cl.product_id.display_name, ' (%s)' % cl.grade if cl.grade else ''),
                                 'basic_rate': cl.basic_rate, 'formula': cl.formula_id and '%s v%s' % (cl.formula_id.code, cl.formula_id.version) or '',
                                 'formula_state': cl.formula_id.state or '', 'free_mtl': d._available(cl),
-                                'target_customer': cl.target_customer_id and {'id': cl.target_customer_id.id, 'name': cl.target_customer_id.display_name}}
+                                'target_customer': cl.target_customer_id and {'id': cl.target_customer_id.id, 'name': cl.target_customer_id.display_name} or None}
                                for cl in d.contract_id.line_ids],
             'lines': lines, 'total_mtl': d.total_mtl, 'total_spread': sum(d.line_ids.mapped('gross_spread')),
             'review_requested': d.review_requested, 'approval_on': self.env['ei.approval.policy'].flow_on('da'),
@@ -254,6 +286,9 @@ class EiFeedingDesk(models.AbstractModel):
         if d.line_ids.filtered(lambda x: x.coil_no == vals['coil_no'].strip() and x.id != int(line_id or 0)):
             raise UserError(_("Coil %s is already on this DA.", vals['coil_no'].strip()))
         clean = self._clean(vals)
+        size = dims_problem(cl.product_id.display_name, vals.get('thickness'), vals.get('width'))
+        if size:
+            raise UserError(size)
         if not clean['weight_kg'] or clean['weight_kg'] <= 0:
             raise UserError(_("Type the coil's weight in kg as printed."))
         if clean['feeding_method'] == 'purchase_without_commission':
@@ -311,7 +346,20 @@ class EiFeedingDesk(models.AbstractModel):
         if not product:
             raise UserError(_("Choose the item."))
         line = d.contract_id._feeding_line(product)
-        return {'contract_line_id': line.id, 'da': self.da_load(d.id)}
+        size = item_dims(product.display_name)
+        return {'contract_line_id': line.id, 'da': self.da_load(d.id),
+                'dims': size and {'thickness': str(size[0]), 'width': str(size[1])} or None}
+
+    @api.model
+    def da_delete(self, da_id):
+        """Delete Draft: a DA still in draft (never submitted in its current form) is deleted with its coils; anything later is
+        cancelled or amended instead. The deletion is written on the supplier's record so it is never silent."""
+        d = self._da(da_id, write=True)
+        d.check_access('unlink')
+        name, partner = d.name, d.parent_partner_id
+        d.unlink()
+        partner.sudo().message_post(body=_("Draft DA %(n)s deleted by %(u)s before it was submitted.", n=name, u=self.env.user.name))
+        return self.da_list()
 
     @api.model
     def delete_line(self, da_id, line_id):

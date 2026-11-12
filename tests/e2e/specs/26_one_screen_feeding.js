@@ -14,7 +14,7 @@ module.exports = {
 
     const s = await new Session(ctx, browser, 'demo.contracts', 'demo', [1440, 900], { timeout: 30000 }).start();
     const p = s.page; let m = s.mark();
-    await p.goto(`${ctx.base}/odoo/action-ei_da_feeding.action_ei_da_feeding`); await p.waitForSelector('.ei-fd-method', { timeout: 30000 });
+    await p.goto(`${ctx.base}/odoo/action-ei_da_feeding.action_ei_da_feeding`); await p.waitForSelector('.ei-fd-tabs', { timeout: 30000 });
     await p.getByRole('tab', { name: /Real entry/ }).click(); await p.getByRole('button', { name: 'New DA' }).click(); await p.waitForSelector('#ei-fd-daname');
     const form = (await p.locator('.ei-fd-main .ei-fd-card').first().innerText()).replace(/\s+/g, ' ');
     ctx.check(/Entry date/.test(form) && /DO \/ DA No/.test(form) && /SUPPLIER \(Purchase From\)/.test(form) && /Purchase \(IN\)/.test(form) && /Sold \(OUT\)/.test(form),
@@ -92,7 +92,7 @@ module.exports = {
 
     // a phone: the entry form fits
     const ph = await new Session(ctx, browser, 'demo.contracts', 'demo', [390, 844], { timeout: 30000 }).start();
-    await ph.page.goto(`${ctx.base}/odoo/action-ei_da_feeding.action_ei_da_feeding`); await ph.page.waitForSelector('.ei-fd-method', { timeout: 30000 });
+    await ph.page.goto(`${ctx.base}/odoo/action-ei_da_feeding.action_ei_da_feeding`); await ph.page.waitForSelector('.ei-fd-tabs', { timeout: 30000 });
     await ph.page.getByRole('tab', { name: /Real entry/ }).click(); await ph.page.getByRole('button', { name: 'New DA' }).click(); await ph.page.waitForSelector('#ei-fd-daname');
     const fit = await ph.page.evaluate(() => ({ over: document.documentElement.scrollWidth > innerWidth,
       inside: [...document.querySelectorAll('#ei-fd-supplier, #ei-fd-pin, #ei-fd-sold, #ei-fd-daname')].every((e) => { const r = e.getBoundingClientRect(); return r.left >= 0 && r.right <= innerWidth + 0.5 && r.width > 120; }) }));

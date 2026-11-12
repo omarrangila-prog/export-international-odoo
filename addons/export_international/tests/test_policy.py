@@ -48,7 +48,7 @@ class TestPolicy(AccountTestInvoicingCommon):
     # AP-01
     def test_ap01_an_administrator_can_switch_routine_approval_off(self):
         self.assertEqual({s['flow']: s['on'] for s in self.env['ei.approval.policy'].summary()},
-                         {'contract': False, 'da': False, 'order': False, 'cash': False, 'lifting': False})
+                         {'contract': False, 'da': False, 'order': False, 'cash': False, 'lifting': False, 'daybook': False})
 
     # AP-02: one click by the person entering the record, through contract -> DA -> daily order -> truck loading
     def test_ap02_the_person_entering_confirms_with_one_click(self):

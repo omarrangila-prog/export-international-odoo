@@ -172,8 +172,8 @@ module.exports = {
     ctx.check(bar.bg === 'rgb(255, 255, 255)' && bar.radius >= 16 && bar.top >= 8 && bar.left >= 8 && bar.right <= bar.vw - 8, '11 the top bar is light, rounded and floats clear of the window edges', JSON.stringify(bar));
     ctx.check(bar.userRight !== null && bar.userRight <= bar.right, '11 nothing in the top bar spills out of it', JSON.stringify(bar));
     ctx.check(bar.cur === 'Home' && bar.curBg !== 'rgba(0, 0, 0, 0)', '11 the entry you are in (Home) is the filled pill', JSON.stringify(bar));
-    await ceo.menu('Customers & Suppliers'); await p.waitForSelector('.ei-p360');
-    ctx.check(await p.locator('.o_main_navbar [aria-current]').innerText().then(t => t.trim() === 'Customers & Suppliers'), '11 and the pill moves with you to Customers & Suppliers');
+    await ceo.menu('More', 'Customers & Suppliers'); await p.waitForSelector('.ei-p360');
+    ctx.check(await p.locator('.o_main_navbar [aria-current]').innerText().then(t => t.trim() === 'More'), '11 and the pill moves with you to More (Customers & Suppliers is under More)');
     await ceo.home();
     ctx.check(await p.locator('.ei-hero-pipe .ei-askbar').count() === 1 && await p.locator('.ei-hero > .ei-askbar').count() === 0, '11 the question box sits inside the pipeline card, as in the design');
     ctx.check(await p.locator('.ei-title-row .ei-title-btn[aria-label="Refresh this page"]').count() === 1, '11 the title has its refresh button beside it');

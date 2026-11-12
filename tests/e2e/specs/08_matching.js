@@ -55,7 +55,7 @@ module.exports = {
 
     // ---- 1 the screen opens from the Money menu, with the real lines
     let m = bank.mark();
-    await bank.menu('Money', 'Match bank payments');
+    await bank.menu('More', 'Match bank payments');
     await p.waitForSelector('.ei-mt .ei-mt-cols', { timeout: 15000 });
     await p.waitForTimeout(800);
     ctx.check(await tab('To check').count() === 1 && await tab('Waiting for allocation').count() === 1 && await tab('Unidentified').count() === 1 && await tab('Duplicates').count() === 1, '1 the four lists are there');
@@ -219,7 +219,7 @@ module.exports = {
     // ---- 7 who may do what
     const approver = await new Session(ctx, browser, 'demo.bankapprover', 'demo').start();
     m = approver.mark();
-    await approver.menu('Money', 'Match bank payments');
+    await approver.menu('More', 'Match bank payments');
     await approver.page.waitForSelector('.ei-mt .ei-mt-row', { timeout: 15000 });
     await approver.page.locator('.ei-mt-row').first().click(); await approver.page.waitForTimeout(900);
     const at = await approver.page.locator('.ei-mt-decide').innerText();

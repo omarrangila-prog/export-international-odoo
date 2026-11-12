@@ -46,44 +46,44 @@ module.exports = {
 
     // 1 contract -> Revise
     await flow('1 Contract > Revise opens the new revision', async () => {
-      await s.menu('Orders & Trucks', 'Contracts'); await s.firstRow('CT/2026/0001'); await s.button('Revise');
+      await s.menu('More', 'Signed contracts'); await s.firstRow('CT/2026/0001'); await s.button('Revise');
       ctx.check(await resultIsForm('ei.contract'), '1 ... and shows a contract form');
     });
     // 2 DA -> Amend
     await flow('2 Delivery advice > Amend opens the amendment', async () => {
-      await s.menu('Orders & Trucks', 'Delivery advices'); await s.firstRow('DA-DEMO-5502'); await s.button('Amend');
+      await s.menu('Daily Entries', 'Delivery advices'); await s.firstRow('DA-DEMO-5502'); await s.button('Amend');
       ctx.check(await resultIsForm('ei.da'), '2 ... and shows a delivery advice form');
     });
     // 3 formula -> New version
     await flow('3 Formula > New version opens the new version', async () => {
       // the approved (staging) formula: a draft such as MILL_RATE_DEDUCTION has no New version button
-      await s.menu('Setup', 'Formula register'); await p.locator('.o_data_row', { hasText: 'ISL_ASML_DEALER_NET' }).first().click();
+      await s.menu('More', 'Formula register'); await p.locator('.o_data_row', { hasText: 'ISL_ASML_DEALER_NET' }).first().click();
       await p.waitForSelector('.o_form_view'); await s.button('New version');
       ctx.check(await resultIsForm('ei.formula.definition'), '3 ... and shows a formula form');
     });
     // 4 daily order -> Send by email (composer with the PDF attached)
     await flow('4 Daily order > Send by email opens the composer with the PDF', async () => {
-      await s.menu('Orders & Trucks', 'Daily orders'); await s.firstRow(); await s.button('Send by email');
+      await s.menu('Daily Entries', 'Daily orders'); await s.firstRow(); await s.button('Send by email');
       const modal = p.locator('.modal').first(); await modal.waitFor({ timeout: 8000 });
       const text = (await modal.innerText()).replace(/\s+/g, ' ');
       ctx.check(/Daily Order Request .*\.pdf/.test(text) && /Send/.test(text), '4 ... composer shows the attached Daily Order PDF', text.slice(0, 120));
     });
     // 4b the print button really produces a PDF file
     await flow('4b Daily order > Print downloads a real PDF', async () => {
-      await s.menu('Orders & Trucks', 'Daily orders'); await s.firstRow();
+      await s.menu('Daily Entries', 'Daily orders'); await s.firstRow();
       const [dl] = await Promise.all([p.waitForEvent('download', { timeout: 30000 }), p.locator('button:visible', { hasText: 'Print' }).first().click()]);
       const file = await dl.path(); const bytes = fs.readFileSync(file);
       ctx.check(bytes.slice(0, 5).toString() === '%PDF-' && bytes.length > 2000, `4b ... file is a PDF (${bytes.length} bytes)`);
     });
     // 5 DA -> Generate Daily Order (a second supplier's approved DA has no order yet)
     await flow('5 Delivery advice > Generate Daily Order opens the new order', async () => {
-      await s.menu('Orders & Trucks', 'Delivery advices'); await s.firstRow('DA-DEMO-6601'); await s.button('Generate Daily Order');
+      await s.menu('Daily Entries', 'Delivery advices'); await s.firstRow('DA-DEMO-6601'); await s.button('Generate Daily Order');
       ctx.check(await resultIsForm('ei.daily.order'), '5 ... and shows the daily order form');
     });
     // 5b the order that is already approved cannot be cancelled once a supplier invoice is on it: the wizard must say WHY
     await flow('5b Cancel order request wizard works and the business rule speaks plainly', async () => {
       const mm = s.mark();
-      await s.menu('Orders & Trucks', 'Daily orders'); await s.firstRow('DOR/2026/00001');
+      await s.menu('Daily Entries', 'Daily orders'); await s.firstRow('DOR/2026/00001');
       await p.locator('button:visible', { hasText: /^Cancel$/ }).first().click(); await p.waitForTimeout(800);
       await p.locator('.modal .o_field_widget input, .modal textarea').first().fill('E2E: checking the wizard');
       await p.locator('.modal button', { hasText: 'Confirm' }).click(); await p.waitForTimeout(1500);
@@ -94,7 +94,7 @@ module.exports = {
     });
     // 6 invoice wizard
     await flow('6 Invoice delivered material > Create invoices opens the invoices', async () => {
-      await s.menu('Bills & Invoices', 'Invoice delivered material');
+      await s.menu('More', 'Invoice delivered material');
       await p.locator('.o_data_row', { hasText: 'To invoice' }).first().locator('input[type=checkbox]').check();
       await p.locator('.o_cp_action_menus button').first().click(); await p.getByText('Invoice verified liftings', { exact: true }).click(); await p.waitForTimeout(1200);
       await p.locator('.modal button', { hasText: 'Create invoices' }).click(); await p.waitForSelector('.modal', { state: 'detached', timeout: 20000 }).catch(() => {}); await p.waitForSelector('.o_list_view, .o_form_view', { timeout: 20000 }); await p.waitForTimeout(500);
@@ -103,7 +103,7 @@ module.exports = {
     });
     // 7 bank statement import wizard
     await flow('7 Import a bank statement opens the imported statement', async () => {
-      await s.menu('Money', 'Import a bank statement');
+      await s.menu('More', 'Import a bank statement');
       await pickM2O('journal_id', 'DEMO Meezan');
       const csv = `Date,Description,Reference,Debit,Credit,Balance\n25/10/2026,RAAST FROM E2E PAYER,E2E-${stamp},,1000,1000\n`;
       await upload('e2e.csv', csv); await fillNum('opening_balance', 0); await fillNum('closing_balance', 1000);
@@ -112,7 +112,7 @@ module.exports = {
     });
     // 8 parent statement import wizard
     await flow('8 Import parent statement opens the matched statement', async () => {
-      await s.menu('Month-end', 'Import parent statement');
+      await s.menu('More', 'Import parent statement');
       await pickM2O('partner_id', 'DEMO Parent');
       await p.locator('.modal .o_field_widget[name=date_from] input').fill('10/01/2026'); await p.keyboard.press('Enter');
       await p.locator('.modal .o_field_widget[name=date_to] input').fill('10/31/2026'); await p.keyboard.press('Enter');
@@ -125,14 +125,14 @@ module.exports = {
     await flow('9 Import old codes opens the import batch', async () => {
       const src = path.join(REPO, 'migration/source/EXI_legacy_codes.csv');
       if (!fs.existsSync(src)) { ctx.skip('9 legacy code file not present (migration/source is not in git)'); return; }
-      await s.menu('Setup', 'Import old codes');
+      await s.menu('More', 'Import old codes');
       await upload('EXI_legacy_codes.csv', fs.readFileSync(src, 'utf8'));
       await p.locator('.modal button', { hasText: 'Import' }).first().click(); await p.waitForTimeout(3500);
       ctx.check(/ei\.import\.batch/.test(p.url()), '9 ... and shows the batch form', p.url());
     });
     // 10 + 11 management dashboard and its KPI drill-downs
     await flow('10 Detailed report opens the management dashboard', async () => {
-      await s.menu('Setup', 'Detailed report');
+      await s.menu('More', 'Detailed report');
       ctx.check(/ei\.dashboard/.test(p.url()), '10 ... and shows the dashboard', p.url());
     });
     await flow('11 Each KPI magnifier opens the records behind it', async () => {

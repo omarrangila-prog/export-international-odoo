@@ -5,7 +5,7 @@ module.exports = {
     const { Session } = require('../lib');
     let s = await new Session(ctx, browser, 'demo.ceo', 'demo').start();
     let p = s.page, m = s.mark();
-    await s.menu('Customers & Suppliers'); await p.waitForSelector('.ei-p360');
+    await s.menu('More', 'Customers & Suppliers'); await p.waitForSelector('.ei-p360');
     ctx.check(await p.isVisible('.ei-p360-empty'), 'empty state explains what to type');
     await p.focus('#ei-p360-q'); await p.keyboard.type('Rehman'); await p.waitForSelector('.ei-p360-opt');
     ctx.check((await p.getAttribute('#ei-p360-q', 'aria-expanded')) === 'true', 'the result list is announced as open');
@@ -55,7 +55,7 @@ module.exports = {
 
     // ---- cash clerk: sections hidden are named, not shown as zero
     s = await new Session(ctx, browser, 'demo.cash', 'demo').start(); p = s.page;
-    await s.menu('Customers & Suppliers'); await p.waitForSelector('.ei-p360');
+    await s.menu('More', 'Customers & Suppliers'); await p.waitForSelector('.ei-p360');
     await p.focus('#ei-p360-q'); await p.keyboard.type('Rehman'); await p.waitForSelector('.ei-p360-opt'); await p.keyboard.press('Enter'); await p.waitForSelector('.ei-p360-party');
     ctx.check(await p.isVisible('.ei-p360-notice'), 'cash clerk is told which sections their role cannot see');
     ctx.check(!(await p.isVisible('.ei-p360-chains')), 'cash clerk does not see the contract-to-payment chains');

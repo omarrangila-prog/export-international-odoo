@@ -33,7 +33,7 @@ export class EiDaFeeding extends Component {
         this.action = useService("action");
         this.notification = useService("notification");
         this.state = proxy({
-            tab: "practice", lab: null, labInputs: null, open: {}, labBusy: false,
+            tab: "real", lab: null, labInputs: null, open: {}, labBusy: false,
             methods: [], list: null, da: null, line: null, preview: null, previewBusy: false, newDa: null,
             look: { field: null, term: "", rows: [], busy: false }, busy: false, error: "", header: null, docIndex: 0,
             review: false, next: null, partyLook: { term: "", rows: [] }, itemLook: null,
@@ -50,7 +50,9 @@ export class EiDaFeeding extends Component {
             const [methods, lab] = await Promise.all([this.orm.call(MODEL, "methods", []), this.orm.call(MODEL, "lab", [{}])]);
             this.state.methods = methods;
             this.setLab(lab);
-            if (ctx.da_id) { this.state.tab = "real"; await this.loadList(); await this.openDa(ctx.da_id); }
+            await this.loadList();
+            if (ctx.da_id) { await this.openDa(ctx.da_id); }
+            else if (ctx.ei_new && this.state.list && this.state.list.can_create) { this.startNewDa(); }
         });
         onMounted(() => document.addEventListener("keydown", this.onKey));
         onWillUnmount(() => { document.removeEventListener("keydown", this.onKey); Object.values(this.timers).forEach(clearTimeout); });
@@ -157,6 +159,8 @@ export class EiDaFeeding extends Component {
             const r = await this.call("ensure_line", [this.state.da.id, row.id]);
             this.setDa(r.da);
             this.state.line.contract_line_id = String(r.contract_line_id);
+            // the size printed in the item's name decides thickness and width: a new item never keeps the previous item's size
+            if (r.dims) { this.state.line.thickness = r.dims.thickness; this.state.line.width = r.dims.width; }
             this.state.itemLook = null;
             this.refresh();
             this.focusSoon("#ei-fd-coil");
@@ -193,6 +197,21 @@ export class EiDaFeeding extends Component {
                 : (r.approval && r.approval.needs_assignment ? "Submitted. Assignment required: an administrator has been told." : `Submitted for approval${who}.`));
         } catch { /* shown */ } finally { this.state.busy = false; }
     }
+    async deleteDa() {
+        const d = this.state.da;
+        if (!window.confirm(`Delete draft DA ${d.name} with its ${d.lines.length} coil(s)? It was never submitted; the deletion is recorded.`)) { return; }
+        try {
+            this.state.list = await this.call("da_delete", [d.id]);
+            this.state.da = null; this.state.line = null; this.state.preview = null;
+            this.toast(`Draft DA ${d.name} deleted.`);
+        } catch { /* shown */ }
+    }
+    // Copy Previous: a new coil with the last coil's item, codes, method and rates; coil number, weight and credit note stay empty
+    copyPrevious() {
+        const d = this.state.da, last = d && d.lines[d.lines.length - 1];
+        if (last) { this.duplicateLine(last); }
+    }
+    get showPractice() { return !!(this.state.list && this.state.list.show_practice); }
     openApproval() {
         const a = this.state.da.approval;
         this.action.doAction({ type: "ir.actions.client", tag: "ei_approvals.center", name: "Approvals", params: { tab: "mine", request_id: a.request_id } });

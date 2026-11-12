@@ -13,6 +13,7 @@ FLOWS = {
     'order': "Daily order requests",
     'cash': "Cash vouchers",
     'lifting': "Truck loadings (lifting)",
+    'daybook': "Online feeding and cash book entries",
 }
 ALLOWED_CURRENCIES = ('PKR',)          # PKR only (client, 11 Nov 2026; USD was allowed 9-10 Nov)
 

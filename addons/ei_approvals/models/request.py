@@ -340,7 +340,8 @@ class EiApprovalRequest(models.Model):
     @api.model
     def _user_is_checker(self):
         groups = ['ei_contract_da.group_ei_contract_approver', 'ei_daily_orders.group_ei_order_approver', 'ei_cashbook.group_ei_cash_approver',
-                  'ei_material_lifting.group_ei_lifting_reviewer', 'ei_management_dashboard.group_ei_management', 'base.group_system']
+                  'ei_material_lifting.group_ei_lifting_reviewer', 'ei_management_dashboard.group_ei_management', 'base.group_system',
+                  'ei_bank_operations.group_ei_bank_approver']
         return any(self.env.user.has_group(g) for g in groups)
 
     def _row(self):

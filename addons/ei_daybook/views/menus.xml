@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- The top bar in the order of the day (client, 12 Nov 2026):
+         Home | Online Feeding | New Feeding Entry | Cash Book | Daily Entries | Ledgers | Approvals | Reports | More
+         Every older screen is still there, under More; nothing is removed, so old links and bookmarks still open. -->
+    <record id="ei_ui_theme.menu_ei_home" model="ir.ui.menu"><field name="sequence">1</field></record>
+
+    <menuitem id="menu_ei_top_online" name="Online Feeding" parent="ei_legacy_master.menu_ei_root" action="ei_daybook_online_action" sequence="2"
+              groups="ei_bank_operations.group_ei_bank_officer,ei_bank_operations.group_ei_bank_approver,ei_legacy_master.group_ei_auditor,ei_management_dashboard.group_ei_management"/>
+    <menuitem id="menu_ei_top_feeding" name="New Feeding Entry" parent="ei_legacy_master.menu_ei_root" action="ei_da_feeding.action_ei_new_feeding" sequence="3"
+              groups="ei_contract_da.group_ei_contract_staff"/>
+
+    <menuitem id="menu_ei_top_cash" name="Cash Book" parent="ei_legacy_master.menu_ei_root" sequence="4"
+              groups="ei_cashbook.group_ei_cash_clerk,ei_cashbook.group_ei_cash_approver,ei_legacy_master.group_ei_auditor,ei_management_dashboard.group_ei_management"/>
+    <menuitem id="menu_ei_cash_entries" name="Cash book entries" parent="menu_ei_top_cash" action="ei_daybook_cash_action" sequence="10"/>
+    <record id="ei_cashbook.menu_ei_cash_vouchers" model="ir.ui.menu">
+        <field name="name">Cash vouchers (expenses)</field><field name="parent_id" ref="menu_ei_top_cash"/><field name="sequence">20</field></record>
+    <record id="ei_cashbook.menu_ei_cash_counts" model="ir.ui.menu">
+        <field name="name">Count the cash</field><field name="parent_id" ref="menu_ei_top_cash"/><field name="sequence">30</field></record>
+    <menuitem id="menu_ei_cash_print" name="Print the day book" parent="menu_ei_top_cash" action="ei_daybook_print_action" sequence="40"/>
+
+    <menuitem id="menu_ei_top_entries" name="Daily Entries" parent="ei_legacy_master.menu_ei_root" sequence="5"/>
+    <menuitem id="menu_ei_entries_daybook" name="Online and cash entries" parent="menu_ei_top_entries" action="ei_daybook_all_action" sequence="5"
+              groups="ei_bank_operations.group_ei_bank_officer,ei_bank_operations.group_ei_bank_approver,ei_cashbook.group_ei_cash_clerk,ei_cashbook.group_ei_cash_approver,ei_legacy_master.group_ei_auditor,ei_management_dashboard.group_ei_management"/>
+    <record id="ei_da_feeding.menu_ei_feeding_history" model="ir.ui.menu">
+        <field name="name">Feeding entries (coils)</field><field name="parent_id" ref="menu_ei_top_entries"/><field name="sequence">10</field></record>
+    <record id="ei_contract_da.menu_ei_da" model="ir.ui.menu">
+        <field name="name">Delivery advices</field><field name="parent_id" ref="menu_ei_top_entries"/><field name="sequence">20</field></record>
+    <record id="ei_daily_orders.menu_ei_daily_orders" model="ir.ui.menu">
+        <field name="name">Daily orders</field><field name="parent_id" ref="menu_ei_top_entries"/><field name="sequence">30</field></record>
+    <record id="ei_invoice_extensions.menu_ei_supplier_bills" model="ir.ui.menu">
+        <field name="name">Supplier invoices</field><field name="parent_id" ref="menu_ei_top_entries"/><field name="sequence">40</field></record>
+    <record id="ei_material_lifting.menu_ei_lifting" model="ir.ui.menu">
+        <field name="name">Material lifting (trucks)</field><field name="parent_id" ref="menu_ei_top_entries"/><field name="sequence">50</field></record>
+    <record id="ei_da_feeding.menu_ei_cn_register" model="ir.ui.menu">
+        <field name="name">Credit note register</field><field name="parent_id" ref="menu_ei_top_entries"/><field name="sequence">60</field></record>
+
+    <record id="ei_da_feeding.menu_ei_ledgers" model="ir.ui.menu">
+        <field name="parent_id" ref="ei_legacy_master.menu_ei_root"/><field name="sequence">6</field>
+        <field name="group_ids" eval="[(4, ref('ei_bank_operations.group_ei_bank_officer')), (4, ref('ei_bank_operations.group_ei_bank_approver')),
+                                      (4, ref('ei_cashbook.group_ei_cash_clerk')), (4, ref('ei_cashbook.group_ei_cash_approver'))]"/></record>
+    <menuitem id="menu_ei_ledger_bank" name="Bank &amp; cash ledger" parent="ei_da_feeding.menu_ei_ledgers" action="ei_daybook_bank_ledger_action" sequence="60"
+              groups="ei_bank_operations.group_ei_bank_officer,ei_bank_operations.group_ei_bank_approver,ei_cashbook.group_ei_cash_clerk,ei_cashbook.group_ei_cash_approver,ei_legacy_master.group_ei_auditor,ei_management_dashboard.group_ei_management"/>
+    <menuitem id="menu_ei_ledger_party" name="Party ledger (online and cash)" parent="ei_da_feeding.menu_ei_ledgers" action="ei_daybook_party_ledger_action" sequence="70"
+              groups="ei_bank_operations.group_ei_bank_officer,ei_bank_operations.group_ei_bank_approver,ei_cashbook.group_ei_cash_clerk,ei_cashbook.group_ei_cash_approver,ei_legacy_master.group_ei_auditor,ei_management_dashboard.group_ei_management"/>
+
+    <record id="ei_management_dashboard.menu_ei_approvals" model="ir.ui.menu"><field name="sequence">7</field></record>
+    <record id="ei_reports.menu_ei_reports" model="ir.ui.menu"><field name="sequence">8</field></record>
+
+    <!-- More: the rest, grouped as before -->
+    <menuitem id="menu_ei_top_more" name="More" parent="ei_legacy_master.menu_ei_root" sequence="90"/>
+    <record id="ei_bank_operations.menu_ei_banking" model="ir.ui.menu">
+        <field name="name">Bank statements</field><field name="parent_id" ref="menu_ei_top_more"/><field name="sequence">10</field></record>
+    <record id="ei_contract_da.menu_ei_contracts" model="ir.ui.menu">
+        <field name="name">Contracts</field><field name="parent_id" ref="menu_ei_top_more"/><field name="sequence">20</field></record>
+    <record id="ei_contract_da.menu_ei_contract" model="ir.ui.menu"><field name="name">Signed contracts</field></record>
+    <record id="ei_invoice_extensions.menu_ei_customer_invoices" model="ir.ui.menu">
+        <field name="name">Bills &amp; Invoices</field><field name="parent_id" ref="menu_ei_top_more"/><field name="sequence">30</field></record>
+    <record id="ei_parent_reconciliation.menu_ei_parent_recon" model="ir.ui.menu">
+        <field name="name">Month-end</field><field name="parent_id" ref="menu_ei_top_more"/><field name="sequence">40</field></record>
+    <record id="ei_party360.menu_ei_party360" model="ir.ui.menu">
+        <field name="parent_id" ref="menu_ei_top_more"/><field name="sequence">50</field></record>
+    <record id="ei_legacy_master.menu_ei_master" model="ir.ui.menu">
+        <field name="name">Setup</field><field name="parent_id" ref="menu_ei_top_more"/><field name="sequence">90</field></record>
+    <menuitem id="menu_ei_daybook_deleted" name="Deleted draft entries" parent="ei_legacy_master.menu_ei_master" action="ei_daybook_deleted_action" sequence="120"
+              groups="base.group_system,ei_legacy_master.group_ei_auditor,ei_management_dashboard.group_ei_management"/>
+    <!-- one feeding screen: the separate desk entry is replaced by New Feeding Entry (the desk itself and its links stay) -->
+    <record id="ei_da_feeding.menu_ei_da_feeding" model="ir.ui.menu"><field name="active" eval="False"/></record>
+</odoo>

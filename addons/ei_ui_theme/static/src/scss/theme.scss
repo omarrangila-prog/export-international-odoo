@@ -151,3 +151,16 @@ body, .o_web_client { background: var(--ei-bg); color: var(--ei-text); font-size
 .o_list_view .o_data_cell .o_field_badge, .o_list_view .o_data_cell .badge, .o_kanban_view .badge {
     white-space: normal; overflow: visible; text-overflow: clip; max-width: 100%; line-height: 1.25; text-align: center;
 }
+
+// The top bar holds nine destinations in the order of the day (Home .. More, 12 Nov 2026). On laptop and desktop widths the
+// secondary labels make room for them, so the destinations stay visible instead of folding into "+":
+// tighter entries below 2200px, the company name below 2000px, the Ask label below 1700px, the app name below 1600px.
+@media (max-width: 2199.98px) {
+    .o_main_navbar .o_menu_sections .o_nav_entry, .o_main_navbar .o_menu_sections .o-dropdown.dropdown-toggle { padding: 8px 8px !important; margin: 0 1px; font-size: 14px; }
+}
+@media (max-width: 1999.98px) { .o_main_navbar .o_switch_company_menu .oe_topbar_name { display: none !important; } }
+@media (max-width: 1699.98px) { .o_main_navbar .ei-ask-btn-label { display: none !important; } }
+@media (max-width: 1599.98px) {
+    .o_main_navbar .o_menu_brand { display: none !important; }
+    .o_main_navbar .ei-env-badge { margin-inline: 2px; padding: 0 8px; .ei-env-full { display: none; } .ei-env-short { display: inline; } }
+}

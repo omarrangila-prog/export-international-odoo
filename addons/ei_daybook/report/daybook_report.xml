@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_daybook" model="ir.actions.report">
+        <field name="name">Day book</field>
+        <field name="model">ei.daybook.print</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">ei_daybook.report_daybook</field>
+    </record>
+    <template id="report_daybook">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="w">
+                <t t-set="d" t-value="w.report_data()"/>
+                <t t-set="cur" t-value="w.env.ref('base.PKR')"/>
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <h2><t t-out="d['title']"/></h2>
+                        <p><t t-out="d['book']"/>. Amounts in PKR. <t t-if="w.include_waiting">Entries not yet approved are marked "not approved".</t>
+                            <t t-else="">Approved entries only.</t></p>
+                        <h4>Balance brought forward</h4>
+                        <p t-if="not d['opening']">None in this period.</p>
+                        <table t-else="" class="table table-sm">
+                            <thead><tr><th>Date</th><th>Entry</th><th>Code</th><th>Name</th><th>Side</th><th class="text-end">Amount</th></tr></thead>
+                            <tbody>
+                                <tr t-foreach="d['opening']" t-as="e">
+                                    <t t-set="c" t-value="e.credit_code_id or e.debit_code_id"/>
+                                    <td t-out="e.date"/><td t-out="e.name"/><td t-out="c.legacy_code"/><td t-out="c.original_name"/>
+                                    <td t-out="'Cr' if e.credit_code_id else 'Dr'"/>
+                                    <td class="text-end"><span t-out="e.amount" t-options="{'widget': 'monetary', 'display_currency': cur}"/></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <h4>Entries</h4>
+                        <p t-if="not d['moves']">No entry in this period.</p>
+                        <table t-else="" class="table table-sm">
+                            <thead><tr><th>Date</th><th>Entry</th><th>Credit code / name</th><th>Debit code / name</th><th>Narration</th><th>CHQ / SLIP</th>
+                                <th class="text-end">Cr</th><th class="text-end">Dr</th><th>Status</th></tr></thead>
+                            <tbody>
+                                <tr t-foreach="d['moves']" t-as="e">
+                                    <td t-out="e.date"/><td t-out="e.name"/>
+                                    <td><t t-out="e.credit_code_id.legacy_code"/> <t t-out="e.credit_code_id.original_name"/><t t-if="e.missing_code and e.missing_side == 'credit'"><b t-out="e.missing_code"/> (not in the code list)</t></td>
+                                    <td><t t-out="e.debit_code_id.legacy_code"/> <t t-out="e.debit_code_id.original_name"/><t t-if="e.missing_code and e.missing_side == 'debit'"><b t-out="e.missing_code"/> (not in the code list)</t></td>
+                                    <td><t t-out="e.credit_narration"/><t t-if="e.debit_narration and e.debit_narration != e.credit_narration"> / <t t-out="e.debit_narration"/></t></td>
+                                    <td><t t-out="e.chq_no"/><t t-if="e.slip_no"> / <t t-out="e.slip_no"/></t></td>
+                                    <td class="text-end"><span t-if="e.credit_code_id" t-out="e.amount" t-options="{'widget': 'monetary', 'display_currency': cur}"/></td>
+                                    <td class="text-end"><span t-if="e.debit_code_id" t-out="e.amount" t-options="{'widget': 'monetary', 'display_currency': cur}"/></td>
+                                    <td t-out="'approved' if e.state in ('approved', 'reversed') else 'not approved'"/>
+                                </tr>
+                            </tbody>
+                            <tfoot>
+                                <tr><th colspan="6">Total of the entries</th>
+                                    <th class="text-end"><span t-out="d['credit_total']" t-options="{'widget': 'monetary', 'display_currency': cur}"/></th>
+                                    <th class="text-end"><span t-out="d['debit_total']" t-options="{'widget': 'monetary', 'display_currency': cur}"/></th><th/></tr>
+                            </tfoot>
+                        </table>
+                        <p t-if="d['credit_total'] != d['debit_total']"><b>Cr and Dr differ by <span t-out="abs(d['credit_total'] - d['debit_total'])" t-options="{'widget': 'monetary', 'display_currency': cur}"/>:</b>
+                            an entry has a code that is not in the code list. It cannot be approved until the accountant confirms the code.</p>
+                        <p class="text-muted small">Day book by old code. These are not Odoo journal entries: the old codes are not mapped to Odoo accounts yet.</p>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

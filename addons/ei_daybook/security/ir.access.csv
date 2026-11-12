@@ -1,0 +1,21 @@
+id,name,model_id,group_id/id,operation,domain
+access_ei_daybook_auditor,day book auditor,ei.daybook.entry,ei_legacy_master.group_ei_auditor,r,
+access_ei_daybook_mgmt,day book management,ei.daybook.entry,ei_management_dashboard.group_ei_management,r,
+access_ei_daybook_bank_officer,day book bank officer,ei.daybook.entry,ei_bank_operations.group_ei_bank_officer,crud,
+access_ei_daybook_bank_approver,day book bank approver,ei.daybook.entry,ei_bank_operations.group_ei_bank_approver,ru,
+access_ei_daybook_cash_clerk,day book cash clerk,ei.daybook.entry,ei_cashbook.group_ei_cash_clerk,crud,
+access_ei_daybook_cash_approver,day book cash approver,ei.daybook.entry,ei_cashbook.group_ei_cash_approver,ru,
+access_ei_daybook_system,day book administrator,ei.daybook.entry,base.group_system,crud,
+rule_ei_daybook_company,Day book: own companies,ei.daybook.entry,,crud,"[('company_id', 'in', company_ids)]"
+access_ei_daybook_leg_auditor,day book line auditor,ei.daybook.leg,ei_legacy_master.group_ei_auditor,r,
+access_ei_daybook_leg_mgmt,day book line management,ei.daybook.leg,ei_management_dashboard.group_ei_management,r,
+access_ei_daybook_leg_bank,day book line bank officer,ei.daybook.leg,ei_bank_operations.group_ei_bank_officer,r,
+access_ei_daybook_leg_bank_ap,day book line bank approver,ei.daybook.leg,ei_bank_operations.group_ei_bank_approver,r,
+access_ei_daybook_leg_cash,day book line cash clerk,ei.daybook.leg,ei_cashbook.group_ei_cash_clerk,r,
+access_ei_daybook_leg_cash_ap,day book line cash approver,ei.daybook.leg,ei_cashbook.group_ei_cash_approver,r,
+access_ei_daybook_leg_system,day book line administrator,ei.daybook.leg,base.group_system,r,
+rule_ei_daybook_leg_company,Day book line: own companies,ei.daybook.leg,,r,"[('company_id', 'in', company_ids)]"
+access_ei_daybook_deleted_auditor,deleted drafts auditor,ei.daybook.deleted,ei_legacy_master.group_ei_auditor,r,
+access_ei_daybook_deleted_mgmt,deleted drafts management,ei.daybook.deleted,ei_management_dashboard.group_ei_management,r,
+access_ei_daybook_deleted_system,deleted drafts administrator,ei.daybook.deleted,base.group_system,r,
+access_ei_daybook_print_user,print the day book,ei.daybook.print,ei_legacy_master.group_ei_user,crud,

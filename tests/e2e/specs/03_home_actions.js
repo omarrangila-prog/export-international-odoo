@@ -146,7 +146,7 @@ module.exports = {
     ctx.check(await answer('%%', /Nothing found/), 'typing % is searched literally, not as a wildcard');
 
     // ---------- Ctrl+K palette on any screen
-    await s.menu('Orders & Trucks', 'Contracts');
+    await s.menu('More', 'Signed contracts');
     await p.keyboard.press('Control+k'); await p.waitForSelector('.o_command_palette', { timeout: 8000 });
     await p.keyboard.type('DA-DEMO-5501'); await p.waitForTimeout(1500);
     ctx.check(/Delivery advices: DA-DEMO-5501/.test(await p.locator('.o_command_palette').innerText()), 'Ctrl+K finds records from any screen');

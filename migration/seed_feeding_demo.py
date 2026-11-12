@@ -33,6 +33,18 @@ if not Code.search([('legacy_code', '=', 'D.01'), ('source_sheet_key', '=', 'CUS
         c.with_context(ei_system_write=True).write({'linked_model': 'res.partner', 'linked_res_id': cust.id})
 d01 = Code.search([('legacy_code', '=', 'D.01'), ('source_sheet_key', '=', 'CUSTOMER')])
 
+# ---- DEMO bank / cash box / purchase codes for Online Feeding and the Cash Book (two verified, one left unverified on purpose)
+if not Code.search([('legacy_code', '=', 'D.50'), ('source_sheet_key', '=', 'BANK')]):
+    batch = env['ei.import.batch'].create({'name': 'DEMO codes for online feeding and the cash book'})
+    for code, sheet, name, target, ok in (('D.50', 'BANK', 'DEMO BANK ONE', 'bank_journal', True),
+                                          ('D.51', 'BANK', 'DEMO CASH SAFE', 'cash_journal', True),
+                                          ('D.52', 'BANK', 'DEMO BANK TWO', 'bank_journal', True),
+                                          ('D.60', 'FOR PURCHASE', 'DEMO PURCHASE ACCOUNT', 'legacy_ref_only', False)):
+        c = Code.create({'legacy_code': code, 'source_sheet': sheet, 'source_sheet_key': sheet, 'source_row': 0, 'original_name': name,
+                         'batch_id': batch.id, 'proposed_target_type': target, 'verification_status': 'proposed'})
+        if ok:
+            c.with_user(U['mapper']).action_approve(target, 'DEMO: verified for online feeding and the cash book')
+
 # ---- DEMO parties for the one-screen feeding entry: Supplier (Purchase From) -> Purchase (IN) -> Sold (OUT). PKR only.
 formula = env.ref('ei_contract_da.formula_isl_asml_dealer_net')
 parent.write({'ei_is_supplier_mill': True, 'ei_feeding_formula_id': formula.id if formula.state == 'approved' else False})

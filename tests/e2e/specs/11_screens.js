@@ -118,7 +118,10 @@ module.exports = {
     const compact = await rowH();
     ctx.check(comfy - compact >= 10 && /Comfortable/.test(await gp.locator('.ei-density-toggle').innerText()), '7 the density switch makes rows compact, so more of the list fits on the screen', `${comfy}px -> ${compact}px`);
     await gp.reload(); await gp.waitForSelector('.o_data_row', { timeout: 20000 }); await gp.waitForTimeout(600);
-    ctx.check(await rowH() === compact, '7 and the choice is remembered');
+    // after a reload the columns are measured again, so a row can be even shorter than right after the switch: compact is kept, not undone
+    const kept = await gp.evaluate(() => document.body.classList.contains('ei-density-compact'));
+    const after = await rowH();
+    ctx.check(kept && after <= compact, '7 and the choice is remembered', `compact ${compact}px, after reload ${after}px, class kept ${kept}`);
     await gp.locator('.ei-density-toggle').click();
     await gp.setViewportSize({ width: 1024, height: 768 }); await gp.waitForTimeout(500);
     const sticky = await gp.evaluate(async () => {

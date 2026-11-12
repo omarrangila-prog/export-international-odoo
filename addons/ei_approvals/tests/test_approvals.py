@@ -61,7 +61,7 @@ class TestMakerChecker(AccountTestInvoicingCommon):
 
     # ------------------------------------------------------------------ the default
     def test_00_maker_checker_is_on_after_install_and_the_contract_went_through_it(self):
-        self.assertEqual(self.default_policy, {'contract': True, 'da': True, 'order': True, 'cash': True, 'lifting': True})
+        self.assertEqual(self.default_policy, {'contract': True, 'da': True, 'order': True, 'cash': True, 'lifting': True, 'daybook': True})
         self.assertEqual(self.contract.state, 'active')                               # approved -> its next stage
         req = self.R._latest_for(self.contract)
         self.assertEqual((req.state, req.maker_id, req.decided_by), ('approved', self.maker, self.checker))

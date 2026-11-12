@@ -4,6 +4,11 @@
         <field name="name">DA feeding desk</field>
         <field name="tag">ei_da_feeding</field>
     </record>
+    <record id="action_ei_new_feeding" model="ir.actions.client">
+        <field name="name">New Feeding Entry</field>
+        <field name="tag">ei_da_feeding</field>
+        <field name="context">{'ei_new': 1}</field>
+    </record>
     <menuitem id="menu_ei_da_feeding" name="DA feeding desk" parent="ei_contract_da.menu_ei_contracts" action="action_ei_da_feeding"
               sequence="15" groups="ei_contract_da.group_ei_contract_staff,ei_legacy_master.group_ei_auditor"/>
 </odoo>

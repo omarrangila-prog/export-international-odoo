@@ -58,15 +58,20 @@ class TestEasyInterface(TransactionCase):
         self.assertEqual(bad, [], 'technical labels left on screen')
 
     def test_10_short_top_menu_in_plain_words(self):
+        """The top bar in the order of the client's day (12 Nov 2026); everything older is under More, nothing removed."""
         root = self.env.ref('ei_legacy_master.menu_ei_root')
         names = [m.name for m in self.env['ir.ui.menu'].search([('parent_id', '=', root.id)], order='sequence')]
-        self.assertEqual([n for n in names if n != 'Customers & Suppliers'], ['Home', 'Money', 'Orders & Trucks', 'Reports', 'Bills & Invoices', 'Month-end', 'Approvals', 'Setup'])
+        if 'Online Feeding' not in names:            # ei_daybook (which arranges the bar) is not installed in this run
+            return
+        self.assertEqual(names, ['Home', 'Online Feeding', 'New Feeding Entry', 'Cash Book', 'Daily Entries', 'Ledgers', 'Approvals', 'Reports', 'More'])
         parent_of = lambda xid: self.env.ref(xid).parent_id.name
-        self.assertEqual(parent_of('ei_cashbook.menu_ei_cash_vouchers'), 'Money')
-        self.assertEqual(parent_of('ei_material_lifting.menu_ei_lifting'), 'Orders & Trucks')
-        self.assertEqual(parent_of('ei_invoice_extensions.menu_ei_supplier_bills'), 'Bills & Invoices')
+        self.assertEqual(parent_of('ei_cashbook.menu_ei_cash_vouchers'), 'Cash Book')
+        self.assertEqual(parent_of('ei_material_lifting.menu_ei_lifting'), 'Daily Entries')
+        self.assertEqual(parent_of('ei_invoice_extensions.menu_ei_supplier_bills'), 'Daily Entries')
         self.assertEqual(parent_of('ei_contract_da.menu_ei_formula'), 'Setup')
-        self.assertEqual(parent_of('ei_trade_lc.menu_ei_trade_lc'), 'Setup')
+        self.assertEqual(parent_of('ei_legacy_master.menu_ei_master'), 'More')
+        self.assertEqual(parent_of('ei_party360.menu_ei_party360'), 'More')
+        self.assertFalse(self.env.ref('ei_da_feeding.menu_ei_da_feeding').active, 'one feeding screen: the old desk menu is folded into New Feeding Entry')
 
     def test_11_every_empty_screen_explains_what_to_do(self):
         acts = self.env['ir.actions.act_window'].search([('res_model', '=like', 'ei.%')])

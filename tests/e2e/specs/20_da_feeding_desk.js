@@ -29,7 +29,8 @@ module.exports = {
     let m = s.mark();
     const before = await count();
     await s.goto(`/odoo/action-${act}`);
-    await p.waitForSelector('.ei-fd-method', { timeout: 30000 });
+    await p.waitForSelector('.ei-fd-tabs', { timeout: 30000 });
+    await p.getByRole('tab', { name: /Practice/ }).click(); await p.waitForSelector('.ei-fd-method', { timeout: 30000 });
     ctx.check(/TRAINING/.test(await p.locator('.ei-fd-train').innerText()), '1 practice says plainly that nothing is posted');
     for (const [key, want] of Object.entries(GOLDEN)) {
       const card = p.locator(`.ei-fd-method[data-method="${key}"]`);
@@ -106,7 +107,7 @@ module.exports = {
     const u = await new Session(ctx, browser, 'demo.contracts', 'demo', [1440, 900], { timeout: 30000 }).start();
     const up = u.page;
     m = u.mark();
-    await u.goto(`/odoo/action-${act}`); await up.waitForSelector('.ei-fd-method', { timeout: 30000 });
+    await u.goto(`/odoo/action-${act}`); await up.waitForSelector('.ei-fd-tabs', { timeout: 30000 });
     await up.getByRole('tab', { name: /Real entry/ }).click();
     await up.getByRole('button', { name: 'New DA' }).click(); await up.waitForSelector('#ei-fd-daname');
     const form = await up.locator('.ei-fd-main .ei-fd-card').first().innerText();
@@ -123,7 +124,7 @@ module.exports = {
     // ---- 6 the reports: feeding history and the credit note register, from the approved DEMO DA
     const r = await new Session(ctx, browser, 'demo.contracts', 'demo', [1440, 900], { timeout: 30000 }).start();
     m = r.mark();
-    await r.menu('Orders & Trucks', 'DA feeding history');
+    await r.menu('Daily Entries', 'Feeding entries (coils)');
     await r.page.waitForSelector('.o_list_view', { timeout: 20000 });
     await r.page.locator('.o_facet_remove').first().click().catch(() => {}); await r.page.waitForTimeout(800);
     const hist = (await r.page.locator('.o_list_view').innerText()).replace(/\s+/g, ' ');
@@ -131,7 +132,7 @@ module.exports = {
     const lossRow = r.page.locator('.o_data_row', { hasText: 'DEMO-COIL-03' });
     ctx.check(/Loss/.test(await lossRow.innerText()) && await lossRow.evaluate((e) => e.classList.contains('text-danger')), '6 a coil sold below cost is shown as a loss, in red');
     await ctx.shot(r.page, 'feeding_history');
-    await r.menu('Orders & Trucks', 'Credit note register');
+    await r.menu('Daily Entries', 'Credit note register');
     await r.page.waitForSelector('.o_list_view', { timeout: 20000 });
     const cnText = (await r.page.locator('.o_data_row', { hasText: 'DEMO-COIL-02' }).innerText()).replace(/\s+/g, ' ');
     ctx.check(await r.page.locator('.o_data_row', { hasText: 'DEMO-COIL-01' }).count() === 0 && /DEMO-COIL-02/.test(cnText) && /986\.80/.test(cnText) && /5,052\.42/.test(cnText),
@@ -143,7 +144,8 @@ module.exports = {
     // ---- 4 phone: practice fits the screen
     const ph = await new Session(ctx, browser, 'demo.contracts', 'demo', [390, 844], { timeout: 30000 }).start();
     await ph.goto(`/odoo/action-${act}`);
-    await ph.page.waitForSelector('.ei-fd-method', { timeout: 30000 });
+    await ph.page.waitForSelector('.ei-fd-tabs', { timeout: 30000 });
+    await ph.page.getByRole('tab', { name: /Practice/ }).click(); await ph.page.waitForSelector('.ei-fd-method', { timeout: 30000 });
     const l = await ph.layout();
     ctx.check(!l.overflow && !l.wide.length, '4 phone: no sideways scroll', JSON.stringify(l.wide));
     await ctx.shot(ph.page, 'feeding_phone');

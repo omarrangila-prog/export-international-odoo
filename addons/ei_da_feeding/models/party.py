@@ -111,6 +111,19 @@ class EiDaLine(models.Model):
     purchase_amount = fields.Monetary('Purchase amount', compute='_compute_amounts', store=True, currency_field='currency_id')
     sold_status = fields.Selection([('sold', 'Sold'), ('unsold', 'Not sold yet')], compute='_compute_sold_status', store=True, string='Sale')
 
+    trace_invoice = fields.Char('Invoice No', compute='_compute_trace', help="Supplier invoice number(s) recorded on the daily order lines of this coil.")
+    trace_hs = fields.Char('HS code', compute='_compute_trace')
+    lifting_status = fields.Selection([('none', 'Not lifted'), ('part', 'Partly lifted'), ('done', 'Lifted')], compute='_compute_trace',
+                                      string='Lifting')
+
+    def _compute_trace(self):
+        for l in self:
+            orders = l.order_line_ids.filtered(lambda o: o.state != 'cancelled')
+            l.trace_invoice = ', '.join(sorted(set(filter(None, orders.mapped('invoice_ref'))))) or False
+            l.trace_hs = ', '.join(sorted(set(filter(None, orders.mapped('hs_code'))))) or False
+            lifted = l.lifted_mtl or 0.0
+            l.lifting_status = 'none' if lifted <= 1e-9 else ('done' if lifted + 1e-9 >= (l.mtl or 0.0) else 'part')
+
     @api.depends('mtl', 'sale_rate', 'purchase_rate')
     def _compute_amounts(self):
         for l in self:
