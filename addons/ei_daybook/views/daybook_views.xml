@@ -54,7 +54,7 @@
                     <group>
                         <group string="CREDIT" invisible="kind == 'opening' and debit_code_id">
                             <field name="credit_code_id" string="Credit code" options="{'no_create': True, 'no_open': True}" readonly="state != 'draft'"
-                                   placeholder="Type the code (1.24) or the name"/>
+                                   placeholder="Type the code or the name"/>
                             <field name="credit_name" string="Name"/>
                             <field name="credit_sheet" string="Code list"/>
                             <field name="credit_narration" readonly="state != 'draft'" invisible="kind == 'opening'"/>

@@ -270,7 +270,7 @@
                                             </div>
                                             <button t-else="" class="ei-fd-btn is-sm is-ghost" t-on-click="() => this.openLook(f)">Choose <t t-out="this.lookWord(f)"/>…</button>
                                             <div t-if="this.state.look.field === f" class="ei-fd-look">
-                                                <input id="ei-fd-look" class="ei-fd-in" autocomplete="off" t-att-placeholder="f === 'customer' ? 'Type a name…' : 'Type a code (14.03), a name or a nickname…'" t-att-value="this.state.look.term" t-on-input="(ev) => this.lookInput(ev)" t-on-keydown="(ev) => this.lookKey(ev)"/>
+                                                <input id="ei-fd-look" class="ei-fd-in" autocomplete="off" t-att-placeholder="f === 'customer' ? 'Type a name…' : 'Type a code, a name or a nickname…'" t-att-value="this.state.look.term" t-on-input="(ev) => this.lookInput(ev)" t-on-keydown="(ev) => this.lookKey(ev)"/>
                                                 <p t-if="f !== 'customer' and !this.state.look.term and this.state.look.rows.length" class="ei-fd-muted">Suggested from the printed name. Check them against the paper; nothing is chosen for you.</p>
                                                 <ul class="ei-fd-lookrows" role="listbox">
                                                     <li t-foreach="this.state.look.rows" t-as="o" t-key="o.id"><button role="option" t-on-click="() => this.choose(o)">
