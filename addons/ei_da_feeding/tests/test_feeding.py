@@ -55,10 +55,13 @@ class TestFeeding(TransactionCase):
             c.with_context(ei_system_write=True).write({'verification_status': 'approved', 'approved_target_type': 'res_partner',
                                                         'linked_model': 'res.partner', 'linked_res_id': p.id})
         cls.desk = cls.env['ei.feeding.desk'].with_user(cls.maker)
+        pkr = cls.env.ref('base.PKR'); pkr.active = True
+        if cls.env.company.currency_id != pkr:        # a bare test database keeps its books in USD; the client's company keeps them in PKR
+            cls.env['res.currency.rate'].create({'currency_id': pkr.id, 'name': '2020-01-01', 'rate': 280.0, 'company_id': cls.env.company.id})
 
     def contract(self, currency=None):
         c = self.env['ei.contract'].with_user(self.maker).create({
-            'parent_partner_id': self.parent.id, 'contract_ref': 'SYN-1', 'currency_id': (currency or self.env.company.currency_id).id,
+            'parent_partner_id': self.parent.id, 'contract_ref': 'SYN-1', 'currency_id': (currency or self.env.ref('base.PKR')).id,
             'contract_type': 'commission',
             'line_ids': [Command.create({'product_id': self.prod.id, 'ordered_mtl': 100, 'basic_rate': 229500, 'formula_id': self.formula.id,
                                          'purchase_rate': 268051.41, 'sale_rate': 271080.81,
@@ -218,30 +221,22 @@ class TestFeeding(TransactionCase):
             d.with_user(self.checker).action_approve()
         self.assertIn('changed by hand', str(e.exception))
 
-    def test_12_a_foreign_currency_needs_a_rate_and_shows_the_base_amount(self):
-        # the company currency of a fresh test database may be USD: then the "foreign" one is PKR (only PKR and USD are allowed)
-        foreign = self.env.ref('base.USD') if self.env.company.currency_id != self.env.ref('base.USD') else self.env.ref('base.PKR')
-        foreign.active = True
-        self.env['res.currency.rate'].search([('currency_id', '=', foreign.id)]).unlink()
-        d = self.new_da(self.contract(currency=foreign))
-        line = self.coil(d, 'direct_no_commission', purchase_rate='800', sale_rate='812')
-        self.assertIs(d._fx(), False)
-        self.assertIn('No %s rate' % foreign.name, d.fx_text)
-        self.assertTrue(self.desk.da_load(d.id)['fx_missing'])
-        d.with_user(self.maker).action_review()
-        with self.assertRaises(UserError) as e:
-            d.with_user(self.checker).action_approve()
-        self.assertIn('No %s rate' % foreign.name, str(e.exception))
-        self.env['res.currency.rate'].create({'currency_id': foreign.id, 'name': '2026-11-01', 'rate': 1 / 280.0,
-                                              'company_id': self.env.company.id})
-        d.invalidate_recordset(['fx_text'])
-        prev = self.desk.preview(d.id, {'contract_line_id': d.contract_id.line_ids.id, 'method': 'direct_no_commission',
-                                        'purchase_rate': '800', 'sale_rate': '812', 'weight_kg': '4574'})
-        # the coil's own amount (54.89) converted, as Odoo converts a document amount: 54.89 x 280 = 15,369.20
-        self.assertEqual((prev['currency'], prev['base']['purchase_rate'], prev['total_spread'], prev['base']['total_spread']),
-                         (foreign.name, '224000.00', '54.89', '15369.20'))
-        d.with_user(self.checker).action_approve()
-        self.assertEqual((line.purchase_rate, line.sale_rate), (800.0, 812.0))                # the DA keeps its own currency
+    def test_12_new_entries_are_in_pkr_only_and_an_older_foreign_da_still_shows_its_rate(self):
+        """PKR only (client, 11 Nov 2026). A USD record that already exists is left as it is and still explains itself."""
+        usd = self.env.ref('base.USD'); usd.active = True
+        with self.assertRaises(UserError):
+            self.contract(currency=usd)                                                   # no new entry in USD
+        old = self.contract()
+        self.env.cr.execute("UPDATE ei_contract SET currency_id = %s WHERE id = %s", (usd.id, old.id))      # an older USD contract
+        old.invalidate_recordset()
+        with self.assertRaises(UserError):
+            self.desk.da_create({'contract_id': old.id, 'name': 'SYN-USD'})               # and no new DA against it
+        self.assertNotIn(old.id, [c['id'] for c in self.desk.da_list()['contracts']])
+        if self.env.company.currency_id != usd:                                           # its existing DAs keep showing the rate they need
+            d = self.env['ei.da'].sudo().create({'name': 'SYN-OLD', 'parent_partner_id': self.parent.id, 'contract_id': old.id})
+            self.env['res.currency.rate'].search([('currency_id', '=', usd.id)]).unlink()
+            d.invalidate_recordset()
+            self.assertIn('No USD rate', d.fx_text)
 
     def test_13_real_entry_refuses_a_formula_the_accountant_has_not_approved(self):
         draft = self.formula.with_user(self.acct).action_new_version()
@@ -281,3 +276,87 @@ class TestFeeding(TransactionCase):
         reg = self.env.ref('ei_da_feeding.ei_cn_register_action')
         cn = self.env['ei.da.line'].with_user(self.maker).search(eval(reg.domain) + [('da_id', '=', d.id)])
         self.assertEqual(cn.mapped('coil_no'), ['COIL-A'])                 # only the coil with a CN
+
+    # ------------------------------------------------------------------ one screen, three parties, no contract first (11 Nov 2026)
+    def parties(self):
+        self.parent.sudo().write({'ei_is_supplier_mill': True, 'ei_feeding_formula_id': self.formula.id})
+        pin = self.env['res.partner'].search([('name', '=', 'Synthetic Buying Entity')], limit=1) \
+            or self.env['res.partner'].create({'name': 'Synthetic Buying Entity', 'ei_is_purchase_in': True})
+        return self.parent, pin
+
+    def entry(self, name='SYN-FE-1', sold=True, printed=False):
+        supplier, pin = self.parties()
+        da_id = self.desk.da_create({'supplier_id': supplier.id, 'purchase_in_id': pin.id, 'sold_out_id': sold and self.cust.id or False,
+                                     'name': name, 'date': '2026-11-11', 'printed_customer': printed})
+        self.env['ir.attachment'].sudo().create({'name': 'd.pdf', 'res_model': 'ei.da', 'res_id': da_id, 'raw': b'x'})
+        d = self.env['ei.da'].browse(da_id)
+        return d, self.desk.ensure_line(da_id, self.prod.id)['contract_line_id']
+
+    def test_20_one_entry_without_a_contract_keeps_the_three_parties(self):
+        before = self.env['ei.contract'].sudo().search_count([])
+        d, cl = self.entry()
+        self.assertEqual((d.parent_partner_id, d.purchase_in_id.name, d.sold_out_id), (self.parent, 'Synthetic Buying Entity', self.cust))
+        acc = d.contract_id
+        self.assertEqual((acc.contract_type, acc.state, acc.currency_id.name, acc.purchase_in_id), ('feeding', 'active', 'PKR', d.purchase_in_id))
+        self.assertIn('Not a signed contract', acc.notes)
+        d2, cl2 = self.entry('SYN-FE-2')
+        self.assertEqual((d2.contract_id, cl2), (acc, cl))                                # one running account and one line per material
+        self.assertEqual(self.env['ei.contract'].sudo().search_count([]), before + 1)
+        load = self.desk.da_load(d.id)
+        self.assertEqual((load['supplier'], load['purchase_in'], load['sold_out']['name'], load['is_feeding'], load['currency']),
+                         (self.parent.display_name, 'Synthetic Buying Entity', self.cust.display_name, True, 'PKR'))
+        lst = self.desk.da_list()
+        self.assertIn(self.parent.id, [p['id'] for p in lst['suppliers']])
+        self.assertNotIn(acc.id, [c['id'] for c in lst['contracts']])                     # the account is never offered as a "contract"
+        with self.assertRaises(UserError):
+            self.desk.da_create({'supplier_id': self.cust.id, 'purchase_in_id': d.purchase_in_id.id, 'name': 'X'})     # not a mill
+
+    def test_21_the_foxpro_direct_entry_gives_the_same_amounts(self):
+        """Direct purchase and sale, as on the client's FoxPro screen: 4.574 MTL, sale 230,500, purchase 229,500 (synthetic codes)."""
+        d, cl = self.entry()
+        vals = {'contract_line_id': cl, 'coil_no': 'FX-1', 'weight_kg': '4574', 'method': 'direct_no_commission', 'purchase_rate': '229500',
+                'sale_rate': '230500', 'customer_id': self.cust.id, 'customer_code_id': self.code_alpha.id, 'trade_code_id': self.code_trade.id,
+                'pl_code_id': self.code_pl.id, 'thickness': '0.50', 'width': '1219'}
+        p = self.desk.preview(d.id, vals)
+        self.assertEqual((p['sale_total'], p['purchase_total'], p['total_spread'], p['spread_per_mtl'], p['currency']),
+                         ('1054307.00', '1049733.00', '4574.00', '1000.00', 'PKR'))
+        line = self.env['ei.da.line'].browse(self.desk.save_line(d.id, False, vals)['line_id'])
+        self.assertEqual((line.sale_amount, line.purchase_amount, line.gross_spread, line.coil_thickness, line.coil_width),
+                         (1054307.0, 1049733.0, 4574.0, '0.50', '1219'))
+        self.assertEqual((line.customer_code_id, line.trade_code_id, line.pl_code_id), (self.code_alpha, self.code_trade, self.code_pl))
+        self.assertEqual((line.da_parent_id, line.da_purchase_in_id, line.customer_id, line.sold_status), (self.parent, d.purchase_in_id, self.cust, 'sold'))
+
+    def test_22_six_alternatives_and_several_coils_on_one_entry(self):
+        d, cl = self.entry()
+        base = {'contract_line_id': cl, 'weight_kg': '4574', 'basic_rate': '229500', 'customer_id': self.cust.id, 'customer_code_id': self.code_alpha.id}
+        extra = {'normal_sale': {'sale_offset': '-1000'}, 'high_profit_sale': {'sale_offset': '10000'}, 'loss_sale': {'sale_offset': '-10000', 'loss_reason': 'x'},
+                 'sale_at_mill_rate': {}, 'purchase_with_cn': {'cn_amount': '1000', 'cn_text': 'CN'}, 'direct_no_commission': {'purchase_rate': '229500', 'sale_rate': '230500'}}
+        for i, (method, purchase, sale, spread, _total) in enumerate(GOLDEN):
+            self.desk.save_line(d.id, False, dict(base, coil_no='C-%d' % i, method=method, **extra[method]))
+        got = {l.feeding_method: (('%.2f' % l.purchase_rate), ('%.2f' % l.sale_rate), ('%.2f' % l.spread_per_mtl)) for l in d.line_ids}
+        self.assertEqual(got, {m: (p, s, sp) for m, p, s, sp, _t in GOLDEN})
+        self.assertEqual(len(d.line_ids), 6)
+        with self.assertRaises(UserError):
+            self.desk.save_line(d.id, False, dict(base, coil_no='C-X', method='purchase_without_commission'))    # still waiting for the client's rule
+        d.with_user(self.maker).action_review()
+        d.with_user(self.checker).action_approve()                                        # no agreed quantity to exceed, no rate note demanded
+        self.assertEqual(d.state, 'approved')
+        self.assertAlmostEqual(d.contract_id.line_ids.ordered_mtl, 27.444, places=3)      # the account shows what was fed
+        self.assertEqual(self.env['account.move'].sudo().search_count([('ref', 'ilike', d.name)]), 0)     # feeding posts nothing to the books
+
+    def test_23_printed_name_belongs_to_purchase_in_and_an_unsold_coil_waits(self):
+        d, cl = self.entry('SYN-FE-3', sold=False, printed='M/S SOMEBODY ELSE')
+        self.assertFalse(self.desk.da_load(d.id)['sold_out'])
+        vals = {'contract_line_id': cl, 'coil_no': 'U-1', 'weight_kg': '1000', 'method': 'direct_no_commission', 'purchase_rate': '100', 'sale_rate': '110'}
+        line = self.env['ei.da.line'].browse(self.desk.save_line(d.id, False, vals)['line_id'])
+        self.assertEqual(line.sold_status, 'unsold')                                      # saved as a draft: not sold yet, nothing invented
+        with self.assertRaises(UserError):
+            self.desk.submit(d.id)                                                        # it cannot go on without Sold (OUT)
+        self.desk.save_line(d.id, line.id, dict(vals, customer_id=self.cust.id, customer_code_id=self.code_alpha.id))
+        self.assertFalse(line.code_issue)                                                 # the code is checked against Sold (OUT), not the printed name
+        d.with_user(self.maker).action_review()
+        with self.assertRaises(UserError) as e:
+            d.with_user(self.checker).action_approve()
+        self.assertIn('Purchase (IN)', str(e.exception))                                  # the printed name is compared with Purchase (IN)
+        wrong = dict(vals, customer_id=self.cust.id, customer_code_id=self.code_gamma.id)
+        self.assertIn('belongs to', self.desk.preview(d.id, wrong)['code_issue'] if d.state == 'draft' else self.env['ei.da.line']._code_problem_for(self.code_gamma, self.cust, False))

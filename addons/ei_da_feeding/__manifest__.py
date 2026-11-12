@@ -1,6 +1,6 @@
 {
     'name': 'Export International - DA Feeding Desk',
-    'version': '20.0.1.0.0',
+    'version': '20.0.1.1.0',
     'category': 'Sales/Purchase',
     'summary': 'Feed a delivery advice coil by coil with the six feeding methods, codes, dates and currency; practise without posting',
     'author': 'Odoovations',
@@ -10,6 +10,7 @@
         'views/desk_views.xml',
         'views/da_views.xml',
         'views/report_views.xml',
+        'views/ledger_views.xml',
     ],
     'assets': {
         'web.assets_backend': [

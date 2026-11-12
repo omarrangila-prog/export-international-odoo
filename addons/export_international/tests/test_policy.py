@@ -124,11 +124,10 @@ class TestPolicy(AccountTestInvoicingCommon):
         self.assertFalse(self.env['ei.approval.policy'].flow_on('da'))
 
     # CFG-01..04
-    def test_cfg_new_entries_in_pkr_or_usd_only_old_ones_untouched(self):
+    def test_cfg_new_entries_in_pkr_only_old_ones_untouched(self):
         self.assertEqual(self.contract('P-5').currency_id, self.pkr)
-        usd = self.env['ei.contract'].with_user(self.op).create({'parent_partner_id': self.parent.id, 'contract_ref': 'P-6',
-                                                                 'currency_id': self.usd.id})
-        self.assertEqual(usd.currency_id, self.usd)
+        with self.assertRaises(UserError):                         # PKR only since 11 Nov 2026: USD is refused like any other
+            self.env['ei.contract'].with_user(self.op).create({'parent_partner_id': self.parent.id, 'contract_ref': 'P-6', 'currency_id': self.usd.id})
         eur = self.env.ref('base.EUR'); eur.active = True
         with self.assertRaises(UserError):
             self.env['ei.contract'].with_user(self.op).create({'parent_partner_id': self.parent.id, 'contract_ref': 'P-7', 'currency_id': eur.id})
@@ -137,7 +136,7 @@ class TestPolicy(AccountTestInvoicingCommon):
         old.invalidate_recordset()
         old.notes = 'kept'                                         # editing other fields of an old record still works
         self.assertEqual((old.currency_id, old.notes), (eur, 'kept'))
-        self.assertEqual(self.env['ei.contract']._fields['currency_id'].domain, "[('name', 'in', ('PKR', 'USD'))]")
+        self.assertEqual(self.env['ei.contract']._fields['currency_id'].domain, "[('name', '=', 'PKR')]")
 
     def test_cash_count_shows_the_book_side_while_counting(self):
         cash = self.company_data['default_journal_cash']

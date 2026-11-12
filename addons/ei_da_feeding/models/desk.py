@@ -114,18 +114,38 @@ class EiFeedingDesk(models.AbstractModel):
                           'state_label': dict(d._fields['state'].selection).get(d.state), 'date': fields.Date.to_string(d.date),
                           'printed': d.printed_customer or '', 'coils': len(d.line_ids), 'mtl': d.total_mtl} for d in rows],
                 'can_create': DA.has_access('create'),
+                # new entries are in PKR only (client, 11 Nov 2026); signed contracts stay available under "More"
                 'contracts': [{'id': c.id, 'name': '%s - %s (%s)' % (c.name, c.contract_ref, c.parent_partner_id.name),
                                'parent_id': c.parent_partner_id.id, 'currency': c.currency_id.name}
-                              for c in self.env['ei.contract'].search([('state', '=', 'active')], limit=200)]}
+                              for c in self.env['ei.contract'].search([('state', '=', 'active'), ('contract_type', '!=', 'feeding'),
+                                                                       ('currency_id.name', '=', 'PKR')], limit=200)],
+                'suppliers': self._parties('ei_is_supplier_mill'), 'purchase_ins': self._parties('ei_is_purchase_in')}
+
+    def _parties(self, flag):
+        P = self.env['res.partner']
+        return [{'id': p.id, 'name': p.display_name} for p in P.search([(flag, '=', True)], order='name')] if P.has_access('read') else []
 
     @api.model
     def da_create(self, vals):
-        c = self.env['ei.contract'].browse(int(vals.get('contract_id') or 0)).exists()
-        if not c:
-            raise UserError(_("Choose the active contract this DA belongs to."))
         if not (vals.get('name') or '').strip():
-            raise UserError(_("Type the DA number exactly as printed."))
+            raise UserError(_("Type the DO / DA number exactly as printed."))
+        P = self.env['res.partner']
+        c = self.env['ei.contract'].browse(int(vals.get('contract_id') or 0)).exists()
+        pin = P.browse(int(vals.get('purchase_in_id') or 0)).exists()
+        if not c:                                   # the usual way: no contract first, only the three parties
+            supplier = P.browse(int(vals.get('supplier_id') or 0)).exists()
+            if not supplier or not supplier.ei_is_supplier_mill:
+                raise UserError(_("Choose the SUPPLIER (Purchase From)."))
+            if not pin or not pin.ei_is_purchase_in:
+                raise UserError(_("Choose the Purchase (IN) entity."))
+            if not self.env['ei.da'].has_access('create'):
+                raise AccessError(_("Your role cannot enter delivery advices."))
+            c = self.env['ei.contract']._feeding_account(supplier, pin)
+        if c.currency_id.name != 'PKR':
+            raise UserError(_("New entries are in PKR only. %s is an older %s contract.", c.name, c.currency_id.name))
+        sold = P.browse(int(vals.get('sold_out_id') or 0)).exists()
         d = self.env['ei.da'].create({'name': vals['name'].strip(), 'parent_partner_id': c.parent_partner_id.id, 'contract_id': c.id,
+                                      'purchase_in_id': pin.id or c.purchase_in_id.id or False, 'sold_out_id': sold.id or False,
                                       'date': vals.get('date') or fields.Date.context_today(self),
                                       'order_datetime': local_to_utc(self.env, vals.get('order_datetime')), 'ship_date': vals.get('ship_date') or False,
                                       'printed_customer': (vals.get('printed_customer') or '').strip() or False})
@@ -147,6 +167,8 @@ class EiFeedingDesk(models.AbstractModel):
                           'basic_rate': l.basic_rate, 'sale_offset': l.sale_offset, 'sale_typed': l.sale_typed, 'cn_amount': l.cn_amount,
                           'cn_text': l.cn_text or '', 'purchase_rate': l.purchase_rate, 'sale_rate': l.sale_rate, 'loss_reason': l.loss_reason or '',
                           'rate_note': l.rate_note or '', 'spread': l.spread_per_mtl, 'gross': l.gross_spread, 'code_issue': l.code_issue or '',
+                          'thickness': l.coil_thickness or '', 'width': l.coil_width or '', 'sale_amount': l.sale_amount,
+                          'purchase_amount': l.purchase_amount,
                           'override': l.code_override_reason or ''})
         return {
             'id': d.id, 'name': d.name, 'state': d.state, 'state_label': dict(d._fields['state'].selection).get(d.state),
@@ -164,6 +186,10 @@ class EiFeedingDesk(models.AbstractModel):
                                for cl in d.contract_id.line_ids],
             'lines': lines, 'total_mtl': d.total_mtl, 'total_spread': sum(d.line_ids.mapped('gross_spread')),
             'review_requested': d.review_requested, 'approval_on': self.env['ei.approval.policy'].flow_on('da'),
+            'supplier': d.parent_partner_id.display_name, 'purchase_in': d.purchase_in_id.display_name or '',
+            'sold_out': d.sold_out_id and {'id': d.sold_out_id.id, 'name': d.sold_out_id.display_name} or None,
+            'is_feeding': d.is_feeding_account, 'total_sale': sum(d.line_ids.mapped('sale_amount')),
+            'total_purchase': sum(d.line_ids.mapped('purchase_amount')),
             'approved_by': d.approved_by.name or '',
         }
 
@@ -175,6 +201,8 @@ class EiFeedingDesk(models.AbstractModel):
     def da_save_header(self, da_id, vals):
         d = self._da(da_id, write=True)
         allowed = {k: vals[k] or False for k in ('printed_customer', 'ship_date', 'date') if k in vals}
+        if 'sold_out_id' in vals:
+            allowed['sold_out_id'] = int(vals['sold_out_id']) if vals['sold_out_id'] else False
         if 'order_datetime' in vals:
             allowed['order_datetime'] = local_to_utc(self.env, vals['order_datetime'])
         d.write(allowed)
@@ -192,6 +220,7 @@ class EiFeedingDesk(models.AbstractModel):
         except fe.FeedingError as e:
             return {'ok': False, 'error': str(e)}
         res = out(r)
+        res.update(sale_total=str(fe.money(r['sale_rate'] * r['quantity'])), purchase_total=str(fe.money(r['purchase_rate'] * r['quantity'])))
         code = self.env['ei.legacy.code'].browse(int(vals['customer_code_id'])) if vals.get('customer_code_id') else self.env['ei.legacy.code']
         customer = self.env['res.partner'].browse(int(vals['customer_id'])) if vals.get('customer_id') else self.env['res.partner']
         res.update(ok=True, currency=d.currency_id.name, base=self._base(d, r),
@@ -245,6 +274,7 @@ class EiFeedingDesk(models.AbstractModel):
             'cn_amount': float(clean['cn_amount'] or 0) if clean['feeding_method'] == 'purchase_with_cn' else 0.0,
             'cn_text': (vals.get('cn_text') or '').strip() if clean['feeding_method'] == 'purchase_with_cn' else False,
             'purchase_rate': float(r['purchase_rate']), 'sale_rate': float(r['sale_rate']),
+            'coil_thickness': (vals.get('thickness') or '').strip() or False, 'coil_width': (vals.get('width') or '').strip() or False,
             'loss_reason': (vals.get('loss_reason') or '').strip() or False, 'rate_note': (vals.get('rate_note') or '').strip() or False,
             'customer_id': int(vals['customer_id']) if vals.get('customer_id') else False,
             'customer_code_id': int(vals['customer_code_id']) if vals.get('customer_code_id') else False,
@@ -266,6 +296,24 @@ class EiFeedingDesk(models.AbstractModel):
         return {'line_id': line.id, 'da': self.da_load(d.id)}
 
     @api.model
+    def product_search(self, term=''):
+        Pr = self.env['product.product']
+        if not Pr.has_access('read'):
+            return []
+        dom = ['|', ('name', 'ilike', term), ('default_code', 'ilike', term)] if term else []
+        return [{'id': p.id, 'name': p.display_name} for p in Pr.search(dom, limit=20)]
+
+    @api.model
+    def ensure_line(self, da_id, product_id):
+        """A feeding-account DA takes any material: the account's line for it is found or opened, and the DA is reloaded."""
+        d = self._da(da_id, write=True)
+        product = self.env['product.product'].browse(int(product_id)).exists()
+        if not product:
+            raise UserError(_("Choose the item."))
+        line = d.contract_id._feeding_line(product)
+        return {'contract_line_id': line.id, 'da': self.da_load(d.id)}
+
+    @api.model
     def delete_line(self, da_id, line_id):
         d = self._da(da_id, write=True)
         d.line_ids.filtered(lambda x: x.id == int(line_id)).unlink()
@@ -279,6 +327,10 @@ class EiFeedingDesk(models.AbstractModel):
         d = self._da(da_id, write=True)
         if not d.line_ids:
             raise UserError(_("Add at least one coil first."))
+        unsold = d.line_ids.filtered(lambda l: l.feeding_method and not l.customer_id)
+        if unsold:
+            raise UserError(_("%(n)s coil(s) are not sold yet (%(c)s). Keep the DA as a draft, and choose Sold (OUT) on them before submitting.",
+                              n=len(unsold), c=', '.join(unsold.mapped(lambda l: l.coil_no or '?'))))
         d.write({'review_requested': bool(review)})
         d.action_confirm()
         nxt = None

@@ -18,7 +18,7 @@ class EiSupplierIntake(models.Model):
                             required=True, default='in_invoice')
     company_id = fields.Many2one('res.company', required=True, default=lambda s: s.env.company, index=True)
     currency_id = fields.Many2one('res.currency', required=True, default=lambda s: s.env.company.currency_id,
-                                  domain="[('name', 'in', ('PKR', 'USD'))]")
+                                  domain="[('name', '=', 'PKR')]")
     partner_id = fields.Many2one('res.partner', string='Supplier (parent company)', required=True, tracking=True)
     invoice_number = fields.Char('Supplier invoice no.', required=True, tracking=True)
     invoice_date = fields.Date(required=True)

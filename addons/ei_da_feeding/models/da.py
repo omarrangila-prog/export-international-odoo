@@ -57,6 +57,9 @@ class EiDa(models.Model):
             fed = d.line_ids.filtered('feeding_method')
             if fed and d._fx() is False:
                 problems.append(d.fx_text)
+            pin = d.purchase_in_id
+            if pin and d.printed_customer and not (name_tokens(d.printed_customer) & name_tokens(pin.name)):
+                problems.append(_("the DA prints '%(p)s' but Purchase (IN) is '%(e)s'. Check the paper.", p=d.printed_customer, e=pin.name))
             for l in fed:
                 problems += ['%s: %s' % (l.coil_no or l.product_id.display_name, p) for p in l._approval_problems()]
             if problems:
@@ -142,8 +145,9 @@ class EiDaLine(models.Model):
     def _code_problem(self, hard_only=False):
         """Plain-words reason the customer code cannot be trusted for this coil, or ''."""
         self.ensure_one()
-        return self._code_problem_for(self.customer_code_id, self.customer_id, self.da_id.printed_customer,
-                                      self.code_override_reason, hard_only)
+        # with a Purchase (IN) entity on the DA, the printed name belongs to that entity (checked on the DA), not to the Sold (OUT) customer
+        printed = False if self.da_id.purchase_in_id else self.da_id.printed_customer
+        return self._code_problem_for(self.customer_code_id, self.customer_id, printed, self.code_override_reason, hard_only)
 
     @api.model
     def _code_problem_for(self, c, customer, printed, override=False, hard_only=False):
@@ -223,7 +227,8 @@ class EiDaLine(models.Model):
             out.append(_("it is sold below cost (%s per MTL); write why.", r['spread_per_mtl']))
         if self.feeding_method == 'purchase_with_cn' and not (self.cn_text or '').strip():
             out.append(_("write the credit note text for this coil."))
-        if (fe.money(self.basic_rate or 0) != fe.money(self.contract_line_id.basic_rate or 0)) and r['formula'] and not (self.rate_note or '').strip():
+        signed = self.contract_line_id.contract_id.contract_type != 'feeding'          # a feeding account has no agreed basic rate to differ from
+        if signed and (fe.money(self.basic_rate or 0) != fe.money(self.contract_line_id.basic_rate or 0)) and r['formula'] and not (self.rate_note or '').strip():
             out.append(_("its basic rate differs from the contract (%s); explain in the rate note.", self.contract_line_id.basic_rate))
         code = self._code_problem()
         if code:

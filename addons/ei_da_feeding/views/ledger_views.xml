@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Ledgers: one row per coil, Supplier (Purchase From) -> Purchase (IN) -> Sold (OUT). The same rows, grouped five ways.
+         These are quantities, rates and GROSS spread from the feeding entries; money owed and paid stays in the accounting ledgers. -->
+    <record id="ei_trace_list" model="ir.ui.view">
+        <field name="name">ei.da.line.trace.list</field><field name="model">ei.da.line</field><field name="priority">40</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0" delete="0" decoration-danger="result == 'loss'" decoration-muted="state in ('cancelled', 'amended')">
+                <field name="da_date" string="Date"/><field name="da_id" string="DA / DO No"/>
+                <field name="da_parent_id" string="Supplier (From)"/><field name="da_purchase_in_id"/><field name="customer_id" string="Sold (OUT)"/>
+                <field name="sold_status" widget="badge" decoration-warning="sold_status == 'unsold'" optional="hide"/>
+                <field name="product_id" string="Item" optional="hide"/><field name="coil_no"/>
+                <field name="mtl" string="Qty in (MTL)" sum="MTL"/><field name="lifted_mtl" string="Lifted" optional="hide"/>
+                <field name="remaining_to_lift" string="Remaining" optional="show"/>
+                <field name="purchase_rate"/><field name="sale_rate"/><field name="spread_per_mtl" string="P&amp;L / MTL"/>
+                <field name="net_cn" string="CN / MTL" optional="hide"/>
+                <field name="purchase_amount" sum="Purchase" optional="show"/><field name="sale_amount" sum="Sale" optional="show"/>
+                <field name="gross_spread" sum="Gross spread"/>
+                <field name="customer_code_id" string="Sales code" optional="show"/><field name="trade_code_id" string="Purchase code" optional="show"/>
+                <field name="pl_code_id" string="P&amp;L code" optional="show"/>
+                <field name="feeding_method" optional="hide"/><field name="result" optional="hide"/><field name="state" widget="badge"/>
+                <field name="currency_id" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+    <record id="ei_trace_search" model="ir.ui.view">
+        <field name="name">ei.da.line.trace.search</field><field name="model">ei.da.line</field><field name="priority">40</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="da_id" string="DA / DO No"/><field name="coil_no"/><field name="da_parent_id" string="Supplier"/>
+                <field name="da_purchase_in_id"/><field name="customer_id" string="Sold (OUT)"/>
+                <field name="customer_code_id" string="Sales code"/><field name="trade_code_id" string="Purchase code"/><field name="pl_code_id" string="P&amp;L code"/>
+                <filter name="f_approved" string="Approved entries" domain="[('state', 'in', ('approved', 'fulfilled', 'closed'))]"/>
+                <filter name="f_waiting" string="Draft or waiting" domain="[('state', 'in', ('draft', 'under_review'))]"/>
+                <separator/>
+                <filter name="f_unsold" string="Not sold yet" domain="[('customer_id', '=', False)]"/>
+                <filter name="f_loss" string="Sold below cost" domain="[('result', '=', 'loss')]"/>
+                <separator/>
+                <filter name="f_date" string="Date" date="da_date"/>
+                <group>
+                    <filter name="g_supplier" string="Supplier (From)" context="{'group_by': 'da_parent_id'}"/>
+                    <filter name="g_pin" string="Purchase (IN)" context="{'group_by': 'da_purchase_in_id'}"/>
+                    <filter name="g_customer" string="Sold (OUT)" context="{'group_by': 'customer_id'}"/>
+                    <filter name="g_pl" string="P&amp;L code" context="{'group_by': 'pl_code_id'}"/>
+                    <filter name="g_da" string="DA / DO" context="{'group_by': 'da_id'}"/>
+                    <filter name="g_month" string="Month" context="{'group_by': 'da_date:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    <record id="ei_ledger_supplier_action" model="ir.actions.act_window">
+        <field name="name">Supplier ledger</field><field name="res_model">ei.da.line</field><field name="view_mode">list,pivot</field>
+        <field name="domain">[('feeding_method', '!=', False)]</field><field name="context">{'search_default_f_approved': 1, 'search_default_g_supplier': 1}</field>
+        <field name="search_view_id" ref="ei_trace_search"/>
+        <field name="view_ids" eval="[(5, 0, 0), (0, 0, {'view_mode': 'list', 'view_id': ref('ei_trace_list')}), (0, 0, {'view_mode': 'pivot', 'view_id': ref('ei_feeding_history_pivot')})]"/>
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">No approved feeding entry yet</p><p>Each mill, with every coil bought from it. Quantities and rates come from the feeding entries; money owed and paid is in the accounting ledgers.</p></field>
+    </record>
+    <record id="ei_ledger_pin_action" model="ir.actions.act_window">
+        <field name="name">Purchase (IN) ledger</field><field name="res_model">ei.da.line</field><field name="view_mode">list,pivot</field>
+        <field name="domain">[('feeding_method', '!=', False)]</field><field name="context">{'search_default_f_approved': 1, 'search_default_g_pin': 1}</field>
+        <field name="search_view_id" ref="ei_trace_search"/>
+        <field name="view_ids" eval="[(5, 0, 0), (0, 0, {'view_mode': 'list', 'view_id': ref('ei_trace_list')}), (0, 0, {'view_mode': 'pivot', 'view_id': ref('ei_feeding_history_pivot')})]"/>
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">No approved feeding entry yet</p><p>Each buying entity, with what it bought and where it was sold. Quantities and rates come from the feeding entries; money owed and paid is in the accounting ledgers.</p></field>
+    </record>
+    <record id="ei_ledger_customer_action" model="ir.actions.act_window">
+        <field name="name">Customer ledger</field><field name="res_model">ei.da.line</field><field name="view_mode">list,pivot</field>
+        <field name="domain">[('feeding_method', '!=', False)]</field><field name="context">{'search_default_f_approved': 1, 'search_default_g_customer': 1}</field>
+        <field name="search_view_id" ref="ei_trace_search"/>
+        <field name="view_ids" eval="[(5, 0, 0), (0, 0, {'view_mode': 'list', 'view_id': ref('ei_trace_list')}), (0, 0, {'view_mode': 'pivot', 'view_id': ref('ei_feeding_history_pivot')})]"/>
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">No approved feeding entry yet</p><p>Each Sold (OUT) customer, with the coils sold to it. Quantities and rates come from the feeding entries; money owed and paid is in the accounting ledgers.</p></field>
+    </record>
+    <record id="ei_ledger_pl_action" model="ir.actions.act_window">
+        <field name="name">P&amp;L by code</field><field name="res_model">ei.da.line</field><field name="view_mode">list,pivot</field>
+        <field name="domain">[('feeding_method', '!=', False)]</field><field name="context">{'search_default_f_approved': 1, 'search_default_g_pl': 1}</field>
+        <field name="search_view_id" ref="ei_trace_search"/>
+        <field name="view_ids" eval="[(5, 0, 0), (0, 0, {'view_mode': 'list', 'view_id': ref('ei_trace_list')}), (0, 0, {'view_mode': 'pivot', 'view_id': ref('ei_feeding_history_pivot')})]"/>
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">No approved feeding entry yet</p><p>Gross spread per old P&amp;L code. Gross, before costs and taxes; not booked profit. Quantities and rates come from the feeding entries; money owed and paid is in the accounting ledgers.</p></field>
+    </record>
+    <record id="ei_ledger_trace_action" model="ir.actions.act_window">
+        <field name="name">From → To trace</field><field name="res_model">ei.da.line</field><field name="view_mode">list,pivot</field>
+        <field name="domain">[('feeding_method', '!=', False)]</field><field name="context">{'search_default_f_approved': 1}</field>
+        <field name="search_view_id" ref="ei_trace_search"/>
+        <field name="view_ids" eval="[(5, 0, 0), (0, 0, {'view_mode': 'list', 'view_id': ref('ei_trace_list')}), (0, 0, {'view_mode': 'pivot', 'view_id': ref('ei_feeding_history_pivot')})]"/>
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">No approved feeding entry yet</p><p>One row per coil: who it was bought from, by whom, and who it was sold to. Quantities and rates come from the feeding entries; money owed and paid is in the accounting ledgers.</p></field>
+    </record>
+    <menuitem id="menu_ei_ledgers" name="Ledgers" parent="ei_contract_da.menu_ei_contracts" sequence="12" groups="ei_contract_da.group_ei_contract_staff,ei_contract_da.group_ei_contract_approver,ei_legacy_master.group_ei_auditor,ei_management_dashboard.group_ei_management"/>
+    <menuitem id="menu_ei_ledger_trace" name="From → To trace" parent="menu_ei_ledgers" action="ei_ledger_trace_action" sequence="10" groups="ei_contract_da.group_ei_contract_staff,ei_contract_da.group_ei_contract_approver,ei_legacy_master.group_ei_auditor,ei_management_dashboard.group_ei_management"/>
+    <menuitem id="menu_ei_ledger_supplier" name="Supplier ledger" parent="menu_ei_ledgers" action="ei_ledger_supplier_action" sequence="20" groups="ei_contract_da.group_ei_contract_staff,ei_contract_da.group_ei_contract_approver,ei_legacy_master.group_ei_auditor,ei_management_dashboard.group_ei_management"/>
+    <menuitem id="menu_ei_ledger_pin" name="Purchase (IN) ledger" parent="menu_ei_ledgers" action="ei_ledger_pin_action" sequence="30" groups="ei_contract_da.group_ei_contract_staff,ei_contract_da.group_ei_contract_approver,ei_legacy_master.group_ei_auditor,ei_management_dashboard.group_ei_management"/>
+    <menuitem id="menu_ei_ledger_customer" name="Customer ledger" parent="menu_ei_ledgers" action="ei_ledger_customer_action" sequence="40" groups="ei_contract_da.group_ei_contract_staff,ei_contract_da.group_ei_contract_approver,ei_legacy_master.group_ei_auditor,ei_management_dashboard.group_ei_management"/>
+    <menuitem id="menu_ei_ledger_pl" name="P&amp;L by code" parent="menu_ei_ledgers" action="ei_ledger_pl_action" sequence="50" groups="ei_contract_da.group_ei_contract_staff,ei_contract_da.group_ei_contract_approver,ei_legacy_master.group_ei_auditor,ei_management_dashboard.group_ei_management"/>
+
+    <record id="ei_partner_form_parties" model="ir.ui.view">
+        <field name="name">res.partner.form.ei.parties</field><field name="model">res.partner</field><field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="inside">
+                <group string="Export International: role on the feeding screen" groups="base.group_system,ei_contract_da.group_ei_contract_approver">
+                    <field name="ei_is_supplier_mill"/><field name="ei_is_purchase_in"/>
+                    <field name="ei_feeding_formula_id" invisible="not ei_is_supplier_mill" options="{'no_create': True}"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

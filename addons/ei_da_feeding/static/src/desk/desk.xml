@@ -89,25 +89,48 @@
                 <div class="ei-fd-main">
                     <!-- a new DA, typed from the paper -->
                     <div t-if="this.state.newDa" class="ei-fd-card">
-                        <h2 class="ei-fd-h2">New DA <span class="ei-fd-muted">type it exactly as printed</span></h2>
-                        <div class="ei-fd-curseg" role="radiogroup" aria-label="Currency">
-                            <span>Currency</span>
-                            <button t-foreach="['PKR', 'USD']" t-as="cur" t-key="cur" type="button" role="radio" t-att-aria-checked="this.state.newCur === cur ? 'true' : 'false'"
-                                    t-att-class="'ei-fd-curbtn' + (this.state.newCur === cur ? ' is-on' : '')" t-on-click="() => this.setNewCur(cur)" t-out="cur"/>
-                            <em class="ei-fd-hint">Only PKR and USD are used for new entries.</em>
-                        </div>
+                        <h2 class="ei-fd-h2">New feeding entry <span class="ei-fd-muted">one DA, typed as printed · amounts in PKR</span></h2>
                         <div class="ei-fd-fields">
-                            <label class="ei-fd-field is-wide"><span>Contract</span>
-                                <select class="ei-fd-in" t-on-change="(ev) => this.state.newDa.contract_id = ev.target.value">
-                                    <option value="" t-out="this.contractsForCurrency.length ? 'Choose the active contract…' : 'No active contract in ' + this.state.newCur"/>
-                                    <option t-foreach="this.contractsForCurrency" t-as="c" t-key="c.id" t-att-value="c.id" t-att-selected="this.str(c.id) === this.state.newDa.contract_id" t-out="c.name + ' · ' + c.currency"/>
-                                </select></label>
-                            <label class="ei-fd-field"><span>DA number</span><input id="ei-fd-daname" class="ei-fd-in" t-att-value="this.state.newDa.name" t-on-input="(ev) => this.state.newDa.name = ev.target.value"/></label>
-                            <label class="ei-fd-field"><span>Order date and time (printed)</span><input class="ei-fd-in" type="datetime-local" t-att-value="this.state.newDa.order_datetime" t-on-input="(ev) => this.state.newDa.order_datetime = ev.target.value"/></label>
-                            <label class="ei-fd-field"><span>Ship date (printed)</span><input class="ei-fd-in" type="date" t-att-value="this.state.newDa.ship_date" t-on-input="(ev) => this.state.newDa.ship_date = ev.target.value"/></label>
-                            <label class="ei-fd-field"><span>DA date</span><input class="ei-fd-in" type="date" t-att-value="this.state.newDa.date" t-on-input="(ev) => this.state.newDa.date = ev.target.value"/></label>
-                            <label class="ei-fd-field is-wide"><span>Customer name printed on the DA</span><input class="ei-fd-in" t-att-value="this.state.newDa.printed_customer" t-on-input="(ev) => this.state.newDa.printed_customer = ev.target.value"/></label>
+                            <label class="ei-fd-field"><span>Entry date</span><input class="ei-fd-in" type="date" t-att-value="this.state.newDa.date" t-on-input="(ev) => this.state.newDa.date = ev.target.value"/></label>
+                            <label class="ei-fd-field"><span>DO / DA No</span><input id="ei-fd-daname" class="ei-fd-in" t-att-value="this.state.newDa.name" t-on-input="(ev) => this.state.newDa.name = ev.target.value"/></label>
                         </div>
+                        <div class="ei-fd-parties" role="group" aria-label="The three parties">
+                            <label class="ei-fd-field"><span>SUPPLIER (Purchase From)</span>
+                                <select id="ei-fd-supplier" class="ei-fd-in" t-att-disabled="!!this.state.newDa.contract_id" t-on-change="(ev) => this.state.newDa.supplier_id = ev.target.value">
+                                    <option value="">Choose the mill…</option>
+                                    <option t-foreach="this.state.list.suppliers" t-as="p" t-key="p.id" t-att-value="p.id" t-att-selected="this.str(p.id) === this.state.newDa.supplier_id" t-out="p.name"/>
+                                </select></label>
+                            <span class="ei-fd-arrow" aria-hidden="true">→</span>
+                            <label class="ei-fd-field"><span>Purchase (IN)</span>
+                                <select id="ei-fd-pin" class="ei-fd-in" t-on-change="(ev) => this.state.newDa.purchase_in_id = ev.target.value">
+                                    <option value="">Choose the buying entity…</option>
+                                    <option t-foreach="this.state.list.purchase_ins" t-as="p" t-key="p.id" t-att-value="p.id" t-att-selected="this.str(p.id) === this.state.newDa.purchase_in_id" t-out="p.name"/>
+                                </select></label>
+                            <span class="ei-fd-arrow" aria-hidden="true">→</span>
+                            <div class="ei-fd-field ei-fd-sold"><span>Sold (OUT)</span>
+                                <div t-if="this.state.newDa.sold_out_id" class="ei-fd-picked"><span t-out="this.state.newDa.sold_out_name"/><button class="ei-fd-link" t-on-click="() => this.clearSoldOut()">Change</button></div>
+                                <t t-else="">
+                                    <input id="ei-fd-sold" class="ei-fd-in" autocomplete="off" placeholder="Customer name or code · leave empty if not sold yet" t-att-value="this.state.partyLook.term" t-on-input="(ev) => this.partyLookInput(ev)"/>
+                                    <ul t-if="this.state.partyLook.rows.length" class="ei-fd-lookrows" role="listbox">
+                                        <li t-foreach="this.state.partyLook.rows" t-as="o" t-key="o.id"><button role="option" t-on-click="() => this.pickSoldOut(o)"><t t-out="o.name"/><small t-if="o.ref" class="ei-fd-muted"> · <t t-out="o.ref"/></small></button></li>
+                                    </ul>
+                                </t>
+                            </div>
+                        </div>
+                        <p t-if="!this.state.list.suppliers.length or !this.state.list.purchase_ins.length" class="ei-fd-warnbox">No supplier or buying entity is set up yet. An administrator ticks "Supplier (Purchase From)" and "Purchase (IN) entity" on those companies in Customers &amp; Suppliers.</p>
+                        <details class="ei-fd-more">
+                            <summary>More details</summary>
+                            <div class="ei-fd-fields">
+                                <label class="ei-fd-field is-wide"><span>Customer name printed on the DA</span><input class="ei-fd-in" t-att-value="this.state.newDa.printed_customer" t-on-input="(ev) => this.state.newDa.printed_customer = ev.target.value"/></label>
+                                <label class="ei-fd-field"><span>Order date and time (printed)</span><input class="ei-fd-in" type="datetime-local" t-att-value="this.state.newDa.order_datetime" t-on-input="(ev) => this.state.newDa.order_datetime = ev.target.value"/></label>
+                                <label class="ei-fd-field"><span>Ship date (printed)</span><input class="ei-fd-in" type="date" t-att-value="this.state.newDa.ship_date" t-on-input="(ev) => this.state.newDa.ship_date = ev.target.value"/></label>
+                                <label class="ei-fd-field is-wide"><span>Against a signed contract (only when one exists)</span>
+                                    <select id="ei-fd-contract" class="ei-fd-in" t-on-change="(ev) => this.state.newDa.contract_id = ev.target.value">
+                                        <option value="">No signed contract</option>
+                                        <option t-foreach="this.signedContracts" t-as="c" t-key="c.id" t-att-value="c.id" t-att-selected="this.str(c.id) === this.state.newDa.contract_id" t-out="c.name"/>
+                                    </select></label>
+                            </div>
+                        </details>
                         <div class="ei-fd-actions"><button class="ei-fd-btn" t-on-click="() => this.state.newDa = null">Cancel</button><button class="ei-fd-btn is-primary" t-att-disabled="this.state.busy" t-on-click="() => this.createDa()">Create draft DA</button></div>
                     </div>
 
@@ -118,7 +141,9 @@
                         <div class="ei-fd-dahead">
                             <div>
                                 <h2 class="ei-fd-daname">DA <t t-out="d.name"/> <span t-att-class="'ei-fd-chip ' + (d.state === 'draft' ? 'is-neutral' : 'is-warn')" t-out="d.state_label"/></h2>
-                                <p class="ei-fd-muted"><t t-out="d.parent"/> · contract <t t-out="d.contract"/> · <b t-out="d.currency"/><t t-if="d.fx_text"> · <span t-att-class="d.fx_missing ? 'ei-fd-bad' : ''" t-out="d.fx_text"/></t></p>
+                                <p class="ei-fd-chain"><b t-out="d.supplier"/> <span aria-hidden="true">→</span> <b t-out="d.purchase_in or 'Purchase (IN) not set'"/> <span aria-hidden="true">→</span>
+                                    <b t-if="d.sold_out" t-out="d.sold_out.name"/><span t-else="" class="ei-fd-chip is-neutral">Not sold yet</span></p>
+                                <p class="ei-fd-muted"><t t-if="!d.is_feeding">contract <t t-out="d.contract"/> · </t><b t-out="d.currency"/><t t-if="d.fx_text"> · <span t-att-class="d.fx_missing ? 'ei-fd-bad' : ''" t-out="d.fx_text"/></t></p>
                             </div>
                             <div class="ei-fd-actions">
                                 <span class="ei-fd-muted"><b class="ei-fd-num" t-out="this.fmt(d.total_mtl, 3)"/> MTL on <t t-out="d.lines.length"/> coil(s)</span>
@@ -211,13 +236,25 @@
                                     <t t-set="l" t-value="this.state.line"/>
                                     <h3 class="ei-fd-step"><span>3</span>The coil and who buys it</h3>
                                     <div class="ei-fd-fields">
-                                        <label class="ei-fd-field is-wide"><span>Material (contract line)</span>
+                                        <div t-if="d.is_feeding" class="ei-fd-field is-wide ei-fd-item"><span>Item</span>
+                                            <div t-if="this.cl and !this.state.itemLook" class="ei-fd-picked"><span t-out="this.cl.name"/><small t-if="this.cl.formula" class="ei-fd-muted"> · <t t-out="this.cl.formula"/></small>
+                                                <button class="ei-fd-link" t-on-click="() => this.openItems()">Change</button></div>
+                                            <t t-else="">
+                                                <input id="ei-fd-item" class="ei-fd-in" autocomplete="off" placeholder="Type the item name…" t-att-value="this.state.itemLook ? this.state.itemLook.term : ''" t-on-focus="() => this.state.itemLook or this.openItems()" t-on-input="(ev) => this.itemLookInput(ev)"/>
+                                                <ul t-if="this.state.itemLook and this.state.itemLook.rows.length" class="ei-fd-lookrows" role="listbox">
+                                                    <li t-foreach="this.state.itemLook.rows" t-as="o" t-key="o.id"><button role="option" t-on-click="() => this.pickItem(o)" t-out="o.name"/></li>
+                                                </ul>
+                                            </t>
+                                        </div>
+                                        <label t-else="" class="ei-fd-field is-wide"><span>Material (contract line)</span>
                                             <select class="ei-fd-in" t-on-change="(ev) => this.setLine('contract_line_id', ev)">
                                                 <option value="">Choose…</option>
                                                 <option t-foreach="d.contract_lines" t-as="c" t-key="c.id" t-att-value="c.id" t-att-selected="this.str(c.id) === this.str(l.contract_line_id)" t-out="c.name + ' · ' + this.fmt(c.free_mtl, 3) + ' MTL free' + (c.formula ? ' · ' + c.formula : '')"/>
                                             </select></label>
                                         <label class="ei-fd-field"><span>Coil number</span><input id="ei-fd-coil" class="ei-fd-in" t-att-value="l.coil_no" t-on-input="(ev) => this.setLine('coil_no', ev)"/></label>
                                         <label class="ei-fd-field is-short"><span>Grade</span><input class="ei-fd-in" t-att-value="l.grade" t-on-input="(ev) => this.setLine('grade', ev)"/></label>
+                                        <label class="ei-fd-field is-short"><span>Thickness</span><input class="ei-fd-in" t-att-value="l.thickness" t-on-input="(ev) => this.setLine('thickness', ev)"/></label>
+                                        <label class="ei-fd-field is-short"><span>Width</span><input class="ei-fd-in" t-att-value="l.width" t-on-input="(ev) => this.setLine('width', ev)"/></label>
                                         <label class="ei-fd-field"><span>Weight (kg)</span><input class="ei-fd-in is-num" inputmode="decimal" t-att-value="l.weight_kg" t-on-input="(ev) => this.setLine('weight_kg', ev)"/><em class="ei-fd-hint" t-if="this.mtl">= <b class="ei-fd-num" t-out="this.mtl"/> MTL</em></label>
                                     </div>
                                     <div class="ei-fd-picks">
@@ -228,7 +265,7 @@
                                                 <span t-else=""><b class="ei-fd-num" t-out="l[f].code"/> <t t-out="l[f].name"/><small t-if="l[f].nick" class="ei-fd-muted"> (<t t-out="l[f].nick"/>)</small><span t-if="!l[f].verified" class="ei-fd-chip is-warn">not verified</span></span>
                                                 <button class="ei-fd-link" t-on-click="() => this.openLook(f)">Change</button><button class="ei-fd-link" t-on-click="() => this.clearPick(f)">Clear</button>
                                             </div>
-                                            <button t-else="" class="ei-fd-btn is-sm is-ghost" t-on-click="() => this.openLook(f)">Choose <t t-out="this.lookLabel(f).toLowerCase()"/>…</button>
+                                            <button t-else="" class="ei-fd-btn is-sm is-ghost" t-on-click="() => this.openLook(f)">Choose <t t-out="this.lookWord(f)"/>…</button>
                                             <div t-if="this.state.look.field === f" class="ei-fd-look">
                                                 <input id="ei-fd-look" class="ei-fd-in" autocomplete="off" t-att-placeholder="f === 'customer' ? 'Type a name…' : 'Type a code (14.03), a name or a nickname…'" t-att-value="this.state.look.term" t-on-input="(ev) => this.lookInput(ev)" t-on-keydown="(ev) => this.lookKey(ev)"/>
                                                 <p t-if="f !== 'customer' and !this.state.look.term and this.state.look.rows.length" class="ei-fd-muted">Suggested from the printed name. Check them against the paper; nothing is chosen for you.</p>
@@ -277,6 +314,10 @@
                                             <div><dt>Sale / MTL</dt><dd class="ei-fd-num" t-out="this.fmt(p.sale_rate)"/></div>
                                             <div class="is-key"><dt>Spread / MTL</dt><dd class="ei-fd-num ei-fd-spread" t-out="this.signed(p.spread_per_mtl)"/></div>
                                             <div><dt>Coil (<t t-out="this.fmt(p.quantity, 3)"/> MTL)</dt><dd class="ei-fd-num" t-out="this.signed(p.total_spread) + ' ' + p.currency"/></div>
+                                        </dl>
+                                        <dl class="ei-fd-figs ei-fd-amounts">
+                                            <div><dt>Purchase amount</dt><dd class="ei-fd-num" t-out="this.fmt(p.purchase_total)"/></div>
+                                            <div><dt>Sale amount</dt><dd class="ei-fd-num" t-out="this.fmt(p.sale_total)"/></div>
                                         </dl>
                                         <p t-if="p.base" class="ei-fd-muted">In <t t-out="p.base.currency"/> at the rate of <t t-out="p.base.rate_date"/>: purchase <t t-out="this.fmt(p.base.purchase_rate)"/>, sale <t t-out="this.fmt(p.base.sale_rate)"/>, coil spread <t t-out="this.signed(p.base.total_spread)"/>.</p>
                                         <table class="ei-fd-steps"><caption class="visually-hidden">How it is worked out</caption><tbody>

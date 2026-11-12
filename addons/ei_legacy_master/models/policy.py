@@ -3,7 +3,7 @@
 1. Routine business approval is OFF by default. An administrator can switch on "Require approval" per workflow; a person
    may also tick "Send for review" on one record. Neither replaces security: access rights, record rules, posting rights,
    duplicate checks, the customer-code check and lock dates apply whatever the policy says.
-2. New business entries use only PKR or USD. Other currencies already on old records are left untouched."""
+2. New business entries use only PKR (11 Nov 2026). Other currencies already on old records are left untouched."""
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
 
@@ -14,7 +14,7 @@ FLOWS = {
     'cash': "Cash vouchers",
     'lifting': "Truck loadings (lifting)",
 }
-ALLOWED_CURRENCIES = ('PKR', 'USD')
+ALLOWED_CURRENCIES = ('PKR',)          # PKR only (client, 11 Nov 2026; USD was allowed 9-10 Nov)
 
 
 class EiApprovalPolicy(models.AbstractModel):
@@ -64,18 +64,20 @@ class EiReviewOptionMixin(models.AbstractModel):
 
 class EiTwoCurrencyMixin(models.AbstractModel):
     _name = 'ei.two.currency.mixin'
-    _description = 'New entries in PKR or USD only'
+    _description = 'New entries in PKR only'
 
     @api.model
     def _ei_currency_domain(self):
         return [('name', 'in', ALLOWED_CURRENCIES)]
 
     def _ei_check_new_currency(self, vals):
+        if self.env.context.get('ei_keep_currency'):          # a revision of an older record keeps that record's currency
+            return
         cid = vals.get('currency_id')
         if cid:
             cur = self.env['res.currency'].browse(cid)
             if cur.name not in ALLOWED_CURRENCIES:
-                raise UserError(_("Only PKR or USD can be used for new entries (got %s).", cur.name))
+                raise UserError(_("New entries are in PKR only (got %s).", cur.name))
 
     @api.model_create_multi
     def create(self, vals_list):

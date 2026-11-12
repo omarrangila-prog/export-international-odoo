@@ -20,7 +20,7 @@ class EiContract(models.Model):
     contract_ref = fields.Char('Parent contract reference', required=True, tracking=True)
     company_id = fields.Many2one('res.company', string='Owner company', required=True, default=lambda s: s.env.company, index=True)
     currency_id = fields.Many2one('res.currency', required=True, default=lambda s: s.env.company.currency_id,
-                                  domain="[('name', 'in', ('PKR', 'USD'))]")
+                                  domain="[('name', '=', 'PKR')]")
     date = fields.Date(required=True, default=fields.Date.context_today)
     valid_from = fields.Date(tracking=True)
     valid_to = fields.Date(tracking=True)
@@ -163,7 +163,7 @@ class EiContract(models.Model):
         self.ensure_one()
         if self.state not in ('approved', 'active'):
             raise UserError(_("Only an approved or active contract can be revised."))
-        new = self.copy({'revision': self.revision + 1, 'previous_id': self.id, 'state': 'draft', 'name': 'New',
+        new = self.with_context(ei_keep_currency=True).copy({'revision': self.revision + 1, 'previous_id': self.id, 'state': 'draft', 'name': 'New',
                          'maker_id': self.env.user.id})
         return {'type': 'ir.actions.act_window', 'res_model': self._name, 'res_id': new.id, 'views': [(False, 'form')]}
 
@@ -354,7 +354,7 @@ class EiContractLineParam(models.Model):
     def create(self, vals_list):
         for v in vals_list:
             l = self.env['ei.contract.line'].browse(v.get('line_id'))
-            if l and l.contract_id.state != 'draft':
+            if l and l.contract_id.state != 'draft' and not self.env.context.get('ei_system'):
                 raise UserError(_("The contract is not a draft; parameters are locked."))
         return super().create(vals_list)
 

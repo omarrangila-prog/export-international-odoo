@@ -124,4 +124,12 @@
         .ei-fd-field { max-width: none; flex-basis: calc(50% - 7px); } .ei-fd-picks { grid-template-columns: minmax(0, 1fr); }
         .ei-fd-table { font-size: 12.5px; }
     }
+    // the three parties, read left to right like the client's own sheet
+    .ei-fd-parties { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 10px; margin: 14px 0; padding: 14px; border-radius: 14px; background: var(--ei-surface-2);
+        .ei-fd-field { flex: 1 1 220px; min-width: 0; } .ei-fd-arrow { align-self: center; margin-top: 18px; font-size: 20px; color: var(--ei-muted); } }
+    .ei-fd-chain { margin: 2px 0; font-size: 15px; span { color: var(--ei-muted); margin: 0 4px; } }
+    .ei-fd-more { margin: 4px 0 12px; summary { cursor: pointer; font-weight: 700; color: var(--ei-primary); padding: 6px 0; } }
+    .ei-fd-amounts { margin-top: 8px; }
+    .ei-fd-sold .ei-fd-lookrows, .ei-fd-item .ei-fd-lookrows { margin-top: 6px; max-height: 220px; overflow-y: auto; }
+    @media (max-width: 767.98px) { .ei-fd-parties .ei-fd-arrow { display: none; } }
 }

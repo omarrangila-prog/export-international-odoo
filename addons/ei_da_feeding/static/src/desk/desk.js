@@ -7,7 +7,8 @@ import { Component, onMounted, onWillStart, onWillUnmount, proxy, useProps } fro
 // the person types and lays the answer out. Practice never writes anything; real entry writes draft DA lines only.
 const MODEL = "ei.feeding.desk";
 const OFFSET_METHODS = ["normal_sale", "high_profit_sale", "loss_sale", "sale_at_mill_rate", "purchase_with_cn"];
-const LOOKUPS = { customer: "Customer", customer_code: "Customer code", trade_code: "Purchase / sale code", pl_code: "P&L code" };
+const LOOKUPS = { customer: "Sold (OUT)", customer_code: "Sales code", trade_code: "Purchase code", pl_code: "P&L code" };
+const LOOK_WORDS = { customer: "the customer", customer_code: "sales code", trade_code: "purchase code", pl_code: "P&L code" };
 
 // today in the person's own time zone (Karachi), not UTC: between midnight and 5 am they differ by a day
 const localDay = () => { const n = new Date(), z = (x) => String(x).padStart(2, "0"); return `${n.getFullYear()}-${z(n.getMonth() + 1)}-${z(n.getDate())}`; };
@@ -20,7 +21,7 @@ export function fmt(v, digits = 2) {
 const blankLine = () => ({
     id: false, contract_line_id: "", coil_no: "", grade: "", weight_kg: "", method: "", basic_rate: "", sale_offset: "",
     sale_typed: false, sale_rate: "", purchase_rate: "", cn_amount: "", cn_text: "", loss_reason: "", rate_note: "",
-    customer: null, customer_code: null, trade_code: null, pl_code: null,
+    customer: null, customer_code: null, trade_code: null, pl_code: null, thickness: "", width: "",
 });
 
 export class EiDaFeeding extends Component {
@@ -35,9 +36,9 @@ export class EiDaFeeding extends Component {
             tab: "practice", lab: null, labInputs: null, open: {}, labBusy: false,
             methods: [], list: null, da: null, line: null, preview: null, previewBusy: false, newDa: null,
             look: { field: null, term: "", rows: [], busy: false }, busy: false, error: "", header: null, docIndex: 0,
-            review: false, next: null, newCur: "PKR",
+            review: false, next: null, partyLook: { term: "", rows: [] }, itemLook: null,
         });
-        this.timers = { lab: null, prev: null, look: null };
+        this.timers = { lab: null, prev: null, look: null, party: null, item: null };
         this.onKey = (ev) => {
             if ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === "s" && this.state.tab === "real" && this.state.line) {
                 ev.preventDefault();
@@ -63,6 +64,7 @@ export class EiDaFeeding extends Component {
     isOffset(key) { return OFFSET_METHODS.includes(key); }
     methodOf(key) { return this.state.methods.find((m) => m.key === key) || {}; }
     lookLabel(f) { return LOOKUPS[f]; }
+    lookWord(f) { return LOOK_WORDS[f]; }
     get mtl() { const kg = toNum(this.state.line && this.state.line.weight_kg); return Number.isNaN(kg) ? "" : (kg / 1000).toFixed(3); }
     get cl() { const l = this.state.line, d = this.state.da; return l && d ? d.contract_lines.find((c) => c.id === Number(l.contract_line_id)) : null; }
     get lineBasis() { const m = this.methodOf(this.state.line && this.state.line.method); return m.basis || ""; }
@@ -123,9 +125,42 @@ export class EiDaFeeding extends Component {
     }
     startNewDa() {
         this.state.next = null;
-        const c = this.contractsForCurrency;
-        this.state.newDa = { contract_id: c.length === 1 ? String(c[0].id) : "", name: "", date: localDay(),
-            order_datetime: "", ship_date: "", printed_customer: "" };
+        const li = this.state.list || {}, one = (a) => (a && a.length === 1 ? String(a[0].id) : "");
+        // no contract first: the three parties. A signed contract can still be chosen under "More details".
+        this.state.newDa = { contract_id: "", supplier_id: one(li.suppliers), purchase_in_id: one(li.purchase_ins), sold_out_id: "", sold_out_name: "",
+            name: "", date: localDay(), order_datetime: "", ship_date: "", printed_customer: "" };
+        this.state.partyLook = { term: "", rows: [] };
+        this.focusSoon("#ei-fd-daname");
+    }
+    // Sold (OUT) on the DA: type a name or a code; it is offered on every new coil. Empty = not sold yet.
+    async partyLookInput(ev) {
+        const term = ev.target.value;
+        this.state.partyLook.term = term;
+        clearTimeout(this.timers.party);
+        this.timers.party = setTimeout(async () => { this.state.partyLook.rows = term ? await this.orm.call(MODEL, "partner_search", [term]) : []; }, 200);
+    }
+    pickSoldOut(row) {
+        if (this.state.newDa) { this.state.newDa.sold_out_id = String(row.id); this.state.newDa.sold_out_name = row.name; }
+        this.state.partyLook = { term: "", rows: [] };
+    }
+    clearSoldOut() { this.state.newDa.sold_out_id = ""; this.state.newDa.sold_out_name = ""; }
+    // the item of a coil on a feeding-account DA: any material; its line in the account is found or opened
+    async itemLookInput(ev) {
+        const term = ev.target.value;
+        this.state.itemLook = { term, rows: this.state.itemLook ? this.state.itemLook.rows : [] };
+        clearTimeout(this.timers.item);
+        this.timers.item = setTimeout(async () => { this.state.itemLook = { term, rows: await this.orm.call(MODEL, "product_search", [term]) }; }, 200);
+    }
+    async openItems() { this.state.itemLook = { term: "", rows: await this.orm.call(MODEL, "product_search", [""]) }; this.focusSoon("#ei-fd-item"); }
+    async pickItem(row) {
+        try {
+            const r = await this.call("ensure_line", [this.state.da.id, row.id]);
+            this.setDa(r.da);
+            this.state.line.contract_line_id = String(r.contract_line_id);
+            this.state.itemLook = null;
+            this.refresh();
+            this.focusSoon("#ei-fd-coil");
+        } catch { /* shown */ }
     }
     async createDa() {
         this.state.busy = true;
@@ -172,10 +207,7 @@ export class EiDaFeeding extends Component {
         if (this.state.line) { return this.state.line.method ? 3 : 2; }
         return d.lines.length ? 4 : 2;
     }
-    get contractsForCurrency() {
-        return (this.state.list ? this.state.list.contracts : []).filter((c) => c.currency === this.state.newCur);
-    }
-    setNewCur(cur) { this.state.newCur = cur; if (this.state.newDa) { this.state.newDa.contract_id = ""; } }
+    get signedContracts() { return this.state.list ? this.state.list.contracts : []; }
 
     // ------------------------------------------------------------------ real entry: one coil
     newLine() {
@@ -185,6 +217,7 @@ export class EiDaFeeding extends Component {
             l.contract_line_id = String(cl.id); l.basic_rate = cl.basic_rate ? String(cl.basic_rate) : "";
             if (cl.target_customer) { l.customer = cl.target_customer; }
         }
+        if (d.sold_out) { l.customer = d.sold_out; }           // Sold (OUT) of the DA; change it per coil when a coil goes elsewhere
         const last = d.lines[d.lines.length - 1];
         if (last) {            // the next coil of the same DA usually goes to the same customer with the same codes
             l.customer = last.customer; l.customer_code = last.customer_code; l.trade_code = last.trade_code; l.pl_code = last.pl_code;
@@ -225,7 +258,7 @@ export class EiDaFeeding extends Component {
     }
     payload() {
         const l = this.state.line;
-        return { contract_line_id: l.contract_line_id, coil_no: l.coil_no, grade: l.grade, weight_kg: l.weight_kg, method: l.method,
+        return { contract_line_id: l.contract_line_id, coil_no: l.coil_no, grade: l.grade, thickness: l.thickness, width: l.width, weight_kg: l.weight_kg, method: l.method,
             basic_rate: l.basic_rate, sale_offset: l.sale_offset, sale_typed: l.sale_typed, sale_rate: l.sale_rate, purchase_rate: l.purchase_rate,
             cn_amount: l.cn_amount, cn_text: l.cn_text, loss_reason: l.loss_reason, rate_note: l.rate_note,
             customer_id: l.customer && l.customer.id, customer_code_id: l.customer_code && l.customer_code.id,

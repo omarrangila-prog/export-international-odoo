@@ -13,7 +13,7 @@ class EiTradeLc(models.Model):
     name = fields.Char('LC / trade name', required=True, tracking=True)
     company_id = fields.Many2one('res.company', required=True, default=lambda s: s.env.company, index=True)
     currency_id = fields.Many2one('res.currency', default=lambda s: s.env.company.currency_id,
-                                  domain="[('name', 'in', ('PKR', 'USD'))]")
+                                  domain="[('name', '=', 'PKR')]")
     legacy_code_ids = fields.Many2many('ei.legacy.code', string='Legacy codes (16.xx)',
                                        domain="[('source_sheet_key', '=', 'IMPORT PUR SALE')]")
     lc_reference = fields.Char('LC number', tracking=True, help="From the bank's LC advice - never guessed from the legacy name.")

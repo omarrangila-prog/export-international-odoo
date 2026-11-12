@@ -1,8 +1,8 @@
 // The client's final decision (9 Nov 2026): routine approval is OFF by default. The person entering a DA confirms it with
 // "Save & Continue" and goes straight on to the daily order; "Send for review" on one DA (or the policy switched on) sends it
-// to a second person. Only PKR and USD are offered for new entries. Staging copy, DEMO data.
+// to a second person. New entries are in PKR only. Staging copy, DEMO data.
 module.exports = {
-  name: '21 approval switched off by an administrator, and PKR/USD only',
+  name: '21 approval switched off by an administrator, and PKR only',
   async run(ctx, browser) {
     const { Session } = require('../lib');
     const admin = await new Session(ctx, browser, 'admin', 'admin').start();
@@ -14,18 +14,13 @@ module.exports = {
       const act = (await admin.rpc('ir.model.data', 'search_read', [[['module', '=', 'ei_da_feeding'], ['name', '=', 'action_ei_da_feeding']], ['res_id']]))[0].res_id;
       await s.goto(`/odoo/action-${act}`); await p.waitForSelector('.ei-fd-method', { timeout: 30000 });
       await p.getByRole('tab', { name: /Real entry/ }).click();
-      await p.getByRole('button', { name: 'New DA' }).click();
-      await p.waitForSelector('.ei-fd-curseg [role="radio"]', { timeout: 15000 });
-      const curs = await p.locator('.ei-fd-curseg [role="radio"]').allInnerTexts();
-      ctx.check(curs.join('|') === 'PKR|USD', '1 a new DA offers exactly two currencies: PKR and USD', curs.join('|'));
-      await p.waitForSelector('.ei-fd-main select option:nth-child(2)', { state: 'attached', timeout: 15000 });
-      const opts = await p.locator('.ei-fd-main select option').evaluateAll((os) => os.map((o) => [o.value, o.textContent]));
-      ctx.check(opts.slice(1).every(([, t]) => /PKR$/.test(t.trim())), '1 with PKR chosen, only PKR contracts are listed', opts.map((o) => o[1]).join(' / '));
+      await p.getByRole('button', { name: 'New DA' }).click(); await p.waitForSelector('.ei-fd-more', { state: 'attached', timeout: 15000 }); await p.evaluate(() => { document.querySelector('.ei-fd-more').open = true; });
+      ctx.check(!(await p.locator('.ei-fd-curseg').count()), '1 a new entry has no currency selector (PKR only)');
       const feed = async (name, review, contractRe = /DEMO\/ISL\/001/, direct = false) => {
-        if (!(await p.locator('#ei-fd-daname').count())) await p.getByRole('button', { name: 'New DA' }).click();
-        await p.waitForSelector('.ei-fd-main select option:nth-child(2)', { state: 'attached', timeout: 15000 });
-        const o = await p.locator('.ei-fd-main select option').evaluateAll((os) => os.map((x) => [x.value, x.textContent]));
-        await p.locator('.ei-fd-main select').first().selectOption(o.find(([, t]) => contractRe.test(t))[0]);
+        if (!(await p.locator('#ei-fd-daname').count())) await p.getByRole('button', { name: 'New DA' }).click(); await p.waitForSelector('.ei-fd-more', { state: 'attached', timeout: 15000 }); await p.evaluate(() => { document.querySelector('.ei-fd-more').open = true; });
+        await p.waitForSelector('#ei-fd-contract option:nth-child(2)', { state: 'attached', timeout: 15000 });
+        const o = await p.locator('#ei-fd-contract option').evaluateAll((os) => os.map((x) => [x.value, x.textContent]));
+        await p.locator('#ei-fd-contract').selectOption(o.find(([, t]) => contractRe.test(t))[0]);
         await p.fill('#ei-fd-daname', name);
         await p.locator('.ei-fd-main .ei-fd-field.is-wide input').last().fill('M/S DEMO CUSTOMER - REHMAN TRADERS');
         await p.getByRole('button', { name: 'Create draft DA' }).click(); await p.waitForSelector('.ei-fd-daname', { timeout: 15000 });
@@ -34,7 +29,7 @@ module.exports = {
         await p.getByRole('button', { name: 'Add Coil' }).click();
         await p.fill('#ei-fd-coil', name + '-C1');
         await p.locator('.ei-fd-editor .ei-fd-field:has-text("Weight") input').fill('4574');
-        for (const [label, term] of [['Customer', 'Rehman'], ['Customer code', 'D.01']]) {
+        for (const [label, term] of [['Sold (OUT)', 'Rehman'], ['Sales code', 'D.01']]) {
           await p.locator('.ei-fd-pick', { hasText: label }).getByRole('button', { name: /Choose|Change/ }).first().click();
           await p.fill('#ei-fd-look', term); await p.waitForTimeout(700); await p.locator('.ei-fd-lookrows button').first().click(); await p.waitForTimeout(300);
         }
@@ -50,7 +45,7 @@ module.exports = {
         await p.getByRole('button', { name: 'Save & Add Coil' }).click(); await p.waitForTimeout(1200);
         // Duplicate Row: the next coil keeps the customer, codes and method; its coil number and weight start empty
         const coilVal = await p.locator('#ei-fd-coil').inputValue();
-        const custShown = await p.locator('.ei-fd-pick', { hasText: 'Customer code' }).innerText();
+        const custShown = await p.locator('.ei-fd-pick', { hasText: 'Sales code' }).innerText();
         ctx.check(coilVal === '' && /D\.01/.test(custShown), `2 ${name}: the next coil keeps the customer and code, with an empty coil number`);
         await p.locator('.ei-fd-editor').getByRole('button', { name: 'Close', exact: true }).click();
         await p.locator('.ei-fd-table tbody tr').first().getByRole('button', { name: /Duplicate/ }).click(); await p.waitForTimeout(600);

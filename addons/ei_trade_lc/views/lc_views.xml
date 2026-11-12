@@ -28,7 +28,7 @@
                     <group>
                         <group><field name="name"/><field name="lc_reference"/><field name="bank_journal_id"/><field name="supplier_id"/>
                             <field name="shipment_ref"/><field name="expiry_date"/></group>
-                        <group><field name="currency_id"/><field name="lc_amount"/><field name="quantity_mtl"/>
+                        <group><field name="currency_id" invisible="1"/><field name="lc_amount"/><field name="quantity_mtl"/>
                             <field name="outstanding_liability"/><field name="total_costs"/><field name="verified_by"/></group>
                     </group>
                     <group><field name="legacy_code_ids" widget="many2many_tags"/><field name="purchase_code_id"/>

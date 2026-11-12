@@ -21,7 +21,9 @@
                 <field name="printed_customer" readonly="state != 'draft'"/>
                 <field name="order_datetime" readonly="state != 'draft'"/>
                 <field name="ship_date" readonly="state != 'draft'"/>
-                <field name="currency_id"/>
+                <field name="currency_id" invisible="1"/>
+                <field name="purchase_in_id" readonly="state != 'draft'"/>
+                <field name="sold_out_id" readonly="state != 'draft'"/>
                 <field name="fx_text" invisible="not fx_text"/>
             </field>
             <xpath expr="//field[@name='line_ids']/list/field[@name='contract_line_id']" position="after">

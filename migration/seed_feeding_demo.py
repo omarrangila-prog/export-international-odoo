@@ -3,10 +3,10 @@
 
 - two DEMO customer codes (D.01, D.02) in a DEMO batch, verified by the demo mapping approver and linked to the demo customers,
   so a fed coil can go all the way to approval on staging (the client's real codes stay unverified, as they are);
-- a DEMO exchange rate for USD and a DEMO USD contract (direct rates), so a USD DA can be fed and approved;
+- DEMO parties for the feeding entry: the DEMO mill as Supplier (Purchase From) and a DEMO Buying Entity as Purchase (IN);
 - one approved DEMO DA fed through the desk with three coils (normal sale, purchase with CN, loss sale), so the feeding
   history and the credit note register have rows to show.
-Every name starts with DEMO. Nothing here is client data, and the USD rate is a round demo figure, not a market rate."""
+Every name starts with DEMO. Nothing here is client data."""
 from datetime import timedelta
 
 from odoo import Command, fields
@@ -33,19 +33,11 @@ if not Code.search([('legacy_code', '=', 'D.01'), ('source_sheet_key', '=', 'CUS
         c.with_context(ei_system_write=True).write({'linked_model': 'res.partner', 'linked_res_id': cust.id})
 d01 = Code.search([('legacy_code', '=', 'D.01'), ('source_sheet_key', '=', 'CUSTOMER')])
 
-# ---- DEMO USD rate and USD contract
-usd = env.ref('base.USD')
-usd.active = True
-if not env['res.currency.rate'].search([('currency_id', '=', usd.id), ('company_id', '=', co.id)]):
-    env['res.currency.rate'].create({'currency_id': usd.id, 'company_id': co.id, 'name': today.replace(day=1),
-                                     'rate': 1 / 280.0})            # DEMO: 1 USD = 280 PKR from the 1st of this month
-if not env['ei.contract'].search([('contract_ref', '=', 'DEMO/IMP/USD-1')]):
-    ct = env['ei.contract'].with_user(U['contracts']).create({
-        'parent_partner_id': parent.id, 'contract_ref': 'DEMO/IMP/USD-1', 'contract_type': 'local_direct', 'currency_id': usd.id,
-        'line_ids': [Command.create({'product_id': prod.id, 'grade': 'Imported CR 0.5 mm (USD)', 'ordered_mtl': 100,
-                                     'purchase_rate': 800, 'sale_rate': 812})]})
-    att(ct); ct.with_user(U['contracts']).action_review(); ct.with_user(U['contractapprover']).action_approve()
-    ct.with_user(U['contracts']).action_activate()
+# ---- DEMO parties for the one-screen feeding entry: Supplier (Purchase From) -> Purchase (IN) -> Sold (OUT). PKR only.
+formula = env.ref('ei_contract_da.formula_isl_asml_dealer_net')
+parent.write({'ei_is_supplier_mill': True, 'ei_feeding_formula_id': formula.id if formula.state == 'approved' else False})
+if not env['res.partner'].search([('name', '=', 'DEMO Buying Entity')]):
+    env['res.partner'].create({'name': 'DEMO Buying Entity', 'is_company': True, 'ei_is_purchase_in': True})
 
 # ---- one approved DEMO DA fed coil by coil through the desk
 if not env['ei.da'].search([('name', '=', 'DA-DEMO-FEED-1')]):
@@ -73,4 +65,4 @@ if not env['res.users'].search([('login', '=', 'demo.trainer')]):
         'company_id': co.id, 'company_ids': [Command.set([co.id])], 'tz': 'Asia/Karachi',
         'group_ids': [Command.set([env.ref(g).id for g in TRAINER_GROUPS])], 'action_id': env.ref('ei_ui_theme.action_ei_home').id})
 env.cr.commit()
-print('DEMO feeding ready: codes D.01/D.02, USD contract, DA-DEMO-FEED-1')
+print('DEMO feeding ready: codes D.01/D.02, parties, DA-DEMO-FEED-1')
