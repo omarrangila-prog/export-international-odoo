@@ -7,6 +7,17 @@
         <field name="target">new</field>
         <field name="context">{'default_res_model': 'ei.lifting', 'default_method': 'action_reverse'}</field>
     </record>
+    <record id="ei_ownership_wizard_form" model="ir.ui.view">
+        <field name="name">ei.ownership.wizard.form</field>
+        <field name="model">ei.ownership.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Classify stock ownership">
+                <p class="text-muted">Who owns the material decides how its lifting is treated. It is set once, by a contract approver, with the reason.</p>
+                <group><field name="contract_line_id" readonly="1"/><field name="ownership" widget="radio"/><field name="reason"/></group>
+                <footer><button name="action_apply" string="Save" type="object" class="btn-primary"/><button special="cancel" string="Cancel"/></footer>
+            </form>
+        </field>
+    </record>
     <record id="ei_lifting_list" model="ir.ui.view">
         <field name="name">ei.lifting.list</field>
         <field name="model">ei.lifting</field>
@@ -30,6 +41,8 @@
                             invisible="state != 'draft' or approval_mode == 'direct'" groups="ei_material_lifting.group_ei_lifting_reviewer"/>
                     <button name="%(ei_lifting_cancel_action)d" string="Reverse" type="action" invisible="state != 'verified'"
                             groups="ei_material_lifting.group_ei_lifting_reviewer"/>
+                    <button name="action_open_ownership" string="Classify stock ownership" type="object"
+                            invisible="state != 'draft' or ownership or not contract_line_id" groups="ei_contract_da.group_ei_contract_approver"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,verified"/>
                 </header>
                 <sheet>
@@ -54,7 +67,7 @@
                     </group>
                     <group>
                         <field name="discrepancy_note" readonly="state != 'draft'"/>
-                        <field name="ownership"/><field name="stock_treatment"/>
+                        <field name="ownership"/><field name="stock_treatment"/><field name="contract_line_id" invisible="1"/>
                         <field name="received_on"/><field name="received_note"/>
                         <field name="maker_id"/><field name="verified_by"/><field name="reverse_reason" invisible="not reverse_reason"/>
                         <field name="attachment_count"/>

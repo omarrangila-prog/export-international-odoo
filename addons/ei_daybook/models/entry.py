@@ -167,12 +167,18 @@ class EiDaybookEntry(models.Model):
                 out.append(_("Choose the DEBIT code."))
         return out
 
+    def _unverified(self):
+        """An entry reaches the ledgers only with codes the accountant has verified (the same rule as the feeding codes)."""
+        self.ensure_one()
+        return [_("Code %(c)s %(n)s is not yet verified by the accountant; it cannot be approved into the ledgers until it is.",
+                  c=c.legacy_code, n=c.original_name) for c in self._sides() if c.verification_status != 'approved']
+
     def _warnings(self):
         self.ensure_one()
         out = []
         for c in self._sides():
             if c.verification_status != 'approved':
-                out.append(_("Code %(c)s %(n)s is not yet verified by the accountant.", c=c.legacy_code, n=c.original_name))
+                out.append(_("Code %(c)s %(n)s is not yet verified by the accountant: it can be submitted, not approved.", c=c.legacy_code, n=c.original_name))
         if self.missing_code:
             out.append(_("Code %s is not in the code list: needs the accountant.", self.missing_code))
         return out
@@ -300,7 +306,7 @@ class EiDaybookEntry(models.Model):
         for r in self:
             if r.state != 'submitted':
                 raise UserError(_("Only an entry waiting for approval can be approved."))
-            problems = r._submit_problems()
+            problems = r._submit_problems() + r._unverified()
             if problems:
                 raise UserError('\n'.join(problems))
             r._sys({'state': 'approved', 'approved_by': self.env.user.id, 'approved_at': fields.Datetime.now()})

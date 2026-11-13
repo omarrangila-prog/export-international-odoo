@@ -300,6 +300,8 @@ class EiDailyOrder(models.Model):
     def _ei_ap_do_submit(self):
         if not self.line_ids:
             raise UserError(_("Add at least one line before submitting."))
+        if self.state == 'draft' and self.maker_id != self.env.user and not self.env.su:
+            self.with_context(ei_system=True).write({'maker_id': self.env.user.id})       # whoever sends it is its maker
         return self.env['ei.approval.request']._submit(self)
 
     def _ei_ap_refresh(self):

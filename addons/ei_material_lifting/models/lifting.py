@@ -248,3 +248,30 @@ class EiDaTotals(models.Model):
     @api.depends('line_ids.mtl', 'line_ids.state', 'line_ids.lifted_mtl')
     def _compute_lifted_totals(self):
         return super()._compute_lifted_totals()
+
+
+class EiOwnershipWizard(models.TransientModel):
+    """Classify the stock ownership of a material line from the screen (it decides how a lifting is treated; never inferred)."""
+    _name = 'ei.ownership.wizard'
+    _description = 'Classify stock ownership'
+
+    contract_line_id = fields.Many2one('ei.contract.line', required=True, string='Material line')
+    ownership = fields.Selection(OWNERSHIP, required=True, string='Stock ownership')
+    reason = fields.Char(required=True, help="Why: the paper or agreement that shows who owns the stock.")
+
+    def action_apply(self):
+        self.ensure_one()
+        self.contract_line_id.action_set_ownership(self.ownership, self.reason)
+        return {'type': 'ir.actions.act_window_close'}
+
+
+class EiLiftingOwnership(models.Model):
+    _inherit = 'ei.lifting'
+
+    def action_open_ownership(self):
+        self.ensure_one()
+        if not self.contract_line_id:
+            raise UserError(_("Choose the DA line first."))
+        return {'type': 'ir.actions.act_window', 'res_model': 'ei.ownership.wizard', 'view_mode': 'form', 'target': 'new',
+                'views': [(False, 'form')], 'name': _("Classify stock ownership"),
+                'context': {'default_contract_line_id': self.contract_line_id.id}}

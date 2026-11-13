@@ -1,6 +1,6 @@
 {
     'name': 'Export International - Maker-checker approvals',
-    'version': '20.0.1.0.0',
+    'version': '20.0.1.0.1',
     'category': 'Accounting',
     'summary': 'One person enters and submits; a different authorised person approves, returns or rejects. Requests, assignment, '
                'top-bar counter and notifications, an approvals centre and a full audit timeline.',

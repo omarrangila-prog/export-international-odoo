@@ -1,6 +1,6 @@
 {
     'name': 'Export International - Online Feeding and Cash Book',
-    'version': '20.0.1.0.0',
+    'version': '20.0.1.0.1',
     'category': 'Accounting',
     'summary': 'Two-sided entries in the old codes (credit code, debit code, amount), as fed in the old system: online bank feeding, '
                'cash book, balance brought forward; maker-checker, ledgers by code and a printed day book. PKR only.',

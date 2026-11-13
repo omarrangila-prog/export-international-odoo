@@ -69,6 +69,9 @@ class EiSupplierIntake(models.Model):
                 cl = l.da_line_id.contract_line_id
                 rows = [
                     (_("Supplier says"), l.received_mtl, l.unit_rate, l.amount, '', l.hs_code or '', ''),
+                    # a DA fed without a signed contract has no agreed rate to compare: the DA's own rate is the reference
+                    (_("Contract says"), '', '', '', '', '', Markup('<span class="text-muted">%s</span>') % _("no signed contract (fed entry): the DA rate counts"))
+                    if cl.contract_id.contract_type == 'feeding' else
                     (_("Contract says"), cl.ordered_mtl, cl.purchase_rate, '', '', '', diff(l.unit_rate, cl.purchase_rate, money)),
                     (_("DA says"), l.da_line_id.mtl, l.da_line_id.purchase_rate, '', '', '', diff(l.unit_rate, l.da_line_id.purchase_rate, money)),
                     (_("Still to invoice"), l.expected_mtl, '', '', '', '', diff(l.received_mtl, l.expected_mtl, qty) if l.received_mtl > l.expected_mtl else Markup('<span class="text-success">%s</span>') % _("within")),

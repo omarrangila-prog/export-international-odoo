@@ -1,6 +1,6 @@
 {
     'name': 'Export International - Daily Order Request',
-    'version': '20.0.1.0.1',
+    'version': '20.0.1.0.2',
     'category': 'Sales/Purchase',
     'summary': 'Daily Order Request generated idempotently from approved DAs, printable, linkable to later supplier invoices',
     'author': 'Odoovations',

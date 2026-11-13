@@ -37,6 +37,9 @@ class TestDaybook(TransactionCase):
         cls.bank_b = code('T.50', 'BANK', 'TEST BANK B')
         cls.safe = code('T.01', 'BANK', 'TEST SAFE')
         cls.bank_c = code('T.22', 'BANK', 'TEST BANK C')
+        (cls.party_a | cls.party_b | cls.bank_a | cls.bank_b | cls.safe | cls.bank_c).with_context(ei_system_write=True).write(
+            {'verification_status': 'approved'})        # verified by the accountant
+        cls.unverified = code('T.77', 'CUSTOMER', 'TEST PARTY NOT VERIFIED')
         cls.E = cls.env['ei.daybook.entry']
         cls.R = cls.env['ei.approval.request']
 
@@ -210,3 +213,12 @@ class TestDaybook(TransactionCase):
         self.assertEqual(w.action_print()['type'], 'ir.actions.report')
         act = self.E.search([], limit=1).with_user(self.maker).action_open_ledger()
         self.assertEqual(act['res_model'], 'ei.daybook.leg')
+
+    # an entry with a code the accountant has not verified can be submitted, never approved into the ledgers
+    def test_15_unverified_code_is_not_approved(self):
+        e = self.entry(credit_code_id=self.unverified.id, amount=11)
+        self.assertIn('not yet verified', e.code_warning)
+        e.action_submit()
+        with self.assertRaisesRegex(UserError, 'not yet verified'):
+            self.R._pending_for(e).with_user(self.checker).action_approve()
+        self.assertEqual(e.state, 'submitted')

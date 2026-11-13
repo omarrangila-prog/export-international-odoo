@@ -3,3 +3,4 @@ access_ei_lifting_auditor,lifting auditor,ei.lifting,ei_legacy_master.group_ei_a
 access_ei_lifting_staff,lifting staff,ei.lifting,ei_contract_da.group_ei_contract_staff,r,
 access_ei_lifting_dispatch,lifting dispatch,ei.lifting,group_ei_dispatch_officer,crud,
 rule_ei_lifting_company,Lifting: own companies,ei.lifting,,crud,"[('company_id', 'in', company_ids)]"
+access_ei_ownership_wizard,ownership wizard,ei.ownership.wizard,ei_contract_da.group_ei_contract_approver,crud,

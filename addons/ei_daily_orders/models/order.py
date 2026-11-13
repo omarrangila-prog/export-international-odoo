@@ -86,7 +86,9 @@ class EiDailyOrder(models.Model):
             if o._approval_required():
                 if not self.env.user.has_group('ei_daily_orders.group_ei_order_approver'):
                     raise AccessError(_("Only an order approver can approve."))
-                if o.create_uid == self.env.user and not self.env.su:
+                # the maker is the person who prepared and sent the request (one order collects a supplier's DAs of the day, so the
+                # first creator of the record may be somebody else, even the checker)
+                if (o.maker_id or o.create_uid) == self.env.user and not self.env.su:
                     raise AccessError(_("Maker-checker: you cannot approve a request you created."))
             if o.state != 'draft':
                 raise UserError(_("Only a draft can be approved."))
