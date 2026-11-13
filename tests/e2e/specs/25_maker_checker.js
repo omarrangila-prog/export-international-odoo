@@ -22,7 +22,7 @@ module.exports = {
       await p.waitForFunction(() => [...document.querySelectorAll('#ei-fd-contract option')].some((o) => /DEMO\/ISL\/002/.test(o.textContent)));
       const opts = await p.locator('#ei-fd-contract option').evaluateAll((os) => os.map((o) => [o.value, o.textContent]));
       await p.locator('#ei-fd-contract').selectOption(opts.find(([, t]) => /DEMO\/ISL\/002/.test(t))[0]);
-      await p.fill('#ei-fd-daname', da); await p.locator('.ei-fd-main .ei-fd-field.is-wide input').last().fill('M/S DEMO CUSTOMER - REHMAN TRADERS');
+      await p.fill('#ei-fd-daname', da); await p.locator('.ei-fd-more .ei-fd-field', { hasText: 'Customer name printed on the DA' }).locator('input').fill('M/S DEMO CUSTOMER - REHMAN TRADERS');
       await p.getByRole('button', { name: 'Create draft DA' }).click(); await p.waitForSelector('.ei-fd-daname');
       await p.locator('.ei-fd-paper input[type="file"]').setInputFiles(synthPdf()); await p.waitForTimeout(1500);
       await p.getByRole('button', { name: 'Add Coil' }).click();

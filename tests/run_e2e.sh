@@ -20,8 +20,10 @@ cp -r "$EI_DATA_DIR/filestore/$TPL" "$EI_DATA_DIR/filestore/$DB" 2>/dev/null
 ei_odoo -d "$DB" -i "$EI_MODULES" -u "$EI_MODULES" --stop-after-init --http-port=8279 > /tmp/ei_e2e_update.log 2>&1 || { tail -5 /tmp/ei_e2e_update.log; exit 2; }
 ei_check_filestore "$DB" --repair-assets >/dev/null
 # the regression suite checks the second-person controls, so every workflow's optional approval is switched ON here;
-# spec 21 switches it OFF (the client's default) and back
-ei_shell -d "$DB" --log-level=error <<<"env['ei.approval.policy'].sudo().set_all(True); env['ir.config_parameter'].sudo().set_bool('ei_da_feeding.show_practice', True); env.cr.commit()" >/dev/null
+# spec 21 switches it OFF (the client's default) and back.
+# A template built today has demo daily orders dated today; one order per supplier per day, so they move back a day
+# (as on a template built earlier) and the specs can generate today's order.
+ei_shell -d "$DB" --log-level=error <<<"env['ei.approval.policy'].sudo().set_all(True); env['ir.config_parameter'].sudo().set_bool('ei_da_feeding.show_practice', True); env.cr.execute(\"UPDATE ei_daily_order SET date = date - 1 WHERE date >= (now() AT TIME ZONE 'Asia/Karachi')::date\"); env.cr.commit()" >/dev/null
 EI_PORT=$PORT migration/serve.sh "$DB" | tail -1 || exit 2
 rm -f docs/ui/e2e/FAIL_*.png   # screenshots of earlier failures must not look like current ones
 node tests/e2e/run.js --base "http://127.0.0.1:$PORT" --out docs/ui/e2e --md docs/e2e_results.md "$@"
