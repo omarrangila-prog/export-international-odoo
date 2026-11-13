@@ -1,6 +1,6 @@
 {
     'name': 'Export International - Contracts & Delivery Advices',
-    'version': '20.0.1.0.1',
+    'version': '20.0.1.0.2',
     'category': 'Sales/Purchase',
     'summary': 'Parent-company contracts, DA allocation control and an accountant-approved formula register',
     'author': 'Odoovations',

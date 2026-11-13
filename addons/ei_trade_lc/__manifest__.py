@@ -1,6 +1,6 @@
 {
     'name': 'Export International - Import / LC Register',
-    'version': '20.0.1.0.1',
+    'version': '20.0.1.0.2',
     'category': 'Accounting',
     'summary': 'Register of the 58 legacy LC / import references (group 16.xx). Settlement postings are gated.',
     'author': 'Odoovations',
