@@ -39,6 +39,8 @@ def open_everything(env):
     env.ref('base.group_user').write({'implied_ids': [Command.link(g.id) for g in roles]})
     # for now one person may also enter and approve the same record (owner, 17 Nov 2026); set it back to True to restore
     env['ir.config_parameter'].sudo().set_bool('ei_legacy_master.enforce_maker_checker', False)
+    # and no workflow waits for approval: Save & Submit confirms at once (owner, 17 Nov 2026)
+    env['ei.approval.policy'].sudo().set_all(False)
     Code = env['ei.legacy.code'].sudo()
     todo = Code.search([('verification_status', 'in', ('unverified', 'proposed', 'needs_review'))])  # a code the accountant rejected stays rejected
     done = failed = 0
