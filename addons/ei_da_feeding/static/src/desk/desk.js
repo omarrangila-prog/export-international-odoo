@@ -129,21 +129,64 @@ export class EiDaFeeding extends Component {
         this.state.next = null;
         const li = this.state.list || {}, one = (a) => (a && a.length === 1 ? String(a[0].id) : "");
         // no contract first: the three parties. A signed contract can still be chosen under "More details".
-        this.state.newDa = { contract_id: "", supplier_id: one(li.suppliers), purchase_in_id: one(li.purchase_ins), sold_out_id: "", sold_out_name: "",
+        const nm = (a) => (a && a.length === 1 ? a[0].name : "");
+        this.state.newDa = { contract_id: "", supplier_id: one(li.suppliers), supplier_name: nm(li.suppliers),
+            purchase_in_id: one(li.purchase_ins), purchase_in_name: nm(li.purchase_ins), sold_out_id: "", sold_out_name: "",
             name: "", date: localDay(), order_datetime: "", ship_date: "", printed_customer: "" };
         this.state.partyLook = { term: "", rows: [] };
+        this.state.pl = { supplier: { term: "", rows: [] }, pin: { term: "", rows: [] } };
         this.focusSoon("#ei-fd-daname");
+    }
+    // The three parties: type a name or an old code, pick it (Enter takes the first row). Everything already in the system is
+    // offered; a name that is not there yet is added as new. No other question.
+    plInput(role, ev) {
+        const term = ev.target.value, box = this.state.pl[role];
+        box.term = term;
+        clearTimeout(this.timers["pl_" + role]);
+        this.timers["pl_" + role] = setTimeout(async () => {
+            const rows = term.trim() ? await this.orm.call(MODEL, "party_search", [role === "pin" ? "pin" : "supplier", term]) : [];
+            if (box.term === term) { box.rows = rows; }
+        }, 200);
+    }
+    async plPick(role, row) {
+        const p = await this.call("party_take", [role === "pin" ? "pin" : "supplier", row]);
+        if (!p) { return; }
+        const d = this.state.newDa;
+        if (role === "pin") { d.purchase_in_id = String(p.id); d.purchase_in_name = p.name; }
+        else { d.supplier_id = String(p.id); d.supplier_name = p.name; }
+        this.state.pl[role] = { term: "", rows: [] };
+        this.focusSoon(role === "supplier" ? "#ei-fd-pin" : "#ei-fd-sold");
+    }
+    plKey(role, ev) {
+        const box = this.state.pl[role];
+        if (ev.key === "Enter" && box.rows.length) { ev.preventDefault(); this.plPick(role, box.rows[0]); }
+        if (ev.key === "Escape") { box.rows = []; }
+    }
+    plClear(role) {
+        const d = this.state.newDa;
+        if (role === "pin") { d.purchase_in_id = ""; d.purchase_in_name = ""; } else { d.supplier_id = ""; d.supplier_name = ""; }
+        this.focusSoon(role === "pin" ? "#ei-fd-pin" : "#ei-fd-supplier");
     }
     // Sold (OUT) on the DA: type a name or a code; it is offered on every new coil. Empty = not sold yet.
     async partyLookInput(ev) {
         const term = ev.target.value;
         this.state.partyLook.term = term;
         clearTimeout(this.timers.party);
-        this.timers.party = setTimeout(async () => { this.state.partyLook.rows = term ? await this.orm.call(MODEL, "partner_search", [term]) : []; }, 200);
+        this.timers.party = setTimeout(async () => {
+            const rows = term.trim() ? await this.orm.call(MODEL, "party_search", ["customer", term]) : [];
+            if (this.state.partyLook.term === term) { this.state.partyLook.rows = rows; }
+        }, 200);
     }
-    pickSoldOut(row) {
-        if (this.state.newDa) { this.state.newDa.sold_out_id = String(row.id); this.state.newDa.sold_out_name = row.name; }
+    async pickSoldOut(row) {
+        const p = await this.call("party_take", ["customer", row]);
+        if (!p) { return; }
+        if (this.state.newDa) { this.state.newDa.sold_out_id = String(p.id); this.state.newDa.sold_out_name = p.name; }
         this.state.partyLook = { term: "", rows: [] };
+    }
+    soldKey(ev) {
+        const rows = this.state.partyLook.rows;
+        if (ev.key === "Enter" && rows.length) { ev.preventDefault(); this.pickSoldOut(rows[0]); }
+        if (ev.key === "Escape") { this.state.partyLook.rows = []; }
     }
     clearSoldOut() { this.state.newDa.sold_out_id = ""; this.state.newDa.sold_out_name = ""; }
     // the item of a coil on a feeding-account DA: any material; its line in the account is found or opened
@@ -326,12 +369,17 @@ export class EiDaFeeding extends Component {
         const s = this.state.look, kind = { customer_code: "customer", trade_code: "trade", pl_code: "pl" }[s.field];
         s.busy = true;
         try {
-            s.rows = s.field === "customer" ? await this.orm.call(MODEL, "partner_search", [s.term])
+            s.rows = s.field === "customer" ? await this.orm.call(MODEL, "party_search", ["customer", s.term])
                 : await this.orm.call(MODEL, "code_search", [kind, s.term, this.state.da.printed_customer || ""]);
         } finally { s.busy = false; }
     }
-    choose(row) {
+    async choose(row) {
         const f = this.state.look.field;
+        if (f === "customer") {
+            const p = await this.call("party_take", ["customer", row]);      // an old code or a new name becomes the customer at once
+            if (!p) { return; }
+            row = p;
+        }
         this.state.line[f] = f === "customer" ? { id: row.id, name: row.name } : row;
         this.state.look = { field: null, term: "", rows: [], busy: false };
         this.refresh();

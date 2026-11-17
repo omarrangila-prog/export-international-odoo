@@ -166,10 +166,15 @@ class EiFeedingDesk(models.AbstractModel):
         pin = P.browse(int(vals.get('purchase_in_id') or 0)).exists()
         if not c:                                   # the usual way: no contract first, only the three parties
             supplier = P.browse(int(vals.get('supplier_id') or 0)).exists()
-            if not supplier or not supplier.ei_is_supplier_mill:
-                raise UserError(_("Choose the SUPPLIER (Purchase From)."))
-            if not pin or not pin.ei_is_purchase_in:
-                raise UserError(_("Choose the Purchase (IN) entity."))
+            if not supplier:
+                raise UserError(_("Type the SUPPLIER (Purchase From) and pick it."))
+            if not pin:
+                raise UserError(_("Type the Purchase (IN) entity and pick it."))
+            # whatever was picked is used: it is marked for its place, never refused for a missing tick
+            if not supplier.ei_is_supplier_mill:
+                supplier.sudo().write({'ei_is_supplier_mill': True})
+            if not pin.ei_is_purchase_in:
+                pin.sudo().write({'ei_is_purchase_in': True})
             if not self.env['ei.da'].has_access('create'):
                 raise AccessError(_("Your role cannot enter delivery advices."))
             c = self.env['ei.contract']._feeding_account(supplier, pin)
@@ -433,8 +438,66 @@ class EiFeedingDesk(models.AbstractModel):
 
     @api.model
     def partner_search(self, term=''):
+        """Sold (OUT) / customer look-up (kept for older callers): the same rows as party_search('customer')."""
+        return self.party_search('customer', term)
+
+    ROLE_FLAG = {'supplier': 'ei_is_supplier_mill', 'pin': 'ei_is_purchase_in', 'customer': None}
+
+    @api.model
+    def party_search(self, role, term=''):
+        """Type a name or an old code; pick it. Everything already in the system is offered: companies and contacts (those
+        already used in this place first), and for a customer also the client's old CUSTOMER codes that have no contact yet.
+        When nothing has exactly that name, the last row adds it as new. Picking goes through party_take."""
         P = self.env['res.partner']
-        if not P.has_access('read'):
+        term = (term or '').strip()
+        if role not in self.ROLE_FLAG or not term or not P.has_access('read'):
             return []
-        rows = P.search(['|', ('name', 'ilike', term or ''), ('ref', '=ilike', term or '')], limit=20) if term else P.browse()
-        return [{'id': p.id, 'name': p.display_name, 'ref': p.ref or ''} for p in rows]
+        flag = self.ROLE_FLAG[role]
+        found = P.search(['|', '|', ('name', 'ilike', term), ('ref', '=ilike', term), ('ref', '=like', term + '%'),
+                          ('parent_id', '=', False)], limit=40)          # companies and people, not their addresses
+        found = found.sorted(lambda p: (not (flag and p[flag]), not p.is_company, (p.name or '').lower() != term.lower(), p.name or ''))[:15]
+        rows = [{'key': 'p%d' % p.id, 'kind': 'partner', 'id': p.id, 'name': p.display_name, 'ref': p.ref or ''} for p in found]
+        Code = self.env['ei.legacy.code']
+        if role == 'customer' and Code.has_access('read'):
+            refs = set(found.mapped('ref'))
+            codes = Code.search([('source_sheet_key', '=', 'CUSTOMER'), ('verification_status', '!=', 'rejected'),
+                                 '|', '|', ('legacy_code', '=like', term + '%'), ('original_name', 'ilike', term), ('nickname', 'ilike', term)], limit=15)
+            rows += [{'key': 'c%d' % c.id, 'kind': 'code', 'id': c.id, 'name': c.original_name, 'ref': c.legacy_code}
+                     for c in codes if c.legacy_code not in refs]
+        if not any((r['name'] or '').strip().lower() == term.lower() for r in rows):
+            rows.append({'key': 'new', 'kind': 'new', 'id': 0, 'name': term, 'ref': ''})
+        return rows
+
+    @api.model
+    def party_take(self, role, row):
+        """The picked row as a contact, ready for the DA: an existing contact is used as it is (and marked for this place);
+        an old code becomes a contact named and referenced like the code; a new name becomes a new company. No other question."""
+        if role not in self.ROLE_FLAG:
+            raise UserError(_("Unknown party."))
+        if not self.env['ei.da'].has_access('create'):
+            raise AccessError(_("Your role cannot enter delivery advices."))
+        P = self.env['res.partner'].sudo()
+        kind, name = row.get('kind'), (row.get('name') or '').strip()
+        partner = P.browse()
+        if kind == 'partner':
+            partner = P.browse(int(row.get('id') or 0)).exists()
+        elif kind == 'code':
+            code = self.env['ei.legacy.code'].browse(int(row.get('id') or 0)).exists()
+            if not code:
+                raise UserError(_("This old code no longer exists."))
+            partner = P.search([('ref', '=', code.legacy_code)], limit=1) or P.search([('name', '=ilike', code.original_name)], limit=1)
+            if not partner:
+                partner = P.create({'name': code.original_name, 'ref': code.legacy_code, 'is_company': True, 'customer_rank': 1})
+        elif kind == 'new' and name:
+            partner = P.search([('name', '=ilike', name)], limit=1) or P.create({'name': name, 'is_company': True})
+        if not partner:
+            raise UserError(_("Type a name and pick it from the list."))
+        flag = self.ROLE_FLAG[role]
+        vals = {flag: True} if flag and not partner[flag] else {}
+        if role == 'customer' and not partner.customer_rank:
+            vals['customer_rank'] = 1
+        if role == 'supplier' and not partner.supplier_rank:
+            vals['supplier_rank'] = 1
+        if vals:
+            partner.write(vals)
+        return {'id': partner.id, 'name': partner.display_name, 'ref': partner.ref or ''}

@@ -130,6 +130,6 @@
     .ei-fd-chain { margin: 2px 0; font-size: 15px; span { color: var(--ei-muted); margin: 0 4px; } }
     .ei-fd-more { margin: 4px 0 12px; summary { cursor: pointer; font-weight: 700; color: var(--ei-primary); padding: 6px 0; } }
     .ei-fd-amounts { margin-top: 8px; }
-    .ei-fd-sold .ei-fd-lookrows, .ei-fd-item .ei-fd-lookrows { margin-top: 6px; max-height: 220px; overflow-y: auto; }
+    .ei-fd-sold .ei-fd-lookrows, .ei-fd-party .ei-fd-lookrows, .ei-fd-item .ei-fd-lookrows { margin-top: 6px; max-height: 220px; overflow-y: auto; }
     @media (max-width: 767.98px) { .ei-fd-parties .ei-fd-arrow { display: none; } }
 }

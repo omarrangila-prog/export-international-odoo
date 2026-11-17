@@ -309,7 +309,7 @@ class TestFeeding(TransactionCase):
         self.assertIn(self.parent.id, [p['id'] for p in lst['suppliers']])
         self.assertNotIn(acc.id, [c['id'] for c in lst['contracts']])                     # the account is never offered as a "contract"
         with self.assertRaises(UserError):
-            self.desk.da_create({'supplier_id': self.cust.id, 'purchase_in_id': d.purchase_in_id.id, 'name': 'X'})     # not a mill
+            self.desk.da_create({'purchase_in_id': d.purchase_in_id.id, 'name': 'X'})                                # no supplier picked
 
     def test_21_the_foxpro_direct_entry_gives_the_same_amounts(self):
         """Direct purchase and sale, as on the client's FoxPro screen: 4.574 MTL, sale 230,500, purchase 229,500 (synthetic codes)."""
@@ -388,3 +388,31 @@ class TestFeeding(TransactionCase):
             self.desk.save_line(r['da']['id'], False, {'contract_line_id': r['contract_line_id'], 'coil_no': 'SZ-1', 'weight_kg': '1000',
                                                        'method': 'direct_no_commission', 'purchase_rate': '1000', 'sale_rate': '1001',
                                                        'thickness': '0.50', 'width': '1000'})
+
+    # 17 Nov 2026: the three parties are typed and picked from what is already in the system, nothing to tick first
+    def test_26_parties_are_typed_and_picked_without_setting_anything_up(self):
+        P = self.env['res.partner']
+        mill = P.create({'name': 'Synthetic Unticked Mill', 'is_company': True})
+        buyer = P.create({'name': 'Synthetic Unticked Buyer', 'is_company': True})
+        rows = self.desk.party_search('supplier', 'Unticked Mill')
+        self.assertEqual(rows[0]['id'], mill.id)
+        self.assertEqual(self.desk.party_take('supplier', rows[0])['id'], mill.id)
+        self.assertTrue(mill.ei_is_supplier_mill)                                         # marked for its place by picking it
+        da_id = self.desk.da_create({'supplier_id': mill.id, 'purchase_in_id': buyer.id, 'name': 'SYN-PICK-1'})
+        self.assertTrue(buyer.ei_is_purchase_in)                                          # no "not set up" refusal
+        self.assertEqual(self.env['ei.da'].browse(da_id).parent_partner_id, mill)
+        # an old CUSTOMER code with no contact yet becomes the customer at once, named and referenced like the code
+        batch = self.env['ei.import.batch'].create({'name': 'TEST pick'})
+        code = self.env['ei.legacy.code'].create({'legacy_code': 'T.987', 'source_sheet': 'CUSTOMER', 'source_sheet_key': 'CUSTOMER',
+                                                  'source_row': 0, 'original_name': 'SYNTHETIC CODE CUSTOMER', 'batch_id': batch.id})
+        row = next(r for r in self.desk.party_search('customer', 'T.987') if r['kind'] == 'code')
+        got = self.desk.party_take('customer', row)
+        cust = P.browse(got['id'])
+        self.assertEqual((cust.name, cust.ref), ('SYNTHETIC CODE CUSTOMER', 'T.987'))
+        self.assertFalse([r for r in self.desk.party_search('customer', 'T.987') if r['kind'] == 'code'])   # offered once, as the contact now
+        # a name that is nowhere yet is offered as new, and added as it was typed
+        new = self.desk.party_search('pin', 'Synthetic Brand New Entity')
+        self.assertEqual(new[-1]['kind'], 'new')
+        made = P.browse(self.desk.party_take('pin', new[-1])['id'])
+        self.assertEqual((made.name, made.ei_is_purchase_in), ('Synthetic Brand New Entity', True))
+        self.assertEqual(self.desk.party_take('pin', new[-1])['id'], made.id)           # picking it again does not make a second one

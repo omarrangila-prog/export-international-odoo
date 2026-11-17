@@ -95,29 +95,37 @@
                             <label class="ei-fd-field"><span>DO / DA No</span><input id="ei-fd-daname" class="ei-fd-in" t-att-value="this.state.newDa.name" t-on-input="(ev) => this.state.newDa.name = ev.target.value"/></label>
                         </div>
                         <div class="ei-fd-parties" role="group" aria-label="The three parties">
-                            <label class="ei-fd-field"><span>SUPPLIER (Purchase From)</span>
-                                <select id="ei-fd-supplier" class="ei-fd-in" t-att-disabled="!!this.state.newDa.contract_id" t-on-change="(ev) => this.state.newDa.supplier_id = ev.target.value">
-                                    <option value="">Choose the mill…</option>
-                                    <option t-foreach="this.state.list.suppliers" t-as="p" t-key="p.id" t-att-value="p.id" t-att-selected="this.str(p.id) === this.state.newDa.supplier_id" t-out="p.name"/>
-                                </select></label>
+                            <div t-attf-class="ei-fd-field ei-fd-party ei-fd-supplier"><span>SUPPLIER (Purchase From)</span>
+                                <div t-if="this.state.newDa.supplier_id" class="ei-fd-picked"><span t-out="this.state.newDa.supplier_name"/><button class="ei-fd-link" t-att-disabled="!!this.state.newDa.contract_id" t-on-click="() => this.plClear('supplier')">Change</button></div>
+                                <t t-else="">
+                                    <input id="ei-fd-supplier" class="ei-fd-in" autocomplete="off" placeholder="Type the mill’s name…" t-att-value="this.state.pl.supplier.term" t-on-input="(ev) => this.plInput('supplier', ev)" t-on-keydown="(ev) => this.plKey('supplier', ev)"/>
+                                    <ul t-if="this.state.pl.supplier.rows.length" class="ei-fd-lookrows" role="listbox">
+                                        <li t-foreach="this.state.pl.supplier.rows" t-as="o" t-key="o.key"><button role="option" t-on-click="() => this.plPick('supplier', o)"><t t-if="o.kind === 'new'">Add “<t t-out="o.name"/>”</t><t t-else=""><t t-out="o.name"/><small t-if="o.ref" class="ei-fd-muted"> · <t t-out="o.ref"/></small></t></button></li>
+                                    </ul>
+                                </t>
+                            </div>
                             <span class="ei-fd-arrow" aria-hidden="true">→</span>
-                            <label class="ei-fd-field"><span>Purchase (IN)</span>
-                                <select id="ei-fd-pin" class="ei-fd-in" t-on-change="(ev) => this.state.newDa.purchase_in_id = ev.target.value">
-                                    <option value="">Choose the buying entity…</option>
-                                    <option t-foreach="this.state.list.purchase_ins" t-as="p" t-key="p.id" t-att-value="p.id" t-att-selected="this.str(p.id) === this.state.newDa.purchase_in_id" t-out="p.name"/>
-                                </select></label>
+                            <div t-attf-class="ei-fd-field ei-fd-party ei-fd-pin"><span>Purchase (IN)</span>
+                                <div t-if="this.state.newDa.purchase_in_id" class="ei-fd-picked"><span t-out="this.state.newDa.purchase_in_name"/><button class="ei-fd-link" t-att-disabled="false" t-on-click="() => this.plClear('pin')">Change</button></div>
+                                <t t-else="">
+                                    <input id="ei-fd-pin" class="ei-fd-in" autocomplete="off" placeholder="Type the buying entity…" t-att-value="this.state.pl.pin.term" t-on-input="(ev) => this.plInput('pin', ev)" t-on-keydown="(ev) => this.plKey('pin', ev)"/>
+                                    <ul t-if="this.state.pl.pin.rows.length" class="ei-fd-lookrows" role="listbox">
+                                        <li t-foreach="this.state.pl.pin.rows" t-as="o" t-key="o.key"><button role="option" t-on-click="() => this.plPick('pin', o)"><t t-if="o.kind === 'new'">Add “<t t-out="o.name"/>”</t><t t-else=""><t t-out="o.name"/><small t-if="o.ref" class="ei-fd-muted"> · <t t-out="o.ref"/></small></t></button></li>
+                                    </ul>
+                                </t>
+                            </div>
                             <span class="ei-fd-arrow" aria-hidden="true">→</span>
                             <div class="ei-fd-field ei-fd-sold"><span>Sold (OUT)</span>
                                 <div t-if="this.state.newDa.sold_out_id" class="ei-fd-picked"><span t-out="this.state.newDa.sold_out_name"/><button class="ei-fd-link" t-on-click="() => this.clearSoldOut()">Change</button></div>
                                 <t t-else="">
-                                    <input id="ei-fd-sold" class="ei-fd-in" autocomplete="off" placeholder="Customer name or code · leave empty if not sold yet" t-att-value="this.state.partyLook.term" t-on-input="(ev) => this.partyLookInput(ev)"/>
+                                    <input id="ei-fd-sold" class="ei-fd-in" autocomplete="off" placeholder="Customer name or code · leave empty if not sold yet" t-att-value="this.state.partyLook.term" t-on-input="(ev) => this.partyLookInput(ev)" t-on-keydown="(ev) => this.soldKey(ev)"/>
                                     <ul t-if="this.state.partyLook.rows.length" class="ei-fd-lookrows" role="listbox">
-                                        <li t-foreach="this.state.partyLook.rows" t-as="o" t-key="o.id"><button role="option" t-on-click="() => this.pickSoldOut(o)"><t t-out="o.name"/><small t-if="o.ref" class="ei-fd-muted"> · <t t-out="o.ref"/></small></button></li>
+                                        <li t-foreach="this.state.partyLook.rows" t-as="o" t-key="o.key"><button role="option" t-on-click="() => this.pickSoldOut(o)"><t t-if="o.kind === 'new'">Add “</t><t t-out="o.name"/><t t-if="o.kind === 'new'">”</t><small t-if="o.ref" class="ei-fd-muted"> · <t t-out="o.ref"/></small></button></li>
                                     </ul>
                                 </t>
                             </div>
                         </div>
-                        <p t-if="!this.state.list.suppliers.length or !this.state.list.purchase_ins.length" class="ei-fd-warnbox">No supplier or buying entity is set up yet. An administrator ticks "Supplier (Purchase From)" and "Purchase (IN) entity" on those companies in Customers &amp; Suppliers.</p>
+                        <p class="ei-fd-muted ei-fd-partyhint">Type a name or an old code and press Enter. Anything already in the system is offered; a new name is added as it is typed.</p>
                         <details class="ei-fd-more">
                             <summary>More details</summary>
                             <div class="ei-fd-fields">
@@ -273,8 +281,8 @@
                                                 <input id="ei-fd-look" class="ei-fd-in" autocomplete="off" t-att-placeholder="f === 'customer' ? 'Type a name…' : 'Type a code, a name or a nickname…'" t-att-value="this.state.look.term" t-on-input="(ev) => this.lookInput(ev)" t-on-keydown="(ev) => this.lookKey(ev)"/>
                                                 <p t-if="f !== 'customer' and !this.state.look.term and this.state.look.rows.length" class="ei-fd-muted">Suggested from the printed name. Check them against the paper; nothing is chosen for you.</p>
                                                 <ul class="ei-fd-lookrows" role="listbox">
-                                                    <li t-foreach="this.state.look.rows" t-as="o" t-key="o.id"><button role="option" t-on-click="() => this.choose(o)">
-                                                        <t t-if="f === 'customer'"><t t-out="o.name"/><small t-if="o.ref" class="ei-fd-muted"> · <t t-out="o.ref"/></small></t>
+                                                    <li t-foreach="this.state.look.rows" t-as="o" t-key="o.key or o.id"><button role="option" t-on-click="() => this.choose(o)">
+                                                        <t t-if="f === 'customer'"><t t-if="o.kind === 'new'">Add “</t><t t-out="o.name"/><t t-if="o.kind === 'new'">”</t><small t-if="o.ref" class="ei-fd-muted"> · <t t-out="o.ref"/></small></t>
                                                         <t t-else=""><b class="ei-fd-num" t-out="o.code"/> <t t-out="o.name"/><small t-if="o.nick" class="ei-fd-muted"> (<t t-out="o.nick"/>)</small> <span t-if="!o.verified" class="ei-fd-chip is-warn" t-out="o.status"/></t>
                                                     </button></li>
                                                 </ul>

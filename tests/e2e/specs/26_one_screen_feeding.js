@@ -5,6 +5,7 @@
 module.exports = {
   name: '26 one-screen feeding: three parties, no contract first, PKR only, ledgers and From -> To trace',
   async run(ctx, browser) {
+    const pickParty = async (pg, input, box, text) => { await pg.waitForTimeout(600); if (await pg.locator(`${box} .ei-fd-picked`).count()) { if (!(await pg.locator(`${box} .ei-fd-picked`).innerText()).includes(text)) { await pg.locator(`${box} .ei-fd-picked button`).click(); } else { return; } } await pg.locator(input).pressSequentially(text, { delay: 30 }); await pg.locator(`${box} .ei-fd-lookrows button`).first().waitFor({ timeout: 15000 }); await pg.locator(input).press('Enter'); await pg.locator(`${box} .ei-fd-picked`).waitFor({ timeout: 15000 }); };
     const { Session, synthPdf } = require('../lib');
     const stamp = String(Date.now()).slice(-6), da = `DA-ONE-${stamp}`;
     const admin = await new Session(ctx, browser, 'admin', 'admin').start();
@@ -20,8 +21,8 @@ module.exports = {
     ctx.check(/Entry date/.test(form) && /DO \/ DA No/.test(form) && /SUPPLIER \(Purchase From\)/.test(form) && /Purchase \(IN\)/.test(form) && /Sold \(OUT\)/.test(form),
       '1 the new entry asks for the date, the DO / DA number and the three parties, on one screen', form.slice(0, 200));
     ctx.check(!/USD|Currency|Exchange/i.test(form) && !(await p.locator('#ei-fd-contract').isVisible()), '1 no currency and no contract is asked for (a signed contract stays under More details)');
-    await p.locator('#ei-fd-supplier').selectOption({ label: 'DEMO Parent Steel Mill' });
-    await p.locator('#ei-fd-pin').selectOption({ label: 'DEMO Buying Entity' });
+    await pickParty(p, '#ei-fd-supplier', '.ei-fd-supplier', 'DEMO Parent Steel');   // type and press Enter: no list to set up first
+    await pickParty(p, '#ei-fd-pin', '.ei-fd-pin', 'DEMO Buying');
     await p.fill('#ei-fd-daname', da);
     await p.locator('#ei-fd-sold').pressSequentially('Rehman', { delay: 40 }); await p.waitForTimeout(1200);
     await p.locator('.ei-fd-sold .ei-fd-lookrows button').first().click();

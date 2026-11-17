@@ -5,6 +5,7 @@
 module.exports = {
   name: '28 one fed DA to customer invoice and credit note, maker-checker on',
   async run(ctx, browser) {
+    const pickParty = async (pg, input, box, text) => { await pg.waitForTimeout(600); if (await pg.locator(`${box} .ei-fd-picked`).count()) { if (!(await pg.locator(`${box} .ei-fd-picked`).innerText()).includes(text)) { await pg.locator(`${box} .ei-fd-picked button`).click(); } else { return; } } await pg.locator(input).pressSequentially(text, { delay: 30 }); await pg.locator(`${box} .ei-fd-lookrows button`).first().waitFor({ timeout: 15000 }); await pg.locator(input).press('Enter'); await pg.locator(`${box} .ei-fd-picked`).waitFor({ timeout: 15000 }); };
     const { Session, synthPdf } = require('../lib');
     const stamp = String(Date.now()).slice(-6);
     const admin = await new Session(ctx, browser, 'admin', 'admin').start();
@@ -41,7 +42,8 @@ module.exports = {
     // 1 the feeding entry, submitted
     const da = `DA-JRN-${stamp}`;
     await p.goto(`${ctx.base}/odoo/action-ei_da_feeding.action_ei_new_feeding`); await p.waitForSelector('#ei-fd-daname', { timeout: 30000 });
-    await p.locator('#ei-fd-supplier').selectOption({ label: 'DEMO Parent Steel Mill' }); await p.locator('#ei-fd-pin').selectOption({ label: 'DEMO Buying Entity' });
+    await pickParty(p, '#ei-fd-supplier', '.ei-fd-supplier', 'DEMO Parent Steel');   // type and press Enter: no list to set up first
+    await pickParty(p, '#ei-fd-pin', '.ei-fd-pin', 'DEMO Buying');
     await p.fill('#ei-fd-daname', da);
     await p.locator('#ei-fd-sold').pressSequentially('Rehman', { delay: 40 }); await p.waitForTimeout(1200); await p.locator('.ei-fd-sold .ei-fd-lookrows button').first().click();
     await p.getByRole('button', { name: 'Create draft DA' }).click(); await p.waitForSelector('.ei-fd-daname');
