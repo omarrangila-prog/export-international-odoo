@@ -1,6 +1,6 @@
 {
     'name': 'Export International ERP',
-    'version': '20.0.1.0.2',
+    'version': '20.0.1.0.3',
     'category': 'Accounting',
     'summary': 'The whole Export International system in one install: contracts, orders, trucks, bank, cash, invoices, parent statements, reports and close.',
     'author': 'Odoovations',
@@ -10,7 +10,7 @@
         'ei_invoice_extensions', 'ei_parent_reconciliation', 'ei_trade_lc', 'ei_management_dashboard', 'ei_ui_theme', 'ei_party360',
         'ei_automation', 'ei_matching', 'ei_assistant', 'ei_reports', 'ei_pin_login', 'ei_app_shell', 'ei_close', 'ei_migration', 'ei_da_feeding', 'ei_approvals', 'ei_daybook',
     ],
-    'post_init_hook': 'give_the_administrator_the_app',
+    'post_init_hook': 'post_init_hook',
     'application': True,
     'installable': True,
 }
