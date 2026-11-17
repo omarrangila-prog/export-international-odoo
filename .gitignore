@@ -5,3 +5,5 @@ migration/validation_reports/
 
 # screenshots show the client's real code list when built from it: generate them locally, never publish
 docs/**/*.png
+# the client's code list rides only in the private deploy package (ei_legacy_master/hooks.py loads it)
+addons/ei_legacy_master/client_data/
