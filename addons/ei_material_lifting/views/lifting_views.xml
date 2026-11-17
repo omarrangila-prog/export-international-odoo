@@ -46,32 +46,50 @@
                     <field name="state" widget="statusbar" statusbar_visible="draft,verified"/>
                 </header>
                 <sheet>
-                    <div class="o_row mb-2" title="Off by default: you confirm it yourself. Tick to have a second person check it.">
-                        <field name="review_requested" readonly="state != 'draft'" widget="boolean_toggle"/><label for="review_requested"/>
-                    </div>
                     <div class="oe_title"><h1><field name="name"/></h1></div>
-                    <group>
-                        <group>
-                            <field name="da_line_id" readonly="state != 'draft'"/><field name="order_line_id" readonly="state != 'draft'"/>
-                            <field name="customer_id"/><field name="date" readonly="state != 'draft'"/>
-                            <field name="vehicle_no" readonly="state != 'draft'"/><field name="lot" readonly="state != 'draft'"/>
+                    <!-- the easy entry (17 Nov 2026): which coil, which truck, how much; the rest is under More details -->
+                    <div class="ei-easy">
+                        <group class="ei-easy-main">
+                            <group>
+                                <field name="da_line_id" readonly="state != 'draft'" string="DA coil" placeholder="Type the DA number or the coil, then Enter"
+                                       options="{'no_create': True}"/>
+                                <field name="customer_id"/>
+                                <field name="date" readonly="state != 'draft'"/>
+                                <field name="vehicle_no" readonly="state != 'draft'" string="Truck no."/>
+                                <field name="gate_pass_no" readonly="state != 'draft'"/>
+                            </group>
+                            <group>
+                                <field name="claimed_mtl" readonly="state != 'draft'" string="Loaded (MTL)" class="ei-easy-amount"/>
+                                <field name="gross_kg" readonly="state != 'draft'"/><field name="tare_kg" readonly="state != 'draft'"/>
+                                <field name="weighed_mtl"/>
+                                <field name="ownership" widget="radio" readonly="state != 'draft' or not contract_line_id"
+                                       invisible="not da_line_id"/>
+                                <field name="contract_line_id" invisible="1"/>
+                            </group>
                         </group>
-                        <group>
-                            <field name="gate_pass_no" readonly="state != 'draft'"/>
-                            <field name="weighbridge_no" readonly="state != 'draft'"/>
-                            <field name="claimed_mtl" readonly="state != 'draft'"/>
-                            <field name="gross_kg" readonly="state != 'draft'"/><field name="tare_kg" readonly="state != 'draft'"/>
-                            <field name="net_kg"/><field name="weighed_mtl"/><field name="discrepancy_mtl"/>
-                            <field name="verified_mtl"/>
-                        </group>
-                    </group>
-                    <group>
-                        <field name="discrepancy_note" readonly="state != 'draft'"/>
-                        <field name="ownership"/><field name="stock_treatment"/><field name="contract_line_id" invisible="1"/>
-                        <field name="received_on"/><field name="received_note"/>
-                        <field name="maker_id"/><field name="verified_by"/><field name="reverse_reason" invisible="not reverse_reason"/>
-                        <field name="attachment_count"/>
-                    </group>
+                    </div>
+                    <notebook>
+                        <page string="More details" name="more">
+                            <group>
+                                <group>
+                                    <field name="order_line_id" readonly="state != 'draft'"/>
+                                    <field name="lot" readonly="state != 'draft'"/>
+                                    <field name="weighbridge_no" readonly="state != 'draft'"/>
+                                    <field name="net_kg"/><field name="discrepancy_mtl"/><field name="verified_mtl"/>
+                                    <field name="discrepancy_note" readonly="state != 'draft'"/>
+                                    <field name="stock_treatment"/>
+                                </group>
+                                <group>
+                                    <field name="received_on"/><field name="received_note"/>
+                                    <field name="maker_id"/><field name="verified_by"/><field name="reverse_reason" invisible="not reverse_reason"/>
+                                    <field name="attachment_count"/>
+                                </group>
+                            </group>
+                            <div class="o_row mt-2" title="Off by default: you confirm it yourself. Tick to have a second person check it.">
+                                <field name="review_requested" readonly="state != 'draft'" widget="boolean_toggle"/><label for="review_requested"/>
+                            </div>
+                        </page>
+                    </notebook>
                 </sheet>
                 <chatter/>
             </form>

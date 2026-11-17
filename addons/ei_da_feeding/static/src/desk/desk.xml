@@ -251,9 +251,9 @@
                                             <div t-if="this.cl and !this.state.itemLook" class="ei-fd-picked"><span t-out="this.cl.name"/><small t-if="this.cl.formula" class="ei-fd-muted"> · <t t-out="this.cl.formula"/></small>
                                                 <button class="ei-fd-link" t-on-click="() => this.openItems()">Change</button></div>
                                             <t t-else="">
-                                                <input id="ei-fd-item" class="ei-fd-in" autocomplete="off" placeholder="Type the item name…" t-att-value="this.state.itemLook ? this.state.itemLook.term : ''" t-on-focus="() => this.state.itemLook or this.openItems()" t-on-input="(ev) => this.itemLookInput(ev)"/>
+                                                <input id="ei-fd-item" class="ei-fd-in" autocomplete="off" placeholder="Type the item name…" t-att-value="this.state.itemLook ? this.state.itemLook.term : ''" t-on-focus="() => this.state.itemLook or this.openItems()" t-on-input="(ev) => this.itemLookInput(ev)" t-on-keydown="(ev) => this.itemKey(ev)"/>
                                                 <ul t-if="this.state.itemLook and this.state.itemLook.rows.length" class="ei-fd-lookrows" role="listbox">
-                                                    <li t-foreach="this.state.itemLook.rows" t-as="o" t-key="o.id"><button role="option" t-on-click="() => this.pickItem(o)" t-out="o.name"/></li>
+                                                    <li t-foreach="this.state.itemLook.rows" t-as="o" t-key="o.key or o.id"><button role="option" t-on-click="() => this.pickItem(o)"><t t-if="o.kind === 'new'">Add “</t><t t-out="o.name"/><t t-if="o.kind === 'new'">”</t></button></li>
                                                 </ul>
                                             </t>
                                         </div>

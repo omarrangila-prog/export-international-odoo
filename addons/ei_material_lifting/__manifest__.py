@@ -1,6 +1,6 @@
 {
     'name': 'Export International - Material Lifting',
-    'version': '20.0.1.0.2',
+    'version': '20.0.1.0.5',
     'category': 'Inventory',
     'summary': 'Verified physical lifting (gate pass, weighbridge, receipt) separate from invoices, with over-lifting control',
     'author': 'Odoovations',

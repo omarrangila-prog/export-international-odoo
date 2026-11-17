@@ -96,6 +96,7 @@ module.exports = {
     await p.locator('.o_form_button_save:visible').first().click(); await p.waitForTimeout(1500); await attach();
     const lift = await one('ei.lifting', [['gate_pass_no', '=', 'GP-JRN-' + stamp]], ['id', 'state']);
     await fp.goto(`${ctx.base}/odoo/action-ei_material_lifting.ei_lifting_action/${lift.id}`); await fp.waitForSelector('.o_form_view', { timeout: 30000 });
+    // a contract approver who cannot edit loadings classifies it with the button (the person entering the loading chooses it on the form)
     await header(fp, 'Classify stock ownership'); await fp.waitForSelector('.modal .o_form_view');
     await fp.locator('.modal .o_field_widget[name="ownership"] label', { hasText: 'Direct supplier-to-customer dispatch' }).click();
     await fp.locator('.modal .o_field_widget[name="reason"] input').fill('Mill dispatches to the customer (training)');

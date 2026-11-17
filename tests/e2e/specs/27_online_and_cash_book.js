@@ -34,7 +34,7 @@ module.exports = {
     };
     // A: 100,000, credit the party, debit the bank
     await newOnline(100000, 'D.01', 'D.50', { proof_ref: `SMS-${stamp}-A` });
-    const nameA = (await p.locator('.o_field_widget[name=credit_name]').innerText()).trim();
+    const nameA = (await p.locator('.o_field_widget[name=credit_code_id] input').inputValue()).trim();     // the easy form: the code box shows the name
     ctx.check(/DEMO CUSTOMER/i.test(nameA), '2 typing the code shows its name at once (credit side)', nameA);
     await p.getByRole('button', { name: 'Save & Submit' }).click(); await p.waitForTimeout(2500);
     const stA = (await p.locator('.o_statusbar_status .o_arrow_button_current, .o_statusbar_status [aria-checked=true]').first().innerText()).trim();

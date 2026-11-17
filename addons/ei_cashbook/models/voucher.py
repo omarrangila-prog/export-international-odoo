@@ -12,7 +12,8 @@ class EiCashVoucher(models.Model):
 
     name = fields.Char(readonly=True, copy=False, default='New')
     journal_id = fields.Many2one('account.journal', required=True, domain="[('type', '=', 'cash')]", index=True,
-                                 tracking=True)
+                                 tracking=True, default=lambda s: s.env['account.journal'].search(
+                                     [('type', '=', 'cash'), ('company_id', '=', s.env.company.id)], limit=1))
     company_id = fields.Many2one(related='journal_id.company_id', store=True, index=True)
     currency_id = fields.Many2one('res.currency', compute='_compute_currency')
     date = fields.Date(required=True, default=fields.Date.context_today, tracking=True)
@@ -95,7 +96,8 @@ class EiCashVoucher(models.Model):
                 if r.kind == 'safe_transfer' and r.target_journal_id.type != 'cash':
                     raise UserError(_("A safe transfer must target a cash journal."))
             j = r.journal_id
-            if r.kind == 'payment' and r.amount > j.ei_receipt_required_over and not r.attachment_count:
+            if r.kind == 'payment' and r.amount > j.ei_receipt_required_over and not r.attachment_count \
+                    and self.env['ir.config_parameter'].sudo().get_bool('ei_cashbook.require_receipt', True):
                 raise UserError(_("Attach the receipt before submitting (required over %s).", j.ei_receipt_required_over))
             r.state = 'submitted'
 

@@ -51,36 +51,51 @@
                     <field name="state" widget="statusbar" statusbar_visible="draft,submitted,posted"/>
                 </header>
                 <sheet>
-                    <div class="o_row mb-2" title="Off by default: you confirm it yourself. Tick to have a second person check it.">
-                        <field name="review_requested" readonly="state != 'draft'" widget="boolean_toggle"/><label for="review_requested"/>
-                    </div>
                     <div class="oe_title"><h1><field name="name"/></h1></div>
-                    <group>
+                    <!-- the easy entry (17 Nov 2026): what, when, how much, for what; the rest is under More details -->
+                    <div class="ei-easy">
                         <group>
-                            <field name="journal_id" readonly="state != 'draft'"/>
-                            <field name="kind" readonly="state != 'draft'"/>
-                            <field name="date" readonly="state != 'draft'"/>
-                            <field name="amount" readonly="state != 'draft'"/>
-                            <field name="currency_id" invisible="1"/>
+                            <field name="kind" widget="radio" options="{'horizontal': true}" readonly="state != 'draft'" string="Type"/>
                         </group>
-                        <group>
-                            <field name="category_id" readonly="state != 'draft'" invisible="kind not in ('payment', 'receipt')"/>
-                            <field name="target_journal_id" readonly="state != 'draft'" invisible="kind not in ('bank_transfer', 'safe_transfer')"/>
-                            <field name="partner_id" readonly="state != 'draft'"/>
-                            <field name="party_code_id" readonly="state != 'draft'" options="{'no_create': True}"/>
-                            <field name="reference_no" readonly="state != 'draft'"/>
-                            <field name="description" readonly="state != 'draft'"/>
-                            <field name="analytic_distribution" widget="analytic_distribution" readonly="state != 'draft'"
-                                   options="{'product_field': 'product_id', 'account_field': 'account_id'}" invisible="1"/>
+                        <group class="ei-easy-main">
+                            <group>
+                                <field name="date" readonly="state != 'draft'"/>
+                                <field name="amount" readonly="state != 'draft'" string="Amount (PKR)" class="ei-easy-amount"/>
+                                <field name="currency_id" invisible="1"/>
+                            </group>
+                            <group>
+                                <field name="category_id" readonly="state != 'draft'" invisible="kind not in ('payment', 'receipt')"
+                                       placeholder="Type, e.g. Tea, Fuel, Salary - Enter (a new one is added)"
+                                       context="{'default_kind': 'receipt' if kind == 'receipt' else 'expense'}"/>
+                                <field name="target_journal_id" readonly="state != 'draft'" invisible="kind not in ('bank_transfer', 'safe_transfer')"/>
+                                <field name="party_code_id" readonly="state != 'draft'" options="{'no_create': True}" placeholder="Old code, if any"/>
+                                <field name="description" readonly="state != 'draft'" placeholder="What it was for"/>
+                            </group>
                         </group>
-                    </group>
-                    <group>
-                        <group><field name="maker_id"/><field name="checker_id"/><field name="decided_at"/></group>
-                        <group><field name="move_id"/><field name="reversal_move_id" invisible="not reversal_move_id"/>
-                            <field name="reject_reason" invisible="not reject_reason"/>
-                            <field name="reverse_reason" invisible="not reverse_reason"/>
-                            <field name="attachment_count"/></group>
-                    </group>
+                    </div>
+                    <notebook>
+                        <page string="More details" name="more">
+                            <group>
+                                <group>
+                                    <field name="journal_id" readonly="state != 'draft'" string="Cash box"/>
+                                    <field name="partner_id" readonly="state != 'draft'"/>
+                                    <field name="reference_no" readonly="state != 'draft'"/>
+                                    <field name="analytic_distribution" widget="analytic_distribution" readonly="state != 'draft'"
+                                           options="{'product_field': 'product_id', 'account_field': 'account_id'}" invisible="1"/>
+                                </group>
+                                <group>
+                                    <field name="maker_id"/><field name="checker_id"/><field name="decided_at"/>
+                                    <field name="move_id"/><field name="reversal_move_id" invisible="not reversal_move_id"/>
+                                    <field name="reject_reason" invisible="not reject_reason"/>
+                                    <field name="reverse_reason" invisible="not reverse_reason"/>
+                                    <field name="attachment_count"/>
+                                </group>
+                            </group>
+                            <div class="o_row mt-2" title="Off by default: you confirm it yourself. Tick to have a second person check it.">
+                                <field name="review_requested" readonly="state != 'draft'" widget="boolean_toggle"/><label for="review_requested"/>
+                            </div>
+                        </page>
+                    </notebook>
                 </sheet>
                 <chatter/>
             </form>

@@ -234,3 +234,11 @@ body.ei-density-compact { .o_list_table tbody tr.o_data_row td { padding-block: 
     .o_form_view .o_form_sheet_bg > .o_form_statusbar { position: static; }
     .o_web_client .o_control_panel { background: var(--ei-bg) !important; }
 }
+
+// the easy entry (Online feeding / Cash book, 17 Nov 2026): few, big boxes; the rest sits under More details
+.o_form_view .ei-easy {
+    .o_field_widget input, .o_field_widget .o-autocomplete--input { font-size: 1.05rem; min-height: 40px; }
+    .ei-easy-amount input { font-size: 1.25rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+    .ei-easy-sides .o_horizontal_separator, .ei-easy-sides .o_form_label { font-weight: 600; }
+}
+.o_form_view .ei-easy .o_field_radio input, .o_form_view .ei-easy input[type="checkbox"] { min-height: 0; font-size: inherit; }

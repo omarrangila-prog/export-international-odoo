@@ -43,7 +43,8 @@ class EiLifting(models.Model):
     reverse_reason = fields.Char(readonly=True)
     received_on = fields.Date('Receipt confirmed by customer on')
     received_note = fields.Char()
-    ownership = fields.Selection(related='contract_line_id.stock_ownership', string='Stock ownership')
+    ownership = fields.Selection(OWNERSHIP, string='Stock ownership', compute='_compute_ownership', inverse='_inverse_ownership',
+                                 help="Chosen once per material: the next loadings of the same material use it.")
     stock_treatment = fields.Char(compute='_compute_stock_treatment')
     attachment_count = fields.Integer('Papers attached', compute='_compute_attachment_count')
 
@@ -83,6 +84,18 @@ class EiLifting(models.Model):
             [('res_model', '=', self._name), ('res_id', 'in', self.ids)], ['res_id'], ['__count']))
         for r in self:
             r.attachment_count = data.get(r.id, 0)
+
+    @api.depends('contract_line_id.stock_ownership')
+    def _compute_ownership(self):
+        for r in self:
+            r.ownership = r.contract_line_id.stock_ownership
+
+    def _inverse_ownership(self):
+        """Chosen on the loading itself (17 Nov 2026: no separate step): recorded on the material line, through the same
+        rule as the Classify button (it cannot change once a loading was verified under another kind)."""
+        for r in self:
+            if r.ownership and r.contract_line_id and r.ownership != r.contract_line_id.stock_ownership:
+                r.contract_line_id.action_set_ownership(r.ownership, _("Chosen on loading %s", r.name))
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -128,7 +141,7 @@ class EiLifting(models.Model):
                     raise AccessError(_("Maker-checker: you cannot verify a lifting you entered."))
             if r.state != 'draft':
                 raise UserError(_("Only a draft lifting can be verified."))
-            if not r.attachment_count:
+            if not r.attachment_count and self.env['ir.config_parameter'].sudo().get_bool('ei_material_lifting.require_proof', True):
                 raise UserError(_("Attach the gate pass / weighbridge / dispatch proof first."))
             if not r.contract_line_id.stock_ownership:
                 raise UserError(_("Classify the stock ownership of this contract line first (owned / consignment / direct dispatch)."))

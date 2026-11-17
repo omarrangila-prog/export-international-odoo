@@ -32,68 +32,82 @@
                         <field name="approval_note" readonly="1" class="d-inline"/>
                     </div>
                     <div class="oe_title"><h1><field name="name" readonly="1"/></h1></div>
-                    <group>
-                        <group string="The entry">
-                            <field name="kind" widget="radio" options="{'horizontal': true}" readonly="state != 'draft'"/>
-                            <field name="date" readonly="state != 'draft'"/>
-                            <field name="particular_date" readonly="state != 'draft'"/>
-                            <field name="amount" readonly="state != 'draft'" string="Amount (PKR)"/>
-                            <field name="currency_id" invisible="1"/>
+                    <!-- the easy entry (17 Nov 2026): date, amount, FROM and TO; type a code or a name and press Enter. The rest is under More details. -->
+                    <div class="ei-easy">
+                        <group class="ei-easy-main">
+                            <group>
+                                <field name="date" readonly="state != 'draft'" string="Date"/>
+                                <field name="amount" readonly="state != 'draft'" string="Amount (PKR)" class="ei-easy-amount"/>
+                                <field name="currency_id" invisible="1"/>
+                            </group>
+                            <group>
+                                <field name="proof_ref" readonly="state != 'draft'" invisible="kind != 'online'" string="Bank SMS / ref."
+                                       placeholder="From the bank's SMS (stops the same payment twice)"/>
+                                <field name="chq_no" readonly="state != 'draft'" invisible="kind == 'opening'" string="CHQ #"/>
+                                <field name="slip_no" readonly="state != 'draft'" invisible="kind == 'opening'" string="SLIP #"/>
+                            </group>
                         </group>
-                        <group string="Proof">
-                            <field name="chq_no" readonly="state != 'draft'" invisible="kind == 'opening'"/>
-                            <field name="slip_no" readonly="state != 'draft'" invisible="kind == 'opening'"/>
-                            <field name="proof_ref" readonly="state != 'draft'" invisible="kind != 'online'"/>
-                            <field name="bank_status" invisible="kind != 'online'" widget="badge" decoration-success="bank_status == 'confirmed'"
-                                   decoration-warning="bank_status != 'confirmed'"/>
-                            <field name="bank_line_id" invisible="kind != 'online'" options="{'no_create': True}"
-                                   groups="ei_bank_operations.group_ei_bank_officer,ei_bank_operations.group_ei_bank_approver"/>
-                            <field name="attachment_count" string="Papers / screenshots attached"/>
+                        <group class="ei-easy-sides">
+                            <group string="FROM (credit)" invisible="kind == 'opening' and debit_code_id">
+                                <field name="credit_code_id" nolabel="1" colspan="2" options="{'no_create': True, 'no_open': True}" readonly="state != 'draft'"
+                                       placeholder="Type the code or the name, then Enter (e.g. 1.24 or Nasru)"/>
+                            </group>
+                            <group string="TO (debit)" invisible="kind == 'opening' and credit_code_id">
+                                <field name="debit_code_id" nolabel="1" colspan="2" options="{'no_create': True, 'no_open': True}" readonly="state != 'draft'"
+                                       placeholder="Type the code or the name, then Enter (online: the bank, 5.xx)"/>
+                            </group>
                         </group>
-                    </group>
-                    <group>
-                        <group string="CREDIT" invisible="kind == 'opening' and debit_code_id">
-                            <field name="credit_code_id" string="Credit code" options="{'no_create': True, 'no_open': True}" readonly="state != 'draft'"
-                                   placeholder="Type the code or the name"/>
-                            <field name="credit_name" string="Name"/>
-                            <field name="credit_sheet" string="Code list"/>
-                            <field name="credit_narration" readonly="state != 'draft'" invisible="kind == 'opening'"/>
+                        <group invisible="kind == 'opening'">
+                            <field name="credit_narration" readonly="state != 'draft'" string="Note" placeholder="Optional, e.g. RECEIVED ONLINE"/>
                         </group>
-                        <group string="DEBIT" invisible="kind == 'opening' and credit_code_id">
-                            <field name="debit_code_id" string="Debit code" options="{'no_create': True, 'no_open': True}" readonly="state != 'draft'"
-                                   placeholder="Type the code or the name (online: the bank, 5.xx)"/>
-                            <field name="debit_name" string="Name"/>
-                            <field name="debit_sheet" string="Code list"/>
-                            <field name="debit_narration" readonly="state != 'draft'" invisible="kind == 'opening'"/>
-                        </group>
-                    </group>
+                    </div>
                     <div class="text-muted small mb-2" invisible="kind != 'opening'">
                         A balance brought forward is ONE code and an amount: the balance carried from before. It is printed apart and never
                         counted as the day's receipts or payments.
                     </div>
-                    <group string="When a code on the paper is not in the code list" invisible="kind == 'opening'">
-                        <field name="missing_code" readonly="state != 'draft'" placeholder="e.g. 99.99 - leave empty when every code is in the list"/>
-                        <field name="missing_side" readonly="state != 'draft'" invisible="not missing_code"/>
-                    </group>
-                    <group invisible="kind == 'opening'">
-                        <field name="duplicate_ok_reason" readonly="state != 'draft'"/>
-                    </group>
-                    <group string="Who and when">
-                        <group>
-                            <field name="maker_id"/>
-                            <field name="approved_by" invisible="not approved_by"/>
-                            <field name="approved_at" invisible="not approved_at"/>
-                        </group>
-                        <group>
-                            <field name="reject_reason" invisible="not reject_reason"/>
-                            <field name="reversal_id" invisible="not reversal_id"/>
-                            <field name="reverse_reason" invisible="not reverse_reason"/>
-                            <field name="reversal_of_id" invisible="not reversal_of_id"/>
-                            <field name="approval_state"/>
-                            <field name="approval_request_id" invisible="1"/>
-                            <field name="approval_needs_assignment" invisible="1"/>
-                        </group>
-                    </group>
+                    <notebook>
+                        <page string="More details" name="more">
+                            <group>
+                                <group string="The entry">
+                                    <field name="kind" widget="radio" options="{'horizontal': true}" readonly="state != 'draft'"/>
+                                    <field name="particular_date" readonly="state != 'draft'"/>
+                                    <field name="debit_narration" readonly="state != 'draft'" invisible="kind == 'opening'" string="Debit note"/>
+                                    <field name="credit_sheet" string="FROM code list"/>
+                                    <field name="debit_sheet" string="TO code list"/>
+                                </group>
+                                <group string="Proof">
+                                    <field name="bank_status" invisible="kind != 'online'" widget="badge" decoration-success="bank_status == 'confirmed'"
+                                           decoration-warning="bank_status != 'confirmed'"/>
+                                    <field name="bank_line_id" invisible="kind != 'online'" options="{'no_create': True}"
+                                           groups="ei_bank_operations.group_ei_bank_officer,ei_bank_operations.group_ei_bank_approver"/>
+                                    <field name="attachment_count" string="Papers / screenshots attached"/>
+                                </group>
+                            </group>
+                            <group string="When a code on the paper is not in the code list" invisible="kind == 'opening'">
+                                <field name="missing_code" readonly="state != 'draft'" placeholder="e.g. 99.99 - leave empty when every code is in the list"/>
+                                <field name="missing_side" readonly="state != 'draft'" invisible="not missing_code"/>
+                                <field name="duplicate_ok_reason" readonly="state != 'draft'"/>
+                            </group>
+                        </page>
+                        <page string="Who and when" name="who">
+                            <group>
+                                <group>
+                                    <field name="maker_id"/>
+                                    <field name="approved_by" invisible="not approved_by"/>
+                                    <field name="approved_at" invisible="not approved_at"/>
+                                </group>
+                                <group>
+                                    <field name="reject_reason" invisible="not reject_reason"/>
+                                    <field name="reversal_id" invisible="not reversal_id"/>
+                                    <field name="reverse_reason" invisible="not reverse_reason"/>
+                                    <field name="reversal_of_id" invisible="not reversal_of_id"/>
+                                    <field name="approval_state"/>
+                                    <field name="approval_request_id" invisible="1"/>
+                                    <field name="approval_needs_assignment" invisible="1"/>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
                     <p class="text-muted small"><field name="books_note" readonly="1" nolabel="1"/></p>
                 </sheet>
                 <chatter/>

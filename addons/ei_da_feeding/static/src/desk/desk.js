@@ -157,10 +157,16 @@ export class EiDaFeeding extends Component {
         this.state.pl[role] = { term: "", rows: [] };
         this.focusSoon(role === "supplier" ? "#ei-fd-pin" : "#ei-fd-sold");
     }
-    plKey(role, ev) {
+    async plKey(role, ev) {
         const box = this.state.pl[role];
-        if (ev.key === "Enter" && box.rows.length) { ev.preventDefault(); this.plPick(role, box.rows[0]); }
-        if (ev.key === "Escape") { box.rows = []; }
+        if (ev.key === "Escape") { box.rows = []; return; }
+        if (ev.key !== "Enter") { return; }
+        ev.preventDefault();
+        const term = ev.target.value;
+        if (!term.trim()) { return; }
+        clearTimeout(this.timers["pl_" + role]);
+        const rows = await this.orm.call(MODEL, "party_search", [role === "pin" ? "pin" : "supplier", term]);
+        if (rows.length) { this.plPick(role, rows[0]); }
     }
     plClear(role) {
         const d = this.state.newDa;
@@ -183,10 +189,15 @@ export class EiDaFeeding extends Component {
         if (this.state.newDa) { this.state.newDa.sold_out_id = String(p.id); this.state.newDa.sold_out_name = p.name; }
         this.state.partyLook = { term: "", rows: [] };
     }
-    soldKey(ev) {
-        const rows = this.state.partyLook.rows;
-        if (ev.key === "Enter" && rows.length) { ev.preventDefault(); this.pickSoldOut(rows[0]); }
-        if (ev.key === "Escape") { this.state.partyLook.rows = []; }
+    async soldKey(ev) {
+        if (ev.key === "Escape") { this.state.partyLook.rows = []; return; }
+        if (ev.key !== "Enter") { return; }
+        ev.preventDefault();
+        const term = ev.target.value;
+        if (!term.trim()) { return; }
+        clearTimeout(this.timers.party);
+        const rows = await this.orm.call(MODEL, "party_search", ["customer", term]);
+        if (rows.length) { this.pickSoldOut(rows[0]); }
     }
     clearSoldOut() { this.state.newDa.sold_out_id = ""; this.state.newDa.sold_out_name = ""; }
     // the item of a coil on a feeding-account DA: any material; its line in the account is found or opened
@@ -194,10 +205,29 @@ export class EiDaFeeding extends Component {
         const term = ev.target.value;
         this.state.itemLook = { term, rows: this.state.itemLook ? this.state.itemLook.rows : [] };
         clearTimeout(this.timers.item);
-        this.timers.item = setTimeout(async () => { this.state.itemLook = { term, rows: await this.orm.call(MODEL, "product_search", [term]) }; }, 200);
+        this.timers.item = setTimeout(async () => {
+            const rows = await this.orm.call(MODEL, "product_search", [term]);
+            if (this.state.itemLook && this.state.itemLook.term === term) { this.state.itemLook.rows = rows; }   // a slower, older answer never wins
+        }, 200);
     }
-    async openItems() { this.state.itemLook = { term: "", rows: await this.orm.call(MODEL, "product_search", [""]) }; this.focusSoon("#ei-fd-item"); }
+    async itemKey(ev) {
+        if (ev.key !== "Enter" || !this.state.itemLook) { return; }
+        ev.preventDefault();
+        // Enter takes the first row for exactly what is typed now, never a row of an older search still on screen
+        const term = ev.target.value;
+        clearTimeout(this.timers.item);
+        const rows = term.trim() ? await this.orm.call(MODEL, "product_search", [term]) : this.state.itemLook.rows;
+        if (rows.length) { this.pickItem(rows[0]); }
+    }
+    async openItems() {
+        // show the list at once, and never wipe what the person already typed while it loads
+        if (!this.state.itemLook) { this.state.itemLook = { term: "", rows: [] }; }
+        const rows = await this.orm.call(MODEL, "product_search", [""]);
+        if (this.state.itemLook && !this.state.itemLook.term) { this.state.itemLook.rows = rows; }
+        this.focusSoon("#ei-fd-item");
+    }
     async pickItem(row) {
+        if (row.kind === "new") { row = { id: await this.call("product_take", [row.name]), name: row.name }; }
         try {
             const r = await this.call("ensure_line", [this.state.da.id, row.id]);
             this.setDa(r.da);
@@ -363,7 +393,7 @@ export class EiDaFeeding extends Component {
     lookInput(ev) {
         this.state.look.term = ev.target.value;
         clearTimeout(this.timers.look);
-        this.timers.look = setTimeout(() => this.runLook(), 200);
+        this.timers.look = setTimeout(() => { this.timers.look = null; this.runLook(); }, 200);
     }
     async runLook() {
         const s = this.state.look, kind = { customer_code: "customer", trade_code: "trade", pl_code: "pl" }[s.field];
@@ -385,9 +415,15 @@ export class EiDaFeeding extends Component {
         this.refresh();
     }
     clearPick(f) { this.state.line[f] = null; this.refresh(); }
-    lookKey(ev) {
-        if (ev.key === "Escape") { this.state.look.field = null; }
-        if (ev.key === "Enter" && this.state.look.rows.length) { ev.preventDefault(); this.choose(this.state.look.rows[0]); }
+    async lookKey(ev) {
+        if (ev.key === "Escape") { this.state.look.field = null; return; }
+        if (ev.key !== "Enter") { return; }
+        ev.preventDefault();
+        if (this.state.look.term !== ev.target.value || this.timers.look) {         // finish the search for what is typed now
+            this.state.look.term = ev.target.value; clearTimeout(this.timers.look); this.timers.look = null;
+            await this.runLook();
+        }
+        if (this.state.look.rows.length) { this.choose(this.state.look.rows[0]); }
     }
 
     focusSoon(sel) { setTimeout(() => { const el = document.querySelector(sel); if (el) { el.focus(); } }, 60); }

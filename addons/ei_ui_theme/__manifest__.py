@@ -1,6 +1,6 @@
 {
     'name': 'Export International - Easy Interface',
-    'version': '20.0.1.0.3',
+    'version': '20.0.1.0.4',
     'category': 'Accounting',
     'summary': 'Guided Home page, plain-language menus, cards, help text and a clean visual theme',
     'author': 'Odoovations',

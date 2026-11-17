@@ -66,8 +66,11 @@ class EiApprovalEvidence(models.AbstractModel):
 
     @api.model
     def approval_buttons(self):
-        """{model: [methods]} of the buttons that open the dialog, for the models this person may read."""
+        """{model: [methods]} of the buttons that open the dialog, for the models this person may read.
+        None on a server where the owner switched the summary off (17 Nov 2026: Save & Continue goes straight through)."""
         out = {}
+        if not self.env['ir.config_parameter'].sudo().get_bool('ei_app_shell.confirm_summary', True):
+            return out
         for model, method in APPROVALS:
             if model in self.env and self.env[model].has_access('read'):
                 out.setdefault(model, []).append(method)

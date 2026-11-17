@@ -41,6 +41,22 @@ def open_everything(env):
     env['ir.config_parameter'].sudo().set_bool('ei_legacy_master.enforce_maker_checker', False)
     # and no workflow waits for approval: Save & Submit confirms at once (owner, 17 Nov 2026)
     env['ei.approval.policy'].sudo().set_all(False)
+    # nor is the DA paper required before Save & Continue (it can still be attached)
+    env['ir.config_parameter'].sudo().set_bool('ei_contract_da.require_da_paper', False)
+    env['ir.config_parameter'].sudo().set_bool('ei_cashbook.require_receipt', False)    # a cash voucher's receipt: optional too
+    env['ir.config_parameter'].sudo().set_bool('ei_da_feeding.link_codes_on_entry', True)  # a coil's customer and its old code are linked on entry
+    env['ir.config_parameter'].sudo().set_bool('ei_material_lifting.require_proof', False)   # a loading's gate-pass paper: optional
+    env['ir.config_parameter'].sudo().set_bool('ei_app_shell.confirm_summary', False)        # no 'Verify ...?' summary before confirming
+    # a cash voucher needs a cash box: a fresh database without a chart's Cash journal gets one, so the screen is never empty
+    J = env['account.journal'].sudo()
+    for company in env['res.company'].sudo().search([]):
+        if not J.search_count([('type', '=', 'cash'), ('company_id', '=', company.id)]):
+            try:
+                with env.cr.savepoint():
+                    J.with_company(company).create({'name': 'Cash', 'type': 'cash', 'code': 'CSH', 'company_id': company.id})
+                    log.info("export_international: Cash journal opened for %s", company.name)
+            except Exception as e:  # noqa: BLE001 - a chart without the accounts it needs must not stop the upgrade
+                log.warning("export_international: no Cash journal for %s: %s", company.name, e)
     Code = env['ei.legacy.code'].sudo()
     todo = Code.search([('verification_status', 'in', ('unverified', 'proposed', 'needs_review'))])  # a code the accountant rejected stays rejected
     done = failed = 0

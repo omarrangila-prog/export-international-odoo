@@ -9,7 +9,19 @@ class EiCashCategory(models.Model):
 
     name = fields.Char(required=True)
     company_id = fields.Many2one('res.company', required=True, default=lambda s: s.env.company)
-    account_id = fields.Many2one('account.account', required=True)
+    account_id = fields.Many2one('account.account', required=True, default=lambda s: s._default_account())
+
+    @api.model
+    def _default_account(self):
+        """A category typed on the voucher posts to the company's expense account until the accountant sets another one
+        (a receipt category typed from a receipt voucher: the income account)."""
+        kind = self.env.context.get('default_kind') or ('receipt' if self.env.context.get('ei_voucher_kind') == 'receipt' else 'expense')
+        A = self.env['account.account'].sudo()
+        types = ('income', 'income_other') if kind == 'receipt' else ('expense', 'expense_direct_cost')
+        dom = [('account_type', 'in', types), ('active', '=', True)]
+        if 'company_ids' in A._fields:
+            dom.append(('company_ids', 'in', self.env.company.id))
+        return A.search(dom, limit=1)
     legacy_code_id = fields.Many2one('ei.legacy.code', string='Legacy code',
                                      domain="[('verification_status', '=', 'approved'), ('approved_target_type', '=', 'gl_account')]")
     kind = fields.Selection([('expense', 'Expense'), ('receipt', 'Receipt'), ('other', 'Other')], default='expense', required=True)

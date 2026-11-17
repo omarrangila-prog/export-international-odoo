@@ -322,6 +322,8 @@ class EiFeedingDesk(models.AbstractModel):
             'pl_code_id': int(vals['pl_code_id']) if vals.get('pl_code_id') else False,
             'feeding_calc': out(dict(r, saved_by=self.env.user.name, saved_at=fields.Datetime.to_string(fields.Datetime.now()))),
         }
+        if write['customer_code_id'] and write['customer_id'] and self.env['ir.config_parameter'].sudo().get_bool('ei_da_feeding.link_codes_on_entry', False):
+            self._link_code(self.env['ei.legacy.code'].browse(write['customer_code_id']), self.env['res.partner'].browse(write['customer_id']))
         Line = self.env['ei.da.line']
         if line_id:
             line = d.line_ids.filtered(lambda x: x.id == int(line_id))
@@ -340,8 +342,31 @@ class EiFeedingDesk(models.AbstractModel):
         Pr = self.env['product.product']
         if not Pr.has_access('read'):
             return []
+        term = (term or '').strip()
         dom = ['|', ('name', 'ilike', term), ('default_code', 'ilike', term)] if term else []
-        return [{'id': p.id, 'name': p.display_name} for p in Pr.search(dom, limit=20)]
+        rows = [{'id': p.id, 'key': 'p%d' % p.id, 'name': p.display_name} for p in Pr.search(dom, limit=20)]
+        # an item that is not in the system yet is added as typed (17 Nov 2026: nothing to set up first)
+        if term and not any(r['name'].strip().lower() == term.lower() for r in rows):
+            rows.append({'id': 0, 'key': 'new', 'kind': 'new', 'name': term})
+        return rows
+
+    @api.model
+    def product_take(self, name):
+        """The typed item as a product in tons, without default taxes (sales tax follows the accountant's rules)."""
+        name = (name or '').strip()
+        if not name:
+            raise UserError(_("Type the item name."))
+        if not self.env['ei.da'].has_access('create'):
+            raise AccessError(_("Your role cannot enter delivery advices."))
+        Pr = self.env['product.product'].sudo()
+        p = Pr.search([('name', '=ilike', name)], limit=1)
+        if not p:
+            uom = self.env.ref('uom.product_uom_ton', raise_if_not_found=False)
+            vals = {'name': name, 'type': 'consu', 'taxes_id': [(5, 0, 0)], 'supplier_taxes_id': [(5, 0, 0)]}
+            if uom:
+                vals['uom_id'] = uom.id
+            p = Pr.create(vals)
+        return p.id
 
     @api.model
     def ensure_line(self, da_id, product_id):
@@ -468,6 +493,15 @@ class EiFeedingDesk(models.AbstractModel):
             rows.append({'key': 'new', 'kind': 'new', 'id': 0, 'name': term, 'ref': ''})
         return rows
 
+    def _link_code(self, code, partner):
+        """An old customer code that is not linked to any contact yet is linked to this one (the contact it was picked as).
+        A code the accountant already linked is never moved."""
+        code = code.sudo().exists()
+        if code and partner and code.source_sheet_key == 'CUSTOMER' and not code.linked_res_id:
+            code.with_context(ei_system_write=True).write({'linked_model': 'res.partner', 'linked_res_id': partner.id})
+            if not partner.ref:
+                partner.sudo().write({'ref': code.legacy_code})
+
     @api.model
     def party_take(self, role, row):
         """The picked row as a contact, ready for the DA: an existing contact is used as it is (and marked for this place);
@@ -481,6 +515,8 @@ class EiFeedingDesk(models.AbstractModel):
         partner = P.browse()
         if kind == 'partner':
             partner = P.browse(int(row.get('id') or 0)).exists()
+            if role == 'customer' and partner.ref:            # a contact made from an old code keeps that code's link
+                self._link_code(self.env['ei.legacy.code'].sudo().search([('source_sheet_key', '=', 'CUSTOMER'), ('legacy_code', '=', partner.ref)], limit=1), partner)
         elif kind == 'code':
             code = self.env['ei.legacy.code'].browse(int(row.get('id') or 0)).exists()
             if not code:
@@ -488,6 +524,7 @@ class EiFeedingDesk(models.AbstractModel):
             partner = P.search([('ref', '=', code.legacy_code)], limit=1) or P.search([('name', '=ilike', code.original_name)], limit=1)
             if not partner:
                 partner = P.create({'name': code.original_name, 'ref': code.legacy_code, 'is_company': True, 'customer_rank': 1})
+            self._link_code(code, partner)
         elif kind == 'new' and name:
             partner = P.search([('name', '=ilike', name)], limit=1) or P.create({'name': name, 'is_company': True})
         if not partner:
