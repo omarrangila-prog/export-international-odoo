@@ -1,5 +1,6 @@
 from odoo import api, fields, models, _
 from odoo.exceptions import AccessError, UserError
+from odoo.addons.ei_legacy_master.models.policy import self_approval_allowed
 
 LC_SHEET = 'IMPORT PUR SALE'
 
@@ -92,7 +93,7 @@ class EiTradeLc(models.Model):
         for r in self:
             if not (r.lc_reference and r.bank_journal_id and r.lc_amount and r.currency_id):
                 raise UserError(_("Verification needs the LC number, bank, currency and amount from the bank's records."))
-            if r.create_uid == self.env.user and not self.env.su:
+            if r.create_uid == self.env.user and not self.env.su and not self_approval_allowed(self.env):
                 raise AccessError(_("Maker-checker: you cannot verify a record you created."))
             r.write({'state': 'verified', 'verified_by': self.env.user.id, 'verified_at': fields.Datetime.now()})
 

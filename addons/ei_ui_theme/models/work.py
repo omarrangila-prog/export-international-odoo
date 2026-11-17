@@ -11,6 +11,7 @@ Every call runs as the current user, so access rules decide what can be seen and
 """
 from datetime import timedelta
 
+from odoo.addons.ei_legacy_master.models.policy import self_approval_allowed
 from odoo import api, fields, models, _
 from odoo.tools.translate import LazyTranslate
 
@@ -164,7 +165,7 @@ class EiWork(models.AbstractModel):
                 mine_act = next((a for a in rec_acts if a.user_id == me), None)
                 if not can_act and days < overdue and not spec.get('problem') and not mine_act:
                     continue                      # oversight roles see what is stuck or a problem, or what was handed to them
-                if can_act and maker and maker == me and not mine_act:
+                if can_act and maker and maker == me and not mine_act and not self_approval_allowed(env):
                     counts['others'] += 1                      # maker-checker: someone else must do this step
                     continue
                 key = (model, rec.id)

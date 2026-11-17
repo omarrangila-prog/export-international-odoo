@@ -1,5 +1,6 @@
 from odoo import api, fields, models, _
 from odoo.exceptions import AccessError, UserError
+from odoo.addons.ei_legacy_master.models.policy import self_approval_allowed
 
 
 class EiDa(models.Model):
@@ -95,7 +96,7 @@ class EiDa(models.Model):
             if d._approval_required():
                 if not self.env.user.has_group('ei_contract_da.group_ei_contract_approver'):
                     raise AccessError(_("Only a contract approver can approve a DA."))
-                if d.create_uid == self.env.user and not self.env.su:
+                if d.create_uid == self.env.user and not self.env.su and not self_approval_allowed(self.env):
                     raise AccessError(_("Maker-checker: you cannot approve a DA you created."))
             if d.state != 'under_review':
                 raise UserError(_("Only a DA under review can be approved."))

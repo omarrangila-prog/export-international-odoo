@@ -5,6 +5,7 @@ from odoo import api, fields, models, _, Command
 from odoo.exceptions import AccessError, UserError
 
 from odoo.addons.ei_legacy_master.models.parsing import check_hs
+from odoo.addons.ei_legacy_master.models.policy import self_approval_allowed
 
 
 class EiSupplierIntake(models.Model):
@@ -175,7 +176,7 @@ class EiSupplierIntake(models.Model):
                 raise UserError(_("Only a mismatched intake needs an override."))
             if not (r.review_note or '').strip():
                 raise UserError(_("Write the reason for accepting the mismatch in the review note."))
-            if r.maker_id == self.env.user and not self.env.su:
+            if r.maker_id == self.env.user and not self.env.su and not self_approval_allowed(self.env):
                 raise AccessError(_("Maker-checker: you cannot accept the mismatch of an intake you entered."))
             r.with_context(ei_system=True).write({'state': 'reviewed', 'reviewed_by': self.env.user.id})
 

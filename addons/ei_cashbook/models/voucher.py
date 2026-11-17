@@ -1,3 +1,4 @@
+from odoo.addons.ei_legacy_master.models.policy import self_approval_allowed
 from odoo import api, fields, models, _, Command
 from odoo.exceptions import AccessError, UserError
 
@@ -112,7 +113,7 @@ class EiCashVoucher(models.Model):
                 raise AccessError(_("Posting to the cash book needs accounting rights. The voucher stays submitted for someone who has them."))
             if r.state != 'submitted':
                 raise UserError(_("Only a submitted voucher can be approved."))
-            if r._approval_required() and r.maker_id == self.env.user and not self.env.su and r.amount > r.journal_id.ei_self_approve_limit:
+            if r._approval_required() and r.maker_id == self.env.user and not self.env.su and not self_approval_allowed(self.env) and r.amount > r.journal_id.ei_self_approve_limit:
                 raise AccessError(_("Maker-checker: you cannot approve your own voucher of %(a)s (self-approval limit %(l)s).",
                                     a=r.amount, l=r.journal_id.ei_self_approve_limit))
             move = r._create_move()

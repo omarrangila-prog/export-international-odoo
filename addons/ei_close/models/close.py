@@ -7,6 +7,7 @@ from dateutil.relativedelta import relativedelta
 
 from odoo import api, fields, models, _
 from odoo.exceptions import AccessError, UserError
+from odoo.addons.ei_legacy_master.models.policy import self_approval_allowed
 
 BANK_OPEN = ('new', 'proposed', 'verified')
 BANK_ASIDE = ('unidentified', 'duplicate')
@@ -183,7 +184,7 @@ class EiClose(models.Model):
             if r.state == 'signed':
                 continue
             r.action_refresh()                    # sign what is true now, not what was true at the last refresh
-            if r.create_uid == self.env.user and not self.env.su:
+            if r.create_uid == self.env.user and not self.env.su and not self_approval_allowed(self.env):
                 raise AccessError(_("Maker-checker: the person who prepared the close cannot sign it off."))
             n_open = self.env['ei.close.item'].sudo().search_count([('close_id', '=', r.id), ('status', '=', 'blocker'), ('waived_by', '=', False)])
             if n_open:

@@ -131,6 +131,22 @@ class TestDaybook(TransactionCase):
         self.R._pending_for(f).with_user(self.senior).action_approve()
         self.assertEqual(f.approved_by, self.senior)
 
+    # owner's switch (17 Nov 2026): with the maker-checker rule off, one person enters and approves the same entry
+    def test_16_self_approval_when_the_rule_is_off(self):
+        P = self.env['ir.config_parameter'].sudo()
+        P.set_bool('ei_legacy_master.enforce_maker_checker', False)
+        e = self.entry(user=self.senior, amount=7)
+        e.with_user(self.senior).action_submit()
+        req = self.R._pending_for(e)
+        self.assertIn(self.senior, req.eligible_user_ids)
+        req.with_user(self.senior).action_approve()
+        self.assertEqual((e.state, e.approved_by), ('approved', self.senior))
+        P.set_bool('ei_legacy_master.enforce_maker_checker', True)
+        f = self.entry(user=self.senior, amount=8)
+        f.with_user(self.senior).action_submit()
+        with self.assertRaises(AccessError):
+            self.R._pending_for(f).with_user(self.senior).action_approve()
+
     # V4-011: PKR only
     def test_07_pkr_only(self):
         usd = self.env.ref('base.USD')

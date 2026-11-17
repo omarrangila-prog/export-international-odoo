@@ -15,6 +15,7 @@ Every entry is PKR. A different person approves it (maker-checker), and an appro
 deleted."""
 from odoo import api, fields, models, _
 from odoo.exceptions import AccessError, UserError
+from odoo.addons.ei_legacy_master.models.policy import self_approval_allowed
 
 KINDS = [('online', 'Online feeding (bank)'), ('cash', 'Cash book'), ('opening', 'Balance brought forward')]
 STATES = [('draft', 'Draft'), ('submitted', 'Waiting for approval'), ('approved', 'Approved'), ('rejected', 'Rejected'),
@@ -344,7 +345,7 @@ class EiDaybookEntry(models.Model):
                 raise UserError(_("Write why it is reversed."))
             if not (self.env.user.has_group(CHECKER_GROUP[r.kind]) or self.env.su):
                 raise AccessError(_("Only a checker of %s entries can reverse one.", dict(KINDS)[r.kind].lower()))
-            if self.env.user == r.maker_id and not self.env.su:
+            if self.env.user == r.maker_id and not self.env.su and not self_approval_allowed(self.env):
                 raise AccessError(_("Maker-checker: you entered %s, so a different person reverses it.", r.name))
             rev = r.sudo().with_context(ei_system=True).create({
                 'kind': r.kind, 'date': fields.Date.context_today(self), 'particular_date': r.date, 'amount': r.amount,

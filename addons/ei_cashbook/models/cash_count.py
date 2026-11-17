@@ -1,5 +1,6 @@
 from odoo import api, fields, models, _
 from odoo.exceptions import AccessError, UserError
+from odoo.addons.ei_legacy_master.models.policy import self_approval_allowed
 
 
 class EiCashCount(models.Model):
@@ -82,7 +83,7 @@ class EiCashCount(models.Model):
         for r in self:
             if r.state == 'closed':
                 continue
-            if r.custodian_id == self.env.user and not self.env.su:
+            if r.custodian_id == self.env.user and not self.env.su and not self_approval_allowed(self.env):
                 raise AccessError(_("Maker-checker: the custodian who counted the cash cannot close it."))
             opening, rec, pay = r._figures()
             book = opening + rec - pay

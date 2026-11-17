@@ -1,5 +1,6 @@
 from odoo import api, fields, models, _
 from odoo.exceptions import AccessError, UserError
+from odoo.addons.ei_legacy_master.models.policy import self_approval_allowed
 
 OWNERSHIP = [('owned', 'Owned stock'), ('consignment', 'Supplier-owned consignment'),
              ('direct_dispatch', 'Direct supplier-to-customer dispatch')]
@@ -123,7 +124,7 @@ class EiLifting(models.Model):
             if r._approval_required():
                 if not self.env.user.has_group('ei_material_lifting.group_ei_lifting_reviewer'):
                     raise AccessError(_("Only a lifting reviewer can verify."))
-                if r.maker_id == self.env.user and not self.env.su:
+                if r.maker_id == self.env.user and not self.env.su and not self_approval_allowed(self.env):
                     raise AccessError(_("Maker-checker: you cannot verify a lifting you entered."))
             if r.state != 'draft':
                 raise UserError(_("Only a draft lifting can be verified."))

@@ -2,6 +2,7 @@ from odoo import api, fields, models, _
 from odoo.exceptions import AccessError, UserError
 
 from odoo.addons.ei_legacy_master.models.parsing import check_hs
+from odoo.addons.ei_legacy_master.models.policy import self_approval_allowed
 
 
 class EiDailyOrder(models.Model):
@@ -88,7 +89,7 @@ class EiDailyOrder(models.Model):
                     raise AccessError(_("Only an order approver can approve."))
                 # the maker is the person who prepared and sent the request (one order collects a supplier's DAs of the day, so the
                 # first creator of the record may be somebody else, even the checker)
-                if (o.maker_id or o.create_uid) == self.env.user and not self.env.su:
+                if (o.maker_id or o.create_uid) == self.env.user and not self.env.su and not self_approval_allowed(self.env):
                     raise AccessError(_("Maker-checker: you cannot approve a request you created."))
             if o.state != 'draft':
                 raise UserError(_("Only a draft can be approved."))

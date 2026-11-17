@@ -1,5 +1,6 @@
 from odoo import api, fields, models, _
 from odoo.exceptions import AccessError, UserError
+from odoo.addons.ei_legacy_master.models.policy import self_approval_allowed
 
 # How each kind of timing item explains (bank - ledger). Amounts are entered positive.
 MAIL_FIELDS = {'message_main_attachment_id', 'message_follower_ids'}
@@ -97,7 +98,7 @@ class EiBankBalanceCheck(models.Model):
         for r in self:
             if r.state not in ('matched', 'explained'):
                 raise UserError(_("Explain the difference first (timing items or a note)."))
-            if r.entered_by == self.env.user and not self.env.su:
+            if r.entered_by == self.env.user and not self.env.su and not self_approval_allowed(self.env):
                 raise AccessError(_("Maker-checker: the person who entered the balance cannot sign it off."))
             if r.evidence_state != 'evidenced':
                 raise UserError(_("Attach the bank's proof of the balance first. A typed-in figure is not bank-confirmed."))

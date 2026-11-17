@@ -4,6 +4,7 @@ Nothing here writes to the accounts. A difference is explained, never balanced a
 entries typed by hand on a control account, and parties whose balance runs the wrong way are listed so that someone can look at them."""
 from odoo import api, fields, models, _
 from odoo.exceptions import AccessError, UserError
+from odoo.addons.ei_legacy_master.models.policy import self_approval_allowed
 
 KIND_TYPE = {'receivable': 'asset_receivable', 'payable': 'liability_payable'}
 KIND_SIGN = {'receivable': 1, 'payable': -1}   # payables are credits in the books; shown as the amount we owe
@@ -99,7 +100,7 @@ class EiSubledgerCheck(models.Model):
         for r in self:
             if r.state != 'checked':
                 raise UserError(_("Run the check first."))
-            if r.checked_by == self.env.user and not self.env.su:
+            if r.checked_by == self.env.user and not self.env.su and not self_approval_allowed(self.env):
                 raise AccessError(_("Maker-checker: the person who ran the check cannot sign it off."))
             cur = r.currency_id
             if not (cur.is_zero(r.difference) and cur.is_zero(r.manual_amount)) and not (r.note or '').strip():

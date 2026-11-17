@@ -6,6 +6,7 @@ from odoo import api, fields, models, _
 from odoo.exceptions import AccessError, UserError
 
 from . import formula_engine as fe
+from odoo.addons.ei_legacy_master.models.policy import self_approval_allowed
 
 
 class EiFormulaDefinition(models.Model):
@@ -74,7 +75,7 @@ class EiFormulaDefinition(models.Model):
         for r in self:
             if r.state != 'draft':
                 raise UserError(_("Only a draft can be approved."))
-            if r.create_uid == self.env.user and not self.env.su:
+            if r.create_uid == self.env.user and not self.env.su and not self_approval_allowed(self.env):
                 raise AccessError(_("The author of a formula cannot approve it."))
             if not r.step_ids or not r.test_ids:
                 raise UserError(_("A formula needs at least one step and one signed test case."))

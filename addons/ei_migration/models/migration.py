@@ -11,6 +11,7 @@ from decimal import Decimal, InvalidOperation
 
 from odoo import api, fields, models, _
 from odoo.exceptions import AccessError, UserError
+from odoo.addons.ei_legacy_master.models.policy import self_approval_allowed
 
 FORMAT = 'ei-foxpro-extract/1'
 
@@ -192,7 +193,7 @@ class EiMigrationControl(models.Model):
                 continue
             if r.status in ('incomplete', 'unreadable'):
                 raise UserError(_("%s: the comparison is not complete.", r.label))
-            if r.entered_by == self.env.user and not self.env.su:
+            if r.entered_by == self.env.user and not self.env.su and not self_approval_allowed(self.env):
                 raise AccessError(_("Maker-checker: the person who typed the old figure cannot sign it."))
             if r.status == 'differs' and not (r.note or '').strip():
                 raise UserError(_("%(l)s differs by %(d)s. Explain the difference before signing.", l=r.label, d=r.difference))

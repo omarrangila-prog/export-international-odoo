@@ -9,6 +9,7 @@ from odoo import api, fields, models, _
 from odoo.exceptions import AccessError, UserError
 
 from odoo.addons.ei_legacy_master.models.parsing import norm_hs
+from odoo.addons.ei_legacy_master.models.policy import self_approval_allowed
 
 DATE_FORMATS = ('%Y-%m-%d', '%d/%m/%Y', '%d-%m-%Y', '%d-%b-%Y', '%d/%m/%y')
 HEAD = {
@@ -251,7 +252,7 @@ class EiParentStatement(models.Model):
         for st in self:
             if st.state != 'resolved':
                 raise UserError(_("Only a fully resolved statement can be signed."))
-            if st.imported_by == self.env.user and not self.env.su:
+            if st.imported_by == self.env.user and not self.env.su and not self_approval_allowed(self.env):
                 raise AccessError(_("Maker-checker: the importer cannot sign off the statement."))
             if not st.control_entered_by:
                 raise UserError(_("Type the total printed on the parent's statement first: it proves every row was imported."))

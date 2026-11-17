@@ -10,7 +10,7 @@ def give_the_administrator_the_app(env):
 
 # The owner's instruction (17 Nov 2026): every internal user may do everything in Export International, and the
 # client's imported codes count as verified. base.group_user implies every role below, so present and future users
-# get them all. The maker-checker rule that nobody approves their own entry is unchanged.
+# get them all. For now the maker-checker rule is off too: one person may enter and approve the same record.
 OPEN_ROLES = (
     'ei_legacy_master.group_ei_user', 'ei_legacy_master.group_ei_importer', 'ei_legacy_master.group_ei_mapping_approver',
     'ei_legacy_master.group_ei_auditor',
@@ -37,6 +37,8 @@ def open_everything(env):
         return
     roles = [g for g in (env.ref(x, raise_if_not_found=False) for x in OPEN_ROLES) if g]
     env.ref('base.group_user').write({'implied_ids': [Command.link(g.id) for g in roles]})
+    # for now one person may also enter and approve the same record (owner, 17 Nov 2026); set it back to True to restore
+    env['ir.config_parameter'].sudo().set_bool('ei_legacy_master.enforce_maker_checker', False)
     Code = env['ei.legacy.code'].sudo()
     todo = Code.search([('verification_status', 'in', ('unverified', 'proposed', 'needs_review'))])  # a code the accountant rejected stays rejected
     done = failed = 0

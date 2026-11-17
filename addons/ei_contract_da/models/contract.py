@@ -6,6 +6,7 @@ from odoo.exceptions import AccessError, UserError
 from markupsafe import Markup, escape
 
 from . import formula_engine as fe
+from odoo.addons.ei_legacy_master.models.policy import self_approval_allowed
 
 
 class EiContract(models.Model):
@@ -110,7 +111,7 @@ class EiContract(models.Model):
             if r._approval_required():          # approval on (policy or "Send for review"): a second, authorised person
                 if not self.env.user.has_group('ei_contract_da.group_ei_contract_approver'):
                     raise AccessError(_("Only a contract approver can approve."))
-                if r.create_uid == self.env.user and not self.env.su:
+                if r.create_uid == self.env.user and not self.env.su and not self_approval_allowed(self.env):
                     raise AccessError(_("Maker-checker: you cannot approve a contract you created."))
             if r.state != 'reviewed':
                 raise UserError(_("Only a reviewed contract can be approved."))

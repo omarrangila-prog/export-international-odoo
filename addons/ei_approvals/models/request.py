@@ -26,6 +26,7 @@ from odoo.exceptions import AccessError, UserError
 from odoo.tools import format_amount, format_datetime
 
 from .rule import FLOW_SELECTION
+from odoo.addons.ei_legacy_master.models.policy import self_approval_allowed
 
 STATES = [('pending', "Pending approval"), ('approved', "Approved"), ('returned', "Returned for correction"),
           ('rejected', "Rejected"), ('withdrawn', "Withdrawn by the maker"), ('superseded', "Changed after submission")]
@@ -120,7 +121,7 @@ class EiApprovalRequest(models.Model):
         users = Users.search(dom)
         if rule and rule.approver_user_ids:
             users = rule.approver_user_ids.filtered(lambda u: u in users)
-        return users.filtered(lambda u: u != maker and u.id != 1)              # never the maker; never the internal superuser
+        return users.filtered(lambda u: (u != maker or self_approval_allowed(self.env)) and u.id != 1)              # never the maker; never the internal superuser
 
     @api.model
     def _pick(self, users):
@@ -194,7 +195,7 @@ class EiApprovalRequest(models.Model):
         rec = self._record()
         if not rec:
             raise UserError(_("The document of this request no longer exists."))
-        if me == self.maker_id or me == rec._ei_ap_maker():
+        if (me == self.maker_id or me == rec._ei_ap_maker()) and not self_approval_allowed(self.env):
             raise AccessError(_("Maker-checker: you submitted %s, so a different person must check it.", self.name))
         rule = self.rule_id
         if not self.env.su and me not in self._eligible(rec, rule, self.maker_id):
@@ -361,7 +362,7 @@ class EiApprovalRequest(models.Model):
             'age_hours': round((now - self.submitted_at).total_seconds() / 3600.0, 1),
             'decided_by': self.decided_by.name or '', 'decision_note': self.decision_note or '',
             'record_state': rec and rec._ei_ap_state_label() or '',
-            'can_decide': self.state == 'pending' and self.env.user != self.maker_id and self.env.user in self.eligible_user_ids,
+            'can_decide': self.state == 'pending' and (self.env.user != self.maker_id or self_approval_allowed(self.env)) and self.env.user in self.eligible_user_ids,
             'mine': self.env.user == self.maker_id,
         }
 

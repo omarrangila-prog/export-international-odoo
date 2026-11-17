@@ -99,3 +99,10 @@ class ResConfigSettings(models.TransientModel):
     ei_approval_order = fields.Boolean("Require approval: daily order requests", config_parameter='ei_approval.order')
     ei_approval_cash = fields.Boolean("Require approval: cash vouchers", config_parameter='ei_approval.cash')
     ei_approval_lifting = fields.Boolean("Require approval: truck loadings", config_parameter='ei_approval.lifting')
+
+
+def self_approval_allowed(env):
+    """True while the owner has switched the maker-checker rule off (ir.config_parameter
+    ei_legacy_master.enforce_maker_checker = False): then one person may enter and approve the same record.
+    On by default; the client's testing server switches it off (export_international open_access)."""
+    return not env['ir.config_parameter'].sudo().get_bool('ei_legacy_master.enforce_maker_checker', True)

@@ -6,6 +6,7 @@ The dialog explains; it does not decide. Every rule is still enforced by the app
 the dialog (an old browser tab, a programming interface) is refused exactly as before."""
 from lxml import html
 
+from odoo.addons.ei_legacy_master.models.policy import self_approval_allowed
 from odoo import _, api, fields, models
 from odoo.exceptions import AccessError
 from odoo.tools import format_amount, format_date, format_datetime
@@ -118,7 +119,7 @@ class EiApprovalEvidence(models.AbstractModel):
                               d=format_amount(self.env, (rec.stated_total or 0) - (rec.expected_total or 0), self.env.company.currency_id)))
 
         maker = rec[maker_field] if maker_field in rec._fields else self.env['res.users']
-        self_made = bool(maker) and maker == me
+        self_made = bool(maker) and maker == me and not self_approval_allowed(self.env)
         role = self.env.ref(group, raise_if_not_found=False)
         has_role = bool(role) and me.has_group(group)
         # the client's default: routine approval is off, so the person entering the record confirms it; posting to the cash
