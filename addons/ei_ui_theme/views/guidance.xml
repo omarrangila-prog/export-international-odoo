@@ -233,12 +233,12 @@
             <xpath expr="//div[hasclass('alert-danger')]" position="replace"/>
             <xpath expr="//div[field[@name='ocr_status']]" position="attributes">
                 <attribute name="class">ei-hint</attribute>
-                <attribute name="invisible">state != 'draft'</attribute>
+                <attribute name="invisible">1</attribute>
             </xpath>
             <xpath expr="//sheet/*[1]" position="before">
                 <div class="ei-next" invisible="state not in ('draft')">
                     <span class="ei-next-ico"/>
-                    <div><span class="ei-next-title">Your turn</span><span>Type what the supplier's invoice says, attach it, then press <b>Run checks</b>.</span></div>
+                    <div><span class="ei-next-title">Your turn</span><span>Type what the supplier's invoice says, then press <b>Run checks</b>.</span></div>
                 </div>
                 <div class="ei-next ei-next-stop ei-exc" invisible="state not in ('mismatch')" role="alert">
                     <span class="ei-next-ico"/>

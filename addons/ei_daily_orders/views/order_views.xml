@@ -38,19 +38,23 @@
                         <field name="review_requested" readonly="state != 'draft'" widget="boolean_toggle"/><label for="review_requested"/>
                     </div>
                     <div class="oe_title"><h1><field name="name"/></h1></div>
-                    <group>
+                    <group class="ei-easy">
                         <group><field name="parent_partner_id" readonly="state != 'draft'"/><field name="date" readonly="state != 'draft'"/></group>
-                        <group><field name="total_requested"/><field name="total_remaining"/>
-                            <field name="maker_id"/><field name="approved_by"/><field name="print_count"/></group>
+                        <group><field name="total_requested"/><field name="total_remaining"/></group>
                     </group>
                     <field name="line_ids" readonly="state == 'cancelled'">
                         <list editable="bottom">
                             <field name="da_line_id" readonly="parent.state != 'draft'"/><field name="product_id"/><field name="customer_id"/>
                             <field name="requested_mtl" readonly="parent.state != 'draft'"/><field name="sale_rate"/>
                             <field name="lifted_mtl"/><field name="remaining_mtl"/>
-                            <field name="invoice_ref" readonly="parent.state != 'approved'"/><field name="hs_code" readonly="parent.state != 'approved'" optional="show"/><field name="currency_id" column_invisible="1"/>
+                            <field name="invoice_ref" readonly="parent.state == 'cancelled'"/><field name="hs_code" readonly="parent.state == 'cancelled'" optional="show"/><field name="currency_id" column_invisible="1"/>
                         </list>
                     </field>
+                    <notebook>
+                        <page string="More details" name="more">
+                            <group><group><field name="maker_id"/><field name="approved_by"/></group><group><field name="print_count"/></group></group>
+                        </page>
+                    </notebook>
                 </sheet>
                 <chatter/>
             </form>

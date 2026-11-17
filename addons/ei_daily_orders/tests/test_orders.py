@@ -69,9 +69,14 @@ class TestOrders(TransactionCase):
             self.Order.generate_from_da(self.da)
 
     def test_05_invoice_ref_late_and_cancel(self):
-        o = self.Order.generate_from_da(self.da)
+        c = self.Order.generate_from_da(self.da, '2026-10-03')
+        self.assertTrue(c.line_ids)
+        c.action_cancel('wrong day')                  # frees the quantity for the order below
         with self.assertRaises(UserError):
-            o.line_ids.invoice_ref = 'INV-1'  # not approved yet
+            c.line_ids.invoice_ref = 'INV-2'          # never on a cancelled order
+        o = self.Order.generate_from_da(self.da)
+        o.line_ids.invoice_ref = 'INV-0'              # 17 Nov 2026: may be typed while the order is still open
+        o.line_ids.invoice_ref = False
         o.with_user(self.checker).action_approve()
         o.line_ids.invoice_ref = 'INV-1'
         self.assertEqual(o.line_ids.lifted_mtl, 0)   # invoice does not mean lifted

@@ -134,7 +134,7 @@ class EiSupplierIntake(models.Model):
         cur = self.currency_id
         if not self.line_ids:
             issues.append(_("No lines."))
-        if not self.attachment_count:
+        if not self.attachment_count and self.env['ir.config_parameter'].sudo().get_bool('ei_invoice_extensions.require_document', True):
             issues.append(_("The supplier's invoice document is not attached."))
         dup = self.env['account.move'].sudo().search_count([
             ('company_id', '=', self.company_id.id), ('partner_id', '=', self.partner_id.id),
@@ -203,6 +203,13 @@ class EiSupplierIntake(models.Model):
                     refs = {x for x in (ref or '').split(', ') if x} | {r.invoice_number}
                     hs = {x for x in (l.order_line_id.hs_code or '').split(', ') if x} | ({l.hs_code} if l.hs_code else set())
                     l.order_line_id.with_context(ei_system=True).write({'invoice_ref': ', '.join(sorted(refs)), 'hs_code': ', '.join(sorted(hs)) or False})
+
+    def action_open_bill(self):
+        """The bill made from this invoice, to confirm it (17 Nov 2026: one click from the invoice check)."""
+        self.ensure_one()
+        if not self.bill_id:
+            raise UserError(_("No bill has been made from this invoice yet."))
+        return {'type': 'ir.actions.act_window', 'res_model': 'account.move', 'res_id': self.bill_id.id, 'views': [(False, 'form')], 'target': 'current'}
 
     def action_cancel(self):
         for r in self:

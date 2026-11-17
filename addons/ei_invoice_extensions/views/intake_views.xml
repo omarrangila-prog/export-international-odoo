@@ -21,6 +21,7 @@
                             groups="ei_invoice_extensions.group_ei_invoice_approver"/>
                     <button name="action_create_bill" string="Create draft bill" type="object" class="btn-primary"
                             invisible="state not in ('matched', 'reviewed')"/>
+                    <button name="action_open_bill" string="Open the bill" type="object" class="btn-primary" invisible="not bill_id"/>
                     <button name="action_ocr" string="Extract with OCR" type="object" invisible="state != 'draft'"/>
                     <button name="action_cancel" string="Cancel" type="object" invisible="state in ('billed', 'cancelled')"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,matched,billed"/>
@@ -28,29 +29,43 @@
                 <sheet>
                     <div class="oe_title"><h1><field name="name"/></h1></div>
                     <div class="alert alert-danger" role="alert" invisible="not issue_text"><field name="issue_text" nolabel="1"/></div>
-                    <div class="text-muted"><field name="ocr_status"/></div>
-                    <group>
+                    <div class="text-muted" invisible="1"><field name="ocr_status"/></div>
+                    <!-- the easy entry (17 Nov 2026): who, which invoice, its total, and the lines; the rest is under More details -->
+                    <group class="ei-easy">
                         <group>
-                            <field name="kind"/><field name="partner_id"/><field name="invoice_number"/><field name="invoice_date"/>
+                            <field name="partner_id" string="Supplier"/><field name="invoice_number"/>
                             <field name="original_id" invisible="kind != 'in_refund'"/>
-                            <field name="currency_id" invisible="1"/><field name="company_id" groups="base.group_multi_company"/>
+                            <field name="currency_id" invisible="1"/>
                         </group>
                         <group>
-                            <field name="tax_ids" widget="many2many_tags"/><field name="stated_tax"/><field name="stated_total"/>
-                            <field name="untaxed"/><field name="expected_tax"/><field name="expected_total"/>
-                            <field name="bill_id"/><field name="attachment_count"/>
+                            <field name="invoice_date"/><field name="stated_total" string="Total on the invoice" class="ei-easy-amount"/>
                         </group>
                     </group>
                     <field name="line_ids">
                         <list editable="bottom" decoration-danger="received_mtl &gt; expected_mtl">
-                            <field name="da_line_id"/><field name="order_line_id"/><field name="expected_mtl"/>
-                            <field name="received_mtl"/><field name="hs_code" optional="show"/><field name="unit_rate"/><field name="expected_rate"/><field name="amount" sum="Total"/>
+                            <field name="da_line_id" string="DA coil"/><field name="order_line_id" optional="hide"/><field name="expected_mtl" optional="hide"/>
+                            <field name="received_mtl"/><field name="unit_rate"/><field name="hs_code" optional="show"/><field name="expected_rate" optional="hide"/><field name="amount" sum="Total"/>
                             <field name="currency_id" column_invisible="1"/>
                         </list>
                     </field>
-                    <separator string="Side by side: supplier, contract, DA and what was lifted"/>
-                    <field name="comparison_html" nolabel="1" readonly="1"/>
-                    <group><field name="review_note"/><field name="reviewed_by"/><field name="maker_id"/></group>
+                    <notebook>
+                        <page string="The check" name="check">
+                            <field name="comparison_html" nolabel="1" readonly="1"/>
+                        </page>
+                        <page string="More details" name="more">
+                            <group>
+                                <group>
+                                    <field name="kind"/><field name="company_id" groups="base.group_multi_company"/>
+                                    <field name="tax_ids" widget="many2many_tags"/><field name="stated_tax"/>
+                                    <field name="untaxed"/><field name="expected_tax"/><field name="expected_total"/>
+                                </group>
+                                <group>
+                                    <field name="bill_id"/><field name="attachment_count"/>
+                                    <field name="review_note"/><field name="reviewed_by"/><field name="maker_id"/>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
                 </sheet>
                 <chatter/>
             </form>

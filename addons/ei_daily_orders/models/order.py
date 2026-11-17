@@ -209,8 +209,9 @@ class EiDailyOrderLine(models.Model):
             return super().write(vals)
         if set(vals) - {'invoice_ref', 'hs_code', 'sequence'} and any(r.order_id.state != 'draft' for r in self):
             raise UserError(_("The request is not a draft; its lines are locked."))
-        if {'invoice_ref', 'hs_code'} & set(vals) and any(r.order_id.state != 'approved' for r in self):
-            raise UserError(_("Record the invoice number only on an approved request."))
+        # the invoice number and HS code may be typed while the order is a draft or after it is confirmed, never on a cancelled one
+        if {'invoice_ref', 'hs_code'} & set(vals) and any(r.order_id.state not in ('draft', 'approved') for r in self):
+            raise UserError(_("Record the invoice number on an open or confirmed request, not a cancelled one."))
         return super().write(vals)
 
     def unlink(self):
