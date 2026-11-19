@@ -11,6 +11,12 @@ from odoo.addons.account.tests.common import AccountTestInvoicingCommon
 from odoo.addons.ei_legacy_master.tests.test_parsing import source_bytes
 
 
+def _moves(act):
+    """The invoices an 'Invoice verified liftings' answer points to: one opened directly, or a list."""
+    return [act['res_id']] if act.get('res_id') else act['domain'][0][2]
+
+
+
 @tagged('post_install', '-at_install', 'ei')
 class TestJourney(AccountTestInvoicingCommon):
 
@@ -111,7 +117,7 @@ class TestJourney(AccountTestInvoicingCommon):
         # 7. customer invoice from the verified lifting
         w = cls.env['ei.invoice.wizard'].with_user(cls.invoicer).with_context(
             active_model='ei.lifting', active_ids=cls.lift.ids).create({'post': True})
-        cls.invoice = cls.env['account.move'].browse(w.action_create()['domain'][0][2])
+        cls.invoice = cls.env['account.move'].browse(_moves(w.action_create()))
         # 8. bank receipt: morning check, import, suggest, verify, allocate, approve, post
         cls.env['ei.bank.balance.check'].with_user(cls.bapprover).create({'journal_id': cls.bank.id, 'bank_balance': 0, 'date': fields.Date.today()})
         csv = ("Date,Description,Reference,Debit,Credit,Balance\n"

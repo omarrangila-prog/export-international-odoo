@@ -93,7 +93,7 @@ class EiInvoiceWizard(models.TransientModel):
             moves += move
         if len(moves) == 1:                          # one invoice: open it, ready to Confirm (17 Nov 2026)
             return {'type': 'ir.actions.act_window', 'res_model': 'account.move', 'res_id': moves.id, 'views': [(False, 'form')],
-                    'domain': [('id', 'in', moves.ids)], 'name': _('Customer invoice')}
+                    'name': _('Customer invoice')}
         return {'type': 'ir.actions.act_window', 'res_model': 'account.move', 'views': [(False, 'list'), (False, 'form')],
                 'domain': [('id', 'in', moves.ids)], 'name': _('Customer invoices')}
 

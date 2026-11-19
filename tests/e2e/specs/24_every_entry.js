@@ -70,15 +70,15 @@ module.exports = {
       let orderLink = false;
       await step('DA: created in the feeding desk, coil fed, Save & Continue confirms it and prepares the daily order', async () => {
         await go('ei_da_feeding.action_ei_da_feeding'); await p.waitForSelector('.ei-fd-tabs', { timeout: 30000 });
-        await p.getByRole('tab', { name: /Real entry/ }).click(); await p.getByRole('button', { name: 'New DA' }).click(); await p.waitForSelector('.ei-fd-more', { state: 'attached', timeout: 15000 }); await p.evaluate(() => { document.querySelector('.ei-fd-more').open = true; });
+        await p.getByRole('tab', { name: /Real entry/ }).click(); await p.getByRole('button', { name: 'New entry' }).click(); await p.waitForSelector('.ei-fd-more', { state: 'attached', timeout: 15000 }); await p.evaluate(() => { document.querySelector('.ei-fd-more').open = true; });
         await p.waitForFunction((r) => [...document.querySelectorAll('#ei-fd-contract option')].some((o) => o.textContent.includes(r)), ref);
         const opts = await p.locator('#ei-fd-contract option').evaluateAll((os) => os.map((o) => [o.value, o.textContent]));
         await p.locator('#ei-fd-contract').selectOption(opts.find(([, t]) => t.includes(ref))[0]);
         await p.fill('#ei-fd-daname', da); await p.locator('.ei-fd-main .ei-fd-field.is-wide input').last().fill('M/S DEMO CUSTOMER - REHMAN TRADERS');
-        await p.getByRole('button', { name: 'Create draft DA' }).click(); await p.waitForSelector('.ei-fd-daname');
-        await p.locator('.ei-fd-paper input[type="file"]').setInputFiles(DOC); await p.waitForTimeout(1500);
-        await p.getByRole('button', { name: 'Add Coil' }).click();
-        await p.fill('#ei-fd-coil', 'E-1'); await p.locator('.ei-fd-editor .ei-fd-field', { hasText: 'Weight' }).locator('input').fill('4000');
+        await p.locator('#ei-fd-gocoil').click(); await p.waitForSelector('.ei-fd-daname');
+        await p.locator('.ei-fd-more input[type="file"]').setInputFiles(DOC); await p.waitForTimeout(1500);
+        if (await p.getByRole('button', { name: 'Add Coil' }).count()) await p.getByRole('button', { name: 'Add Coil' }).click(); await p.waitForSelector('#ei-fd-qty');
+        await p.fill('#ei-fd-coil', 'E-1'); await (await p.locator('.ei-fd-unit button', { hasText: 'kg' }).click(), p.locator('#ei-fd-qty')).fill('4000');
         for (const [label, term, row] of [['Sold (OUT)', 'Rehman', null], ['Sales code', 'D.01', 'D.01']]) {
           await p.locator('.ei-fd-pick', { hasText: label }).getByRole('button', { name: /Choose|Change/ }).first().click();
           await p.locator('#ei-fd-look').pressSequentially(term, { delay: 50 }); await p.waitForTimeout(1200);
@@ -88,7 +88,7 @@ module.exports = {
         await p.locator('.ei-fd-editor .ei-fd-field', { hasText: 'Purchase rate / MTL' }).locator('input').fill('200000');
         await p.locator('.ei-fd-editor .ei-fd-field', { hasText: 'Sale rate / MTL' }).locator('input').fill('201000');
         await p.waitForSelector('.ei-fd-answer', { timeout: 40000 });
-        await p.getByRole('button', { name: 'Save Draft' }).click(); await p.waitForTimeout(1500);
+        await p.getByRole('button', { name: 'Save Entry' }).click(); await p.waitForTimeout(1500);
         await p.getByRole('button', { name: 'Save & Continue' }).click(); await p.waitForSelector('.ei-fd-done, .ei-fd-wait', { timeout: 30000 });
         orderLink = await p.getByRole('button', { name: /Open the daily order/ }).count() || await p.getByRole('link', { name: /Open the daily order/ }).count();
         const d = await one('ei.da', [['name', '=', da]], ['state']);

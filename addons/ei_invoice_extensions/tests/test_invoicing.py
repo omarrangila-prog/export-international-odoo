@@ -10,6 +10,12 @@ from odoo.tools import mute_logger
 from odoo.addons.account.tests.common import AccountTestInvoicingCommon
 
 
+def _moves(act):
+    """The invoices an 'Invoice verified liftings' answer points to: one opened directly, or a list."""
+    return [act['res_id']] if act.get('res_id') else act['domain'][0][2]
+
+
+
 @tagged('post_install', '-at_install', 'ei')
 class TestInvoicing(AccountTestInvoicingCommon):
 
@@ -203,7 +209,7 @@ class TestInvoicing(AccountTestInvoicingCommon):
     def test_09_invoice_from_partial_lifting(self):
         l = self.lifting(mtl=4)
         self.assertEqual(l.invoice_status, 'to_invoice')
-        inv = self.env['account.move'].browse(self.wizard(l).action_create()['domain'][0][2])
+        inv = self.env['account.move'].browse(_moves(self.wizard(l).action_create()))
         self.assertEqual((len(inv), inv.move_type, inv.state, inv.partner_id), (1, 'out_invoice', 'draft', self.cust1))
         self.assertEqual((inv.invoice_line_ids.quantity, inv.invoice_line_ids.price_unit, inv.amount_total), (4, 210000, 840000))
         self.assertIn('gate pass', inv.invoice_line_ids.name)
@@ -217,7 +223,7 @@ class TestInvoicing(AccountTestInvoicingCommon):
         with self.assertRaises(UserError):
             self.wizard(d).action_create()
         l = self.lifting(mtl=2)
-        inv = self.env['account.move'].browse(self.wizard(l).action_create()['domain'][0][2])
+        inv = self.env['account.move'].browse(_moves(self.wizard(l).action_create()))
         inv.button_cancel()
         l.invalidate_recordset()
         self.assertEqual(l.invoice_status, 'to_invoice')
@@ -226,14 +232,14 @@ class TestInvoicing(AccountTestInvoicingCommon):
         da2 = self.mkda('DA-2', 10, self.cust2)
         a, b = self.lifting(mtl=3), self.lifting(da=da2, mtl=5)
         c = self.lifting(mtl=1)
-        moves = self.env['account.move'].browse(self.wizard(a + b + c).action_create()['domain'][0][2])
+        moves = self.env['account.move'].browse(_moves(self.wizard(a + b + c).action_create()))
         self.assertEqual(len(moves), 2)
         self.assertEqual(sorted(moves.mapped('amount_total')), [840000, 1050000])
 
     def test_11b_customer_layout_and_output_log(self):
         self.cust1.write({'ei_invoice_grouping': 'per_da', 'ei_show_contract_ref': True, 'ei_invoice_note': 'Synthetic PO wording'})
         a, b = self.lifting(mtl=3), self.lifting(mtl=1)
-        inv = self.env['account.move'].browse(self.wizard(a + b).action_create()['domain'][0][2])
+        inv = self.env['account.move'].browse(_moves(self.wizard(a + b).action_create()))
         self.assertEqual(len(inv.invoice_line_ids), 1)                     # one line per DA and material, as this customer asked
         line = inv.invoice_line_ids
         self.assertEqual(line.quantity, 4)
@@ -266,7 +272,7 @@ class TestInvoicing(AccountTestInvoicingCommon):
         with self.assertRaises(UserError):
             w2.action_create()                                   # reason missing
         w2.line_ids.adjust_reason = 'agreed discount, email 3/10'
-        inv = self.env['account.move'].browse(w2.action_create()['domain'][0][2])
+        inv = self.env['account.move'].browse(_moves(w2.action_create()))
         self.assertEqual(inv.amount_total, 200000)
         self.assertIn('adjusted', inv.message_ids[0].body)
 

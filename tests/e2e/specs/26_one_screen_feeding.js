@@ -16,9 +16,9 @@ module.exports = {
     const s = await new Session(ctx, browser, 'demo.contracts', 'demo', [1440, 900], { timeout: 30000 }).start();
     const p = s.page; let m = s.mark();
     await p.goto(`${ctx.base}/odoo/action-ei_da_feeding.action_ei_da_feeding`); await p.waitForSelector('.ei-fd-tabs', { timeout: 30000 });
-    await p.getByRole('tab', { name: /Real entry/ }).click(); await p.getByRole('button', { name: 'New DA' }).click(); await p.waitForSelector('#ei-fd-daname');
+    await p.getByRole('tab', { name: /Real entry/ }).click(); await p.getByRole('button', { name: 'New entry' }).click(); await p.waitForSelector('#ei-fd-daname');
     const form = (await p.locator('.ei-fd-main .ei-fd-card').first().innerText()).replace(/\s+/g, ' ');
-    ctx.check(/Entry date/.test(form) && /DO \/ DA No/.test(form) && /SUPPLIER \(Purchase From\)/.test(form) && /Purchase \(IN\)/.test(form) && /Sold \(OUT\)/.test(form),
+    ctx.check(/Date/.test(form) && /DA No/.test(form) && /Supplier/.test(form) && /Purchased By \(IN\)/.test(form) && /Sold To \(OUT\)/.test(form),
       '1 the new entry asks for the date, the DO / DA number and the three parties, on one screen', form.slice(0, 200));
     ctx.check(!/USD|Currency|Exchange/i.test(form) && !(await p.locator('#ei-fd-contract').isVisible()), '1 no currency and no contract is asked for (a signed contract stays under More details)');
     await pickParty(p, '#ei-fd-supplier', '.ei-fd-supplier', 'DEMO Parent Steel');   // type and press Enter: no list to set up first
@@ -26,19 +26,19 @@ module.exports = {
     await p.fill('#ei-fd-daname', da);
     await p.locator('#ei-fd-sold').pressSequentially('Rehman', { delay: 40 }); await p.waitForTimeout(1200);
     await p.locator('.ei-fd-sold .ei-fd-lookrows button').first().click();
-    await p.getByRole('button', { name: 'Create draft DA' }).click(); await p.waitForSelector('.ei-fd-daname');
+    await p.locator('#ei-fd-gocoil').click(); await p.waitForSelector('.ei-fd-daname');
     const chain = (await p.locator('.ei-fd-chain').innerText()).replace(/\s+/g, ' ');
     ctx.check(/DEMO Parent Steel Mill\s*→\s*DEMO Buying Entity\s*→\s*DEMO Customer - Rehman Traders/.test(chain), '2 the DA shows the chain Supplier → Purchase (IN) → Sold (OUT)', chain);
-    await p.locator('.ei-fd-paper input[type="file"]').setInputFiles(synthPdf()); await p.waitForTimeout(1500);
+    await p.locator('.ei-fd-more input[type="file"]').setInputFiles(synthPdf()); await p.waitForTimeout(1500);
 
     // coil 1: the item is searched by name; Sold (OUT) is already there; the FoxPro direct figures
-    await p.getByRole('button', { name: 'Add Coil' }).click();
+    if (await p.getByRole('button', { name: 'Add Coil' }).count()) await p.getByRole('button', { name: 'Add Coil' }).click(); await p.waitForSelector('#ei-fd-qty');
     await p.locator('#ei-fd-item').click(); await p.locator('#ei-fd-item').pressSequentially('DEMO HR', { delay: 40 }); await p.waitForTimeout(1200);
     await p.locator('.ei-fd-item .ei-fd-lookrows button').first().click(); await p.waitForTimeout(1200);
     ctx.check(/Rehman/.test(await p.locator('.ei-fd-pick', { hasText: 'Sold (OUT)' }).innerText()), '3 a new coil already carries the Sold (OUT) customer of the DA');
     await p.fill('#ei-fd-coil', 'ONE-1');
     const fld = (label) => p.locator('.ei-fd-editor .ei-fd-field', { hasText: label }).locator('input').first();
-    await fld('Thickness').fill('0.50'); await fld('Width').fill('1219'); await fld('Weight').fill('4574');
+    await fld('Thickness').fill('0.50'); await fld('Width').fill('1219'); await fld('Weight').fill('4.574');   // typed in MTL, as on the FoxPro screen
     await p.locator('.ei-fd-pick', { hasText: 'Sales code' }).getByRole('button', { name: /Choose|Change/ }).first().click();
     await p.locator('#ei-fd-look').pressSequentially('D.01', { delay: 40 }); await p.waitForTimeout(1200);
     await p.locator('.ei-fd-lookrows button', { hasText: 'D.01' }).first().click();
@@ -50,11 +50,11 @@ module.exports = {
       '3 the FoxPro direct figures: purchase 1,049,733.00, sale 1,054,307.00, spread 4,574.00 (1,000.00 per MTL), in PKR', ans.slice(0, 220));
     await ctx.shot(p, '26_one_screen_entry');
     // coil 2 with the keyboard: Save & Add Coil keeps the parties, the item and the method
-    await p.getByRole('button', { name: 'Save & Add Coil' }).click(); await p.waitForTimeout(1800);
+    await p.getByRole('button', { name: 'Save & Add Next Coil' }).click(); await p.waitForTimeout(1800);
     const kept = (await p.locator('.ei-fd-editor').innerText()).replace(/\s+/g, ' ');
     ctx.check(/Rehman/.test(kept) && /D\.01/.test(kept) && /DEMO HR/.test(kept), '4 the next coil inherits item, Sold (OUT) and sales code', kept.slice(0, 160));
     await p.locator('#ei-fd-coil').focus(); await p.keyboard.type('ONE-2');
-    await fld('Weight').fill('3000'); await fld('Purchase rate / MTL').fill('229500'); await fld('Sale rate / MTL').fill('230500'); await p.waitForTimeout(1500);
+    await fld('Weight').fill('3'); await fld('Purchase rate / MTL').fill('229500'); await fld('Sale rate / MTL').fill('230500'); await p.waitForTimeout(1500);
     await p.keyboard.press('Control+s'); await p.waitForTimeout(2000);
     const rows = await p.locator('.ei-fd-table tbody tr').count();
     ctx.check(rows === 2, '4 two coils on one DA (the second saved with Ctrl+S)', String(rows));
@@ -94,7 +94,7 @@ module.exports = {
     // a phone: the entry form fits
     const ph = await new Session(ctx, browser, 'demo.contracts', 'demo', [390, 844], { timeout: 30000 }).start();
     await ph.page.goto(`${ctx.base}/odoo/action-ei_da_feeding.action_ei_da_feeding`); await ph.page.waitForSelector('.ei-fd-tabs', { timeout: 30000 });
-    await ph.page.getByRole('tab', { name: /Real entry/ }).click(); await ph.page.getByRole('button', { name: 'New DA' }).click(); await ph.page.waitForSelector('#ei-fd-daname');
+    await ph.page.getByRole('tab', { name: /Real entry/ }).click(); await ph.page.getByRole('button', { name: 'New entry' }).click(); await ph.page.waitForSelector('#ei-fd-daname');
     const fit = await ph.page.evaluate(() => ({ over: document.documentElement.scrollWidth > innerWidth,
       inside: [...document.querySelectorAll('#ei-fd-supplier, #ei-fd-pin, #ei-fd-sold, #ei-fd-daname')].every((e) => { const r = e.getBoundingClientRect(); return r.left >= 0 && r.right <= innerWidth + 0.5 && r.width > 120; }) }));
     ctx.check(!fit.over && fit.inside, '8 on a phone the three parties and the DA number fit the screen', JSON.stringify(fit));

@@ -18,15 +18,15 @@ module.exports = {
     const feed = async (s, da, kg = '4000') => {
       const p = s.page;
       await p.goto(`${ctx.base}/odoo/action-ei_da_feeding.action_ei_da_feeding`); await p.waitForSelector('.ei-fd-tabs', { timeout: 30000 });
-      await p.getByRole('tab', { name: /Real entry/ }).click(); await p.getByRole('button', { name: 'New DA' }).click(); await p.waitForSelector('.ei-fd-more', { state: 'attached', timeout: 15000 }); await p.evaluate(() => { document.querySelector('.ei-fd-more').open = true; });
+      await p.getByRole('tab', { name: /Real entry/ }).click(); await p.getByRole('button', { name: 'New entry' }).click(); await p.waitForSelector('.ei-fd-more', { state: 'attached', timeout: 15000 }); await p.evaluate(() => { document.querySelector('.ei-fd-more').open = true; });
       await p.waitForFunction(() => [...document.querySelectorAll('#ei-fd-contract option')].some((o) => /DEMO\/ISL\/002/.test(o.textContent)));
       const opts = await p.locator('#ei-fd-contract option').evaluateAll((os) => os.map((o) => [o.value, o.textContent]));
       await p.locator('#ei-fd-contract').selectOption(opts.find(([, t]) => /DEMO\/ISL\/002/.test(t))[0]);
       await p.fill('#ei-fd-daname', da); await p.locator('.ei-fd-more .ei-fd-field', { hasText: 'Customer name printed on the DA' }).locator('input').fill('M/S DEMO CUSTOMER - REHMAN TRADERS');
-      await p.getByRole('button', { name: 'Create draft DA' }).click(); await p.waitForSelector('.ei-fd-daname');
-      await p.locator('.ei-fd-paper input[type="file"]').setInputFiles(synthPdf()); await p.waitForTimeout(1500);
-      await p.getByRole('button', { name: 'Add Coil' }).click();
-      await p.fill('#ei-fd-coil', 'MC-1'); await p.locator('.ei-fd-editor .ei-fd-field', { hasText: 'Weight' }).locator('input').fill(kg);
+      await p.locator('#ei-fd-gocoil').click(); await p.waitForSelector('.ei-fd-daname');
+      await p.locator('.ei-fd-more input[type="file"]').setInputFiles(synthPdf()); await p.waitForTimeout(1500);
+      if (await p.getByRole('button', { name: 'Add Coil' }).count()) await p.getByRole('button', { name: 'Add Coil' }).click(); await p.waitForSelector('#ei-fd-qty');
+      await p.fill('#ei-fd-coil', 'MC-1'); await (await p.locator('.ei-fd-unit button', { hasText: 'kg' }).click(), p.locator('#ei-fd-qty')).fill(kg);
       for (const [label, term, row] of [['Sold (OUT)', 'Rehman', null], ['Sales code', 'D.01', 'D.01']]) {
         await p.locator('.ei-fd-pick', { hasText: label }).getByRole('button', { name: /Choose|Change/ }).first().click();
         await p.locator('#ei-fd-look').pressSequentially(term, { delay: 40 }); await p.waitForTimeout(1200);
@@ -36,7 +36,7 @@ module.exports = {
       await p.locator('.ei-fd-editor .ei-fd-field', { hasText: 'Purchase rate / MTL' }).locator('input').fill('200000');
       await p.locator('.ei-fd-editor .ei-fd-field', { hasText: 'Sale rate / MTL' }).locator('input').fill('201000');
       await p.waitForSelector('.ei-fd-answer', { timeout: 40000 });
-      await p.getByRole('button', { name: 'Save Draft' }).click(); await p.waitForTimeout(1500);
+      await p.getByRole('button', { name: 'Save Entry' }).click(); await p.waitForTimeout(1500);
       await p.getByRole('button', { name: 'Submit for Approval' }).click(); await p.waitForSelector('.ei-fd-done.is-wait', { timeout: 30000 });
     };
     const pillCount = async (p) => parseInt((await p.locator('.o_menu_systray .ei-ap-pill .ei-ap-pill-count').innerText().catch(() => '0')).trim() || '0', 10);
@@ -128,8 +128,8 @@ module.exports = {
     ctx.check(/Returned for correction/.test(why) && /4,800/.test(why), 'B3 the maker opens the DA and reads why it came back', why.replace(/\s+/g, ' '));
     await ctx.shot(p, '25_B3_maker_returned');
     await p.locator('.ei-fd-table tbody tr').first().getByRole('button', { name: 'Edit' }).click();
-    await p.locator('.ei-fd-editor .ei-fd-field', { hasText: 'Weight' }).locator('input').fill('4800'); await p.waitForTimeout(1500);
-    await p.getByRole('button', { name: 'Save Draft' }).click(); await p.waitForTimeout(1500);
+    await (await p.locator('.ei-fd-unit button', { hasText: 'kg' }).click(), p.locator('#ei-fd-qty')).fill('4800'); await p.waitForTimeout(1500);
+    await p.getByRole('button', { name: 'Save Entry' }).click(); await p.waitForTimeout(1500);
     await p.getByRole('button', { name: 'Submit for Approval' }).click(); await p.waitForSelector('.ei-fd-done.is-wait', { timeout: 30000 });
     rq = await reqOf(daB);
     ctx.check(rq.state === 'pending' && rq.round === 2, 'B4 corrected and resubmitted: round 2 is pending', JSON.stringify(rq));

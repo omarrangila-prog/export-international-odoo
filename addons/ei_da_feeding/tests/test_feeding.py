@@ -416,3 +416,24 @@ class TestFeeding(TransactionCase):
         made = P.browse(self.desk.party_take('pin', new[-1])['id'])
         self.assertEqual((made.name, made.ei_is_purchase_in), ('Synthetic Brand New Entity', True))
         self.assertEqual(self.desk.party_take('pin', new[-1])['id'], made.id)           # picking it again does not make a second one
+
+    # 19 Nov 2026 (client video): the same DA number is never entered twice, and a weight typed in the wrong unit is caught
+    def test_27_same_da_number_is_offered_not_copied(self):
+        d, cl = self.entry('SYN-DUP-1')
+        found = self.desk.da_find('syn-dup-1')
+        self.assertEqual([x['id'] for x in found], [d.id])                     # found whatever the letter case
+        supplier, pin = self.parties()
+        with self.assertRaisesRegex(UserError, 'already in the system'):
+            self.desk.da_create({'supplier_id': supplier.id, 'purchase_in_id': pin.id, 'name': 'SYN-DUP-1'})
+        self.assertEqual(self.env['ei.da'].search_count([('name', '=', 'SYN-DUP-1')]), 1)
+
+    def test_28_a_small_weight_needs_a_confirmation(self):
+        d, cl = self.entry('SYN-KG-1')
+        line = {'contract_line_id': cl, 'coil_no': 'KG-1', 'method': 'direct_no_commission', 'purchase_rate': '229500', 'sale_rate': '230500'}
+        with self.assertRaisesRegex(UserError, 'choose MTL'):
+            self.desk.save_line(d.id, False, dict(line, weight_kg='4.574'))     # 4.574 typed as kg: never passed silently
+        r = self.desk.save_line(d.id, False, dict(line, weight_kg='4.574', small_weight_ok=True))
+        self.assertAlmostEqual(d.line_ids.filtered(lambda l: l.id == r['line_id']).weight_kg, 4.574, places=1)   # kg are kept to 2 decimals
+        r = self.desk.save_line(d.id, False, dict(line, coil_no='KG-2', weight_kg='4574'))
+        l2 = d.line_ids.filtered(lambda l: l.id == r['line_id'])
+        self.assertEqual((l2.weight_kg, l2.mtl), (4574, 4.574))                 # 4,574 kg = 4.574 MTL

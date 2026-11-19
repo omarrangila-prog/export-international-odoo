@@ -43,6 +43,11 @@ class EiDa(models.Model):
             fx = d._fx()
             if fx is None:
                 d.fx_text = False
+            elif not fx and d.currency_id.name == 'PKR':
+                # a PKR-only business: the cause is the company's accounting currency, never a missing exchange rate
+                d.fx_text = _("The company's accounting currency is %(b)s, but Export International works in PKR only. "
+                              "An administrator sets the company currency to PKR (Settings > Companies); no exchange rate is needed then.",
+                              b=d.company_id.currency_id.name)
             elif not fx:
                 d.fx_text = _("No %(c)s rate on or before %(d)s: it cannot be approved until the accountant enters one.",
                               c=d.currency_id.name, d=d.date)

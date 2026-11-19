@@ -54,7 +54,7 @@ module.exports = {
     // ---- 2 real entry: a new draft DA, the paper attached, one coil with a credit note
     m = s.mark();
     await p.getByRole('tab', { name: /Real entry/ }).click();
-    await p.getByRole('button', { name: 'New DA' }).click(); await p.waitForSelector('.ei-fd-more', { state: 'attached', timeout: 15000 }); await p.evaluate(() => { document.querySelector('.ei-fd-more').open = true; });
+    await p.getByRole('button', { name: 'New entry' }).click(); await p.waitForSelector('.ei-fd-more', { state: 'attached', timeout: 15000 }); await p.evaluate(() => { document.querySelector('.ei-fd-more').open = true; });
     await p.waitForSelector('#ei-fd-contract option:nth-child(2)', { state: 'attached', timeout: 15000 });
     const opt = await p.locator('#ei-fd-contract option').evaluateAll((os) => os.map((o) => [o.value, o.textContent]));
     const isl1 = opt.find(([, t]) => /DEMO\/ISL\/001/.test(t));
@@ -63,16 +63,16 @@ module.exports = {
     await p.fill('#ei-fd-daname', daName);
     await p.locator('.ei-fd-main input[type="datetime-local"]').first().fill('2026-11-06T16:03');
     await p.locator('.ei-fd-main .ei-fd-field.is-wide input').last().fill('M/S DEMO PRINTED TRADERS');
-    await p.getByRole('button', { name: 'Create draft DA' }).click();
+    await p.locator('#ei-fd-gocoil').click();
     await p.waitForSelector('.ei-fd-daname', { timeout: 15000 });
-    await p.locator('.ei-fd-paper input[type="file"]').setInputFiles(require('../lib').synthPdf());
+    await p.locator('.ei-fd-more input[type="file"]').setInputFiles(require('../lib').synthPdf());
     await p.waitForTimeout(1200);
     ctx.check(await p.locator('.ei-fd-docframe').count() === 1, '2 the attached paper is shown beside the entry');
     const shownTime = await p.locator('.ei-fd-work input[type="datetime-local"]').first().inputValue();
     ctx.check(shownTime === '2026-11-06T16:03', '2 the printed order time comes back as typed (Karachi time), apart from the DA date', shownTime);
-    await p.getByRole('button', { name: 'Add Coil' }).click();
+    if (await p.getByRole('button', { name: 'Add Coil' }).count()) await p.getByRole('button', { name: 'Add Coil' }).click(); await p.waitForSelector('#ei-fd-qty');
     await p.fill('#ei-fd-coil', 'E2E-COIL-1');
-    await p.locator('.ei-fd-editor .ei-fd-field:has-text("Weight") input').fill('4574');
+    await (await p.locator('.ei-fd-unit button', { hasText: 'kg' }).click(), p.locator('#ei-fd-qty')).fill('4574');
     ctx.check((await p.locator('.ei-fd-editor .ei-fd-hint').first().innerText()).includes('4.574'), '2 4,574 kg shows as 4.574 MTL straight away');
     const pick = async (label, term) => {
       await p.locator('.ei-fd-pick', { hasText: label }).getByRole('button', { name: /Choose|Change/ }).first().click();
@@ -87,7 +87,7 @@ module.exports = {
     await p.waitForTimeout(1200);
     const ans = (await p.locator('.ei-fd-answer .ei-fd-figs dd').allInnerTexts()).map((t) => t.trim());
     ctx.check(ans[0] === '244,289.00' && ans[1] === '248,047.80', '2 the coil is worked out from the contract formula: dealer net 245,275.80 less net CN 986.80; sold at the mill rate', ans.join(' / '));
-    await p.getByRole('button', { name: 'Save Draft' }).click(); await p.waitForTimeout(1500);
+    await p.getByRole('button', { name: 'Save Entry' }).click(); await p.waitForTimeout(1500);
     const row = await p.locator('.ei-fd-table tbody tr').first().innerText();
     ctx.check(/E2E-COIL-1/.test(row) && /Code to check/.test(row), '2 the saved coil is listed, flagged because its customer code is not verified', row.replace(/\s+/g, ' '));
     await p.getByRole('button', { name: /Save & Continue|Submit for Approval/ }).click(); await p.waitForTimeout(1500);
@@ -109,7 +109,7 @@ module.exports = {
     m = u.mark();
     await u.goto(`/odoo/action-${act}`); await up.waitForSelector('.ei-fd-tabs', { timeout: 30000 });
     await up.getByRole('tab', { name: /Real entry/ }).click();
-    await up.getByRole('button', { name: 'New DA' }).click(); await up.waitForSelector('#ei-fd-daname');
+    await up.getByRole('button', { name: 'New entry' }).click(); await up.waitForSelector('#ei-fd-daname');
     const form = await up.locator('.ei-fd-main .ei-fd-card').first().innerText();
     ctx.check(!(await up.locator('.ei-fd-curseg, [role="radio"]:has-text("USD")').count()) && !/USD|Exchange rate|Currency/i.test(form) && /amounts in PKR/.test(form),
       '5 a new entry has no currency selector and no exchange rate: amounts are in PKR', form.replace(/\s+/g, ' ').slice(0, 160));

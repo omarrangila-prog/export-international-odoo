@@ -20,6 +20,7 @@ LAB_FORMULA = 'ISL_ASML_DEALER_NET'
 LAB_DEFAULTS = {'basic_rate': '229500', 'weight_kg': '4574.00', 'cn_amount': '1000', 'direct_purchase': '229500', 'direct_sale': '230500',
                 'params': {'sales_tax_pct': '18', 'additional_pct': '0.1', 'commission_pct': '1.32', 'cn_commission_pct': '1.32'},
                 'offsets': {k: str(v[2]) for k, v in fe.METHODS.items() if v[2] is not None}}
+SMALL_KG = 100           # a coil lighter than this is almost always tons typed into kg (4.574 kg vs 4,574 kg): confirm first
 SHEETS = {'customer': 'CUSTOMER', 'trade': 'FOR PURCHASE', 'pl': 'PROFIT & LOSS'}
 DIMS = re.compile(r'(?<![0-9.])(\d*\.\d+|\d+)\s*[xX\u00d7]\s*(\d+(?:\.\d+)?)')
 
@@ -158,9 +159,25 @@ class EiFeedingDesk(models.AbstractModel):
         return [{'id': p.id, 'name': p.display_name} for p in P.search([(flag, '=', True)], order='name')] if P.has_access('read') else []
 
     @api.model
+    def da_find(self, name):
+        """DAs already in the system with this number (any supplier), so the screen can offer to open one instead of
+        making a second copy of the same paper."""
+        name = (name or '').strip()
+        if not name:
+            return []
+        rows = self.env['ei.da'].search([('name', '=ilike', name), ('state', '!=', 'cancelled')], order='id desc', limit=10)
+        return [{'id': d.id, 'name': d.name, 'state': d.state, 'state_label': dict(d._fields['state'].selection).get(d.state),
+                 'supplier': d.parent_partner_id.name, 'supplier_id': d.parent_partner_id.id, 'coils': len(d.line_ids),
+                 'date': fields.Date.to_string(d.date)} for d in rows]
+
+    @api.model
     def da_create(self, vals):
         if not (vals.get('name') or '').strip():
             raise UserError(_("Type the DO / DA number exactly as printed."))
+        same = [x for x in self.da_find(vals['name']) if str(x['supplier_id']) == str(vals.get('supplier_id') or '')]
+        if same and not vals.get('contract_id'):
+            raise UserError(_("DA %(n)s from %(s)s is already in the system (%(st)s). Open it instead of entering it again.",
+                              n=same[0]['name'], s=same[0]['supplier'], st=same[0]['state_label']))
         P = self.env['res.partner']
         c = self.env['ei.contract'].browse(int(vals.get('contract_id') or 0)).exists()
         pin = P.browse(int(vals.get('purchase_in_id') or 0)).exists()
@@ -295,7 +312,10 @@ class EiFeedingDesk(models.AbstractModel):
         if size:
             raise UserError(size)
         if not clean['weight_kg'] or clean['weight_kg'] <= 0:
-            raise UserError(_("Type the coil's weight in kg as printed."))
+            raise UserError(_("Type the coil's weight (in MTL, or in kg) as printed."))
+        if clean['weight_kg'] < SMALL_KG and not vals.get('small_weight_ok'):
+            raise UserError(_("%(kg)s kg is only %(t)s MTL. If the paper says %(kg)s MTL, choose MTL. If it really is %(kg)s kg, "
+                              "tick 'Yes, the weight is in kg' and save again.", kg=clean['weight_kg'], t=clean['weight_kg'] / 1000))
         if clean['feeding_method'] == 'purchase_without_commission':
             raise UserError(fe.METHODS['purchase_without_commission'][3])
         try:

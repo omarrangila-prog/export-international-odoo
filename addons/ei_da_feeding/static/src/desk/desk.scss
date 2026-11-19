@@ -80,7 +80,7 @@
         tr + tr { border-top: 1px solid var(--ei-line); } }
 
     // ---- real entry
-    .ei-fd-real { display: grid; grid-template-columns: minmax(220px, 280px) minmax(0, 1fr); gap: 18px; align-items: start; }
+    .ei-fd-real { display: grid; grid-template-columns: minmax(170px, 210px) minmax(0, 1fr); gap: 16px; align-items: start; }
     .ei-fd-list { position: sticky; top: 0; display: flex; flex-direction: column; gap: 6px; h2 { margin: 0; font-size: 15px; font-weight: 800; } }
     .ei-fd-listhead { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
     .ei-fd-darow { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; text-align: start; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--ei-line); background: var(--ei-card); cursor: pointer;
@@ -89,7 +89,7 @@
     .ei-fd-h2 { margin: 0 0 12px; font-size: 17px; font-weight: 800; }
     .ei-fd-dahead { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 8px 20px; margin-bottom: 12px; }
     .ei-fd-daname { margin: 0; font-size: 22px; font-weight: 800; color: var(--ei-ink); display: flex; align-items: center; gap: 10px; }
-    .ei-fd-split { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); gap: 16px; align-items: start; }
+    .ei-fd-split { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; align-items: start; }
     .ei-fd-paper { position: sticky; top: 0; display: flex; flex-direction: column; gap: 10px; }
     .ei-fd-paperhead { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; > b { flex: 1; } }
     .ei-fd-docframe { width: 100%; height: 70vh; border: 1px solid var(--ei-line); border-radius: 10px; background: #fff; }
@@ -117,7 +117,7 @@
     .ei-fd-warnbox { margin-top: 14px; padding: 10px 14px; border-radius: 12px; background: var(--ei-warn-soft); border: 1px solid var(--ei-warn-line); }
     .ei-fd-actions.is-sticky { position: sticky; bottom: 0; background: var(--ei-card); padding-top: 10px; border-top: 1px solid var(--ei-line); }
 
-    @media (max-width: 1100px) { .ei-fd-real, .ei-fd-split { grid-template-columns: minmax(0, 1fr); } .ei-fd-list, .ei-fd-paper { position: static; } .ei-fd-docframe { height: 50vh; } }
+    @media (max-width: 1180px) { .ei-fd-real, .ei-fd-split { grid-template-columns: minmax(0, 1fr); } .ei-fd-list, .ei-fd-paper { position: static; } .ei-fd-docframe { height: 50vh; } }
     @media (max-width: 640px) {
         .ei-fd-head, .ei-fd-body { padding-inline: 14px; } .ei-fd-title { font-size: 24px; }
         .ei-fd-tabs { width: 100%; } .ei-fd-tab { flex: 1; }
@@ -132,4 +132,17 @@
     .ei-fd-amounts { margin-top: 8px; }
     .ei-fd-sold .ei-fd-lookrows, .ei-fd-party .ei-fd-lookrows, .ei-fd-item .ei-fd-lookrows { margin-top: 6px; max-height: 220px; overflow-y: auto; }
     @media (max-width: 767.98px) { .ei-fd-parties .ei-fd-arrow { display: none; } }
+    // 19 Nov 2026: one entry form; the weight with its unit; a DA number already in the system is offered, never copied
+    .ei-fd-qty { flex: 1 1 260px; }
+    .ei-fd-qtyrow { display: flex; gap: 8px; align-items: stretch; .ei-fd-in { flex: 1 1 auto; min-width: 0; } }
+    .ei-fd-unit { display: inline-flex; border: 1px solid var(--ei-line-strong); border-radius: 10px; overflow: hidden; flex: none;
+        button { min-width: 52px; min-height: 40px; border: 0; background: var(--ei-card); color: var(--ei-text); font-weight: 800; cursor: pointer; }
+        button.is-on { background: var(--ei-primary); color: var(--ei-on-primary); } }
+    .ei-fd-smallw { margin-top: 6px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+    .ei-fd-check { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; }
+    .ei-fd-dupes { margin: 8px 0; padding-left: 18px; li { margin: 4px 0; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; } }
+    .ei-fd-coilnext { margin-top: 8px; .ei-fd-in { cursor: pointer; background: var(--ei-surface-2); } }
+    .ei-fd-in:focus { border-color: var(--ei-primary); box-shadow: 0 0 0 3px var(--ei-primary-soft); }
+    // a short window (a laptop at 175-200% zoom): the Save bar scrolls with the form instead of covering the boxes under it
+    @media (max-height: 520px) { .ei-fd-actions.is-sticky { position: static; } .ei-fd-list { position: static; } .ei-fd-head { padding-top: 8px; padding-bottom: 6px; } }
 }

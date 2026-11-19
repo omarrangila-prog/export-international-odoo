@@ -37,10 +37,12 @@ def open_everything(env):
         return
     roles = [g for g in (env.ref(x, raise_if_not_found=False) for x in OPEN_ROLES) if g]
     env.ref('base.group_user').write({'implied_ids': [Command.link(g.id) for g in roles]})
-    # for now one person may also enter and approve the same record (owner, 17 Nov 2026); set it back to True to restore
-    env['ir.config_parameter'].sudo().set_bool('ei_legacy_master.enforce_maker_checker', False)
-    # and no workflow waits for approval: Save & Submit confirms at once (owner, 17 Nov 2026)
-    env['ei.approval.policy'].sudo().set_all(False)
+    # Approval: client_data/approvals.json decides (the client-confirmed maker-checker, 20 Nov 2026). Without that file the
+    # owner's 17 Nov 2026 setting stays: one person may enter and confirm, no workflow waits for approval.
+    _feeding_formulas(env, log)        # before maker-checker is switched on below: the system's own approval is not a maker's
+    appr = _approval_settings(env, log)
+    env['ir.config_parameter'].sudo().set_bool('ei_legacy_master.enforce_maker_checker', bool(appr.get('maker_checker', False)))
+    env['ei.approval.policy'].sudo().set_all(bool(appr.get('approval_on', False)))
     # nor is the DA paper required before Save & Continue (it can still be attached)
     env['ir.config_parameter'].sudo().set_bool('ei_contract_da.require_da_paper', False)
     env['ir.config_parameter'].sudo().set_bool('ei_cashbook.require_receipt', False)    # a cash voucher's receipt: optional too
@@ -48,6 +50,13 @@ def open_everything(env):
     env['ir.config_parameter'].sudo().set_bool('ei_material_lifting.require_proof', False)   # a loading's gate-pass paper: optional
     env['ir.config_parameter'].sudo().set_bool('ei_app_shell.confirm_summary', False)        # no 'Verify ...?' summary before confirming
     env['ir.config_parameter'].sudo().set_bool('ei_invoice_extensions.require_document', False)  # the supplier invoice's scan: optional
+    # PKR only: the company's accounting currency is REPORTED, never changed by an update (owner, 20 Nov 2026): changing a live
+    # company's currency touches historical postings, so it is a planned, separate step (docs/deploy_currency_plan.md)
+    pkr = env.ref('base.PKR')
+    for company in env['res.company'].sudo().search([('currency_id', '!=', pkr.id)]):
+        n = env['account.move.line'].sudo().search_count([('company_id', '=', company.id)])
+        log.warning("export_international: %s keeps its books in %s (%s journal items); the screens ask for the currency to be set to PKR. "
+                    "See the currency plan before changing it.", company.name, company.currency_id.name, n)
     # a cash voucher needs a cash box: a fresh database without a chart's Cash journal gets one, so the screen is never empty
     J = env['account.journal'].sudo()
     for company in env['res.company'].sudo().search([]):
@@ -71,7 +80,30 @@ def open_everything(env):
             failed += 1
             log.warning("export_international: code %s left for the accountant: %s", c.legacy_code, e)
     log.info("export_international: %s roles for every user; %s codes verified, %s left", len(roles), done, failed)
-    _feeding_formulas(env, log)
+
+
+def _approval_settings(env, log):
+    """{'maker_checker': bool, 'approval_on': bool, 'checkers': [logins]} from the private package. Named checkers get a
+    rule per workflow so their notifications go to them; nobody approves their own entry while maker_checker is on."""
+    import json
+    import os
+    path = os.path.join(os.path.dirname(__file__), 'client_data', 'approvals.json')
+    if not os.path.isfile(path):
+        return {}
+    cfg = json.load(open(path))
+    logins = cfg.get('checkers') or []
+    users = env['res.users'].sudo().search([('login', 'in', logins)]) if logins else env['res.users']
+    missing = sorted(set(logins) - set(users.mapped('login')))
+    if missing:
+        log.warning("export_international: checker logins not found, no rule made for them: %s", ', '.join(missing))
+    if users:
+        R = env['ei.approval.rule'].sudo()
+        for flow in ('da', 'order', 'lifting', 'cash', 'daybook', 'contract'):
+            rule = R.search([('flow', '=', flow), ('name', '=', 'Client checkers')], limit=1)
+            vals = {'name': 'Client checkers', 'flow': flow, 'sequence': 5, 'approver_user_ids': [(6, 0, users.ids)]}
+            rule.write(vals) if rule else R.create(vals)
+        log.info("export_international: checkers %s set for every workflow", ', '.join(users.mapped('name')))
+    return cfg
 
 
 def _feeding_formulas(env, log):
@@ -95,7 +127,7 @@ def _feeding_formulas(env, log):
             if failed:
                 log.warning("export_international: formula %s not approved, test cases fail: %s", f.code, failed)
                 continue
-            f.action_approve()
+            f.with_context(ei_ap_deciding=True).action_approve()      # the owner's decision, applied by the system, not a queued request
             f.message_post(body=item.get('note') or "Approved on the owner's instruction for the accountant.")
             log.info("export_international: formula %s v%s approved", f.code, f.version)
         P = env['res.partner'].sudo()
