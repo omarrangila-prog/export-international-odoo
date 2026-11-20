@@ -50,13 +50,22 @@ def open_everything(env):
     env['ir.config_parameter'].sudo().set_bool('ei_material_lifting.require_proof', False)   # a loading's gate-pass paper: optional
     env['ir.config_parameter'].sudo().set_bool('ei_app_shell.confirm_summary', False)        # no 'Verify ...?' summary before confirming
     env['ir.config_parameter'].sudo().set_bool('ei_invoice_extensions.require_document', False)  # the supplier invoice's scan: optional
-    # PKR only: the company's accounting currency is REPORTED, never changed by an update (owner, 20 Nov 2026): changing a live
-    # company's currency touches historical postings, so it is a planned, separate step (docs/deploy_currency_plan.md)
+    # PKR only (owner, 20 Nov 2026: "no USD, only PKR"). A company with NO journal items is moved to PKR (nothing historical
+    # changes); with journal items the currency is left as it is and reported: that change follows docs/deploy_currency_plan.md
     pkr = env.ref('base.PKR')
     for company in env['res.company'].sudo().search([('currency_id', '!=', pkr.id)]):
         n = env['account.move.line'].sudo().search_count([('company_id', '=', company.id)])
-        log.warning("export_international: %s keeps its books in %s (%s journal items); the screens ask for the currency to be set to PKR. "
-                    "See the currency plan before changing it.", company.name, company.currency_id.name, n)
+        if n:
+            log.warning("export_international: %s keeps its books in %s: %s journal items exist; see docs/deploy_currency_plan.md",
+                        company.name, company.currency_id.name, n)
+            continue
+        try:
+            with env.cr.savepoint():
+                pkr.sudo().active = True
+                company.write({'currency_id': pkr.id})
+                log.info("export_international: %s now keeps its books in PKR (it had no journal items)", company.name)
+        except Exception as e:  # noqa: BLE001
+            log.warning("export_international: %s currency not changed: %s", company.name, e)
     # a cash voucher needs a cash box: a fresh database without a chart's Cash journal gets one, so the screen is never empty
     J = env['account.journal'].sudo()
     for company in env['res.company'].sudo().search([]):
