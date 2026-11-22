@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ei_feeding_quota_list" model="ir.ui.view">
+        <field name="name">ei.feeding.quota.list</field>
+        <field name="model">ei.feeding.quota</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="supplier_id"/>
+                <field name="purchase_in_id" optional="show"/>
+                <field name="total_mtl" sum="Total"/>
+                <field name="entered_mtl"/>
+                <field name="remaining_mtl"/>
+                <field name="confirmed_mtl" optional="hide"/>
+                <field name="lifted_mtl" optional="hide"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+    <record id="ei_feeding_quota_form" model="ir.ui.view">
+        <field name="name">ei.feeding.quota.form</field>
+        <field name="model">ei.feeding.quota</field>
+        <field name="arch" type="xml">
+            <form>
+                <header><field name="state" widget="statusbar"/></header>
+                <sheet>
+                    <group>
+                        <group><field name="name"/><field name="supplier_id"/><field name="purchase_in_id"/><field name="total_mtl" readonly="da_ids"/></group>
+                        <group><field name="entered_mtl"/><field name="remaining_mtl"/><field name="pending_mtl"/><field name="confirmed_mtl"/>
+                            <field name="sold_mtl"/><field name="lifted_mtl"/></group>
+                    </group>
+                    <p class="text-muted" invisible="not da_ids">The total of a contract with entries is changed from the feeding screen, with a reason, by a person with the right to exceed contract quantities.</p>
+                    <field name="da_ids" readonly="1"><list><field name="name"/><field name="date"/><field name="state"/><field name="total_mtl"/></list></field>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    <record id="ei_feeding_quota_action" model="ir.actions.act_window">
+        <field name="name">Contract quantities</field>
+        <field name="res_model">ei.feeding.quota</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">No contract quantity yet</p>
+            <p>Set one on the feeding screen: open a DA and press <b>Set contract quantity</b> (for example December 2026, 500 MTL).
+            Every coil fed against it is counted, and the screen shows what remains.</p></field>
+    </record>
+    <menuitem id="menu_ei_feeding_quota" name="Contract quantities" parent="ei_contract_da.menu_ei_contracts" action="ei_feeding_quota_action" sequence="30"/>
+</odoo>

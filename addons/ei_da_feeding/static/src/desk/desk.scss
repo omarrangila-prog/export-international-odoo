@@ -145,4 +145,40 @@
     .ei-fd-in:focus { border-color: var(--ei-primary); box-shadow: 0 0 0 3px var(--ei-primary-soft); }
     // a short window (a laptop at 175-200% zoom): the Save bar scrolls with the form instead of covering the boxes under it
     @media (max-height: 520px) { .ei-fd-actions.is-sticky { position: static; } .ei-fd-list { position: static; } .ei-fd-head { padding-top: 8px; padding-bottom: 6px; } }
+    // 22 Nov 2026: the optional paper at the top right; contract quantity; one rate to many coils; many coils at once
+    .ei-fd-dadate { font-size: 14px; font-weight: 600; }
+    .ei-fd-dahead > .ei-fd-actions { margin-top: 0; margin-inline-start: auto; }
+    .ei-fd-dahead { position: relative; > div:first-child { padding-inline-end: 230px; } }
+    .ei-fd-attachwrap { position: relative; }
+    .ei-fd-dahead .ei-fd-attachwrap { position: absolute; top: 0; inset-inline-end: 0; }
+    .ei-fd-attachbtn { color: var(--ei-muted); font-weight: 600; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; line-height: 30px;
+        small { font-weight: 500; } &.has-doc { color: var(--ei-ink); border-color: var(--ei-ok-line); background: var(--ei-ok-soft); } }
+    .ei-fd-docpop { position: absolute; z-index: 30; top: calc(100% + 6px); inset-inline-end: 0; width: #{"min(440px, calc(100vw - 32px))"}; padding: 12px 14px; border-radius: 14px;
+        background: var(--ei-card); border: 1px solid var(--ei-line-strong); box-shadow: 0 16px 40px rgba(15, 27, 51, .18); text-align: start;
+        .ei-fd-docframe { height: 300px; } .ei-fd-docimg { max-height: 300px; object-fit: contain; } .ei-fd-docname { margin: 6px 0; overflow-wrap: anywhere; } }
+    .ei-fd-docacts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; a { text-decoration: none; } }
+    .ei-fd-quota { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; margin: 0 0 12px; padding: 9px 14px; border-radius: 12px; background: var(--ei-surface-2); border: 1px solid var(--ei-line); font-size: 13.5px;
+        b { color: var(--ei-ink); } }
+    .ei-fd-qrem { font-weight: 600; b { font-size: 15px; color: var(--ei-primary); } &.is-zero b { color: var(--ei-warn); } }
+    .ei-fd-qbar { flex: 1 1 120px; max-width: 220px; height: 6px; border-radius: 99px; background: var(--ei-line); overflow: hidden; i { display: block; height: 100%; background: var(--ei-primary); border-radius: 99px; } }
+    .ei-fd-qmore { flex-basis: 100%; display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 6px 14px; margin: 4px 0 0;
+        div { display: flex; justify-content: space-between; gap: 8px; } dt { font-weight: 500; color: var(--ei-muted); } dd { margin: 0; font-weight: 700; } }
+    .ei-fd-qform { flex-basis: 100%; display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px 14px; padding-top: 6px; .ei-fd-field.is-wide { flex: 2 1 260px; max-width: 520px; } }
+    .ei-fd-tick { width: 34px; input { width: 18px; height: 18px; cursor: pointer; } }
+    .ei-fd-table tr.is-sel { background: var(--ei-primary-soft); }
+    .ei-fd-ratebar { border-color: var(--ei-primary-line); }
+    .ei-fd-rconfirm { .ei-fd-figs { margin: 8px 0; } dd { font-size: 14px; } }
+    .ei-fd-bshared { margin: 0 0 10px; font-size: 13.5px; }
+    .ei-fd-nrows.is-on { background: var(--ei-primary-soft); border-color: var(--ei-primary); }
+    .ei-fd-bcount { width: 70px !important; height: 32px; }
+    .ei-fd-btable { margin-top: 10px; td { padding: 4px 6px; } .ei-fd-in { height: 34px; } .ei-fd-bcoil { min-width: 150px; } .ei-fd-bqty { min-width: 110px; } }
+    .ei-fd-bulk .ei-fd-tablewrap { max-height: 60vh; overflow-y: auto; }
+    .ei-fd-bulk .ei-fd-btable thead th { position: sticky; top: 0; background: var(--ei-card); z-index: 1; }
+    .ei-fd-bulk .ei-fd-unit { align-self: flex-start; }
+    .ei-fd-btable { width: auto; min-width: #{"min(640px, 100%)"}; .ei-fd-bcoil { width: 240px; } .ei-fd-bqty { width: 150px; } }
+    .ei-fd-bulk .ei-fd-btable tfoot th, .ei-fd-bulk .ei-fd-btable tfoot td { position: sticky; bottom: 0; background: var(--ei-card); box-shadow: 0 -1px 0 var(--ei-line); }
+    .ei-fd-printed { margin: 0 0 12px; }
+    @media (max-width: 640px) { .ei-fd-dahead { > div:first-child { padding-inline-end: 0; } .ei-fd-attachwrap { position: relative; } } .ei-fd-docpop { position: fixed; inset-inline: 16px; top: 80px; width: auto; max-height: calc(100vh - 100px); overflow-y: auto; }
+        .ei-fd-dahead > .ei-fd-actions { justify-content: flex-start; } .ei-fd-qbar { max-width: none; } }
+    @media (max-height: 520px) { .ei-fd-bulk .ei-fd-tablewrap { max-height: none; } }
 }

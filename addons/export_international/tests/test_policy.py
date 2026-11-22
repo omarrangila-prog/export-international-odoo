@@ -105,12 +105,17 @@ class TestPolicy(AccountTestInvoicingCommon):
         v2.with_user(self.cashier).action_confirm()
         self.assertEqual(v2.state, 'posted')
         self.assertEqual(v2.move_id.state, 'posted')
-        # the checks still run: a DA without its paper cannot be confirmed, a DA above the contract cannot be confirmed
+        # the DA paper is optional (client, 22 Nov 2026), but the management switch still enforces it when turned on;
+        # a DA above the contract cannot be confirmed
         c = self.contract('P-4'); c.with_user(self.op).action_confirm()
         d = self.env['ei.da'].with_user(self.op).create({'name': 'P-DA-NOPAPER', 'parent_partner_id': self.parent.id, 'contract_id': c.id,
                                                           'line_ids': [Command.create({'contract_line_id': c.line_ids.id, 'mtl': 10})]})
-        with self.assertRaises(UserError):
+        self.env['ir.config_parameter'].sudo().set_bool('ei_contract_da.require_da_paper', True)
+        with self.assertRaisesRegex(UserError, 'Attach the DA document'):
             d.with_user(self.op).action_confirm()
+        self.env['ir.config_parameter'].sudo().set_bool('ei_contract_da.require_da_paper', False)
+        d.with_user(self.op).action_confirm()                       # optional: confirmed without a paper
+        self.assertNotEqual(d.state, 'draft')
         big = self.da(c, 'P-DA-BIG'); big.line_ids.mtl = 500
         with self.assertRaises(UserError):
             big.with_user(self.op).action_confirm()

@@ -203,6 +203,9 @@ class EiFeedingDesk(models.AbstractModel):
                                       'date': vals.get('date') or fields.Date.context_today(self),
                                       'order_datetime': local_to_utc(self.env, vals.get('order_datetime')), 'ship_date': vals.get('ship_date') or False,
                                       'printed_customer': (vals.get('printed_customer') or '').strip() or False})
+        opts = self._quota_options(d.parent_partner_id, d.purchase_in_id)
+        if len(opts) == 1:                          # one open contract quantity for this supplier: the DA counts against it
+            d.write({'quota_id': opts[0]['id']})
         return d.id
 
     @api.model
@@ -232,7 +235,12 @@ class EiFeedingDesk(models.AbstractModel):
             'ship_date': d.ship_date and fields.Date.to_string(d.ship_date) or '', 'printed_customer': d.printed_customer or '',
             'currency': d.currency_id.name, 'company_currency': d.company_id.currency_id.name, 'fx_text': d.fx_text or '',
             'fx_missing': fx is False, 'fx_rate': fx and fx.rate or None,
-            'attachments': [{'id': a.id, 'name': a.name, 'mimetype': a.mimetype} for a in att],
+            'attachments': [{'id': a.id, 'name': a.name, 'mimetype': a.mimetype, 'by': a.create_uid.name, 'can_remove': self._can_remove_doc(d, a)}
+                            for a in att],
+            'can_attach': d.has_access('write'),
+            'quota': d.quota_id and d.quota_id.summary() or None,
+            'quota_options': self._quota_options(d.parent_partner_id, d.purchase_in_id),
+            'can_adjust_quota': self.env['ei.feeding.quota'].can_adjust(),
             'contract_lines': [{'id': cl.id, 'name': '%s%s' % (cl.product_id.display_name, ' (%s)' % cl.grade if cl.grade else ''),
                                 'basic_rate': cl.basic_rate, 'formula': cl.formula_id and '%s v%s' % (cl.formula_id.code, cl.formula_id.version) or '',
                                 'formula_state': cl.formula_id.state or '', 'free_mtl': d._available(cl),
@@ -297,9 +305,18 @@ class EiFeedingDesk(models.AbstractModel):
             v[k] = num(vals.get(k), label)
         return v
 
+    def _lock_da(self, d):
+        """One person's save at a time per DA: two saves of the same coil number never both pass (the second waits, then retries)."""
+        self.env.cr.execute('UPDATE ei_da SET write_date = write_date WHERE id = %s', (d.id,))
+
     @api.model
     def save_line(self, da_id, line_id, vals):
         d = self._da(da_id, write=True)
+        self._lock_da(d)
+        line = self._write_line(d, line_id, vals)
+        return {'line_id': line.id, 'da': self.da_load(d.id)}
+
+    def _write_line(self, d, line_id, vals):
         cl = d.contract_id.line_ids.filtered(lambda x: x.id == int(vals.get('contract_line_id') or 0))
         if not cl:
             raise UserError(_("Choose the contract line (material) first."))
@@ -355,7 +372,111 @@ class EiFeedingDesk(models.AbstractModel):
                 line.with_context(ei_system=True).write({'code_override_reason': False, 'code_override_by': False})
         else:
             line = Line.create(dict(write, da_id=d.id))
-        return {'line_id': line.id, 'da': self.da_load(d.id)}
+        return line
+
+    # ------------------------------------------------------------------ many coils at once (client, 22 Nov 2026)
+    SHARED = ('contract_line_id', 'grade', 'thickness', 'width', 'method', 'basic_rate', 'sale_offset', 'sale_typed', 'sale_rate',
+              'purchase_rate', 'loss_reason', 'rate_note', 'customer_id', 'customer_code_id', 'trade_code_id', 'pl_code_id')
+
+    @api.model
+    def save_lines(self, da_id, shared, rows):
+        """Add Multiple Coils: the shared details (item, codes, method, rates) once, then each coil's own number and weight (and its
+        own credit note, never copied unless typed). All coils are saved together or none: one wrong row stops the whole batch."""
+        d = self._da(da_id, write=True)
+        self._lock_da(d)
+        rows = [r for r in (rows or []) if (r.get('coil_no') or '').strip() or (r.get('weight_kg') or '') not in ('', None)]
+        if not rows:
+            raise UserError(_("Type the coil numbers and weights first."))
+        seen, twice = set(), []
+        for r in rows:
+            c = (r.get('coil_no') or '').strip()
+            if c in seen:
+                twice.append(c)
+            seen.add(c)
+        if twice:
+            raise UserError(_("Coil number typed twice in these rows: %s.", ', '.join(sorted(set(twice)))))
+        lines = self.env['ei.da.line']
+        for i, r in enumerate(rows, 1):
+            vals = {k: shared.get(k) for k in self.SHARED}
+            vals.update({k: r.get(k) for k in ('coil_no', 'weight_kg', 'cn_amount', 'cn_text', 'small_weight_ok') if k in r})
+            for k in ('basic_rate', 'sale_offset', 'sale_rate', 'purchase_rate'):
+                if r.get(k) not in (None, ''):
+                    vals[k] = r[k]
+            try:
+                lines |= self._write_line(d, False, vals)
+            except UserError as e:
+                raise UserError(_("Row %(i)s (coil %(c)s): %(e)s", i=i, c=(r.get('coil_no') or '?').strip(), e=e.args[0]))
+        return {'created': len(lines), 'da': self.da_load(d.id)}
+
+    def _vals_of(self, l):
+        """A saved coil as the screen would send it (to work it out again with one rate changed)."""
+        return {'contract_line_id': l.contract_line_id.id, 'coil_no': l.coil_no, 'grade': l.coil_grade or '', 'thickness': l.coil_thickness or '',
+                'width': l.coil_width or '', 'weight_kg': l.weight_kg, 'method': l.feeding_method, 'basic_rate': l.basic_rate or '',
+                'sale_offset': l.sale_offset, 'sale_typed': l.sale_typed, 'sale_rate': l.sale_rate, 'purchase_rate': l.purchase_rate,
+                'cn_amount': l.cn_amount, 'cn_text': l.cn_text or '', 'loss_reason': l.loss_reason or '', 'rate_note': l.rate_note or '',
+                'customer_id': l.customer_id.id, 'customer_code_id': l.customer_code_id.id, 'trade_code_id': l.trade_code_id.id,
+                'pl_code_id': l.pl_code_id.id, 'small_weight_ok': True}
+
+    @api.model
+    def apply_rates(self, da_id, line_ids, rates, confirm=False):
+        """Apply Rate to Selected. Only the rates typed are changed, and only on coils of the matching kind: a basic rate and
+        mill +/- on formula coils, purchase and sale rates on direct coils. A coil of another kind is left as it is and listed.
+        Credit notes, weights, codes and customers are never touched. Without confirm nothing is saved: the screen shows the
+        coils and totals before and after and asks first."""
+        d = self._da(da_id, write=True)
+        rates = {k: v for k, v in (rates or {}).items() if v not in (None, '')}
+        method = rates.pop('method', None)
+        if method and method not in fe.METHODS:
+            raise UserError(_("Unknown feeding method."))
+        lines = d.line_ids.filtered(lambda l: l.id in [int(x) for x in line_ids or []])
+        if not lines:
+            raise UserError(_("Select the coils first."))
+        changed, skipped, tot = [], [], {'purchase_before': Decimal(0), 'purchase_after': Decimal(0), 'sale_before': Decimal(0),
+                                         'sale_after': Decimal(0), 'spread_before': Decimal(0), 'spread_after': Decimal(0)}
+        plans = []
+        for l in lines:
+            vals = self._vals_of(l)
+            m = method or l.feeding_method
+            basis = fe.METHODS.get(m, (None, None))[1]
+            use = {}
+            if basis == 'direct':
+                use = {k: rates[k] for k in ('purchase_rate', 'sale_rate') if k in rates}
+            elif basis in ('dealer_net', 'with_cn'):
+                use = {k: rates[k] for k in ('basic_rate', 'sale_offset') if k in rates}
+                if vals['sale_typed'] and 'sale_rate' in rates:
+                    use['sale_rate'] = rates['sale_rate']
+            if rates and not use and not method:
+                skipped.append({'id': l.id, 'coil_no': l.coil_no, 'why': _("%s: these rates are of another kind", dict(l._fields['feeding_method'].selection).get(l.feeding_method))})
+                continue
+            vals.update(use, method=m)
+            if method and method != l.feeding_method and m in ('purchase_with_cn', 'sale_at_mill_rate'):
+                vals['sale_offset'] = '0'
+            try:
+                r = self.env['ei.da.line']._feed(l.contract_line_id, self._clean(vals))
+            except fe.FeedingError as e:
+                raise UserError(_("Coil %(c)s: %(e)s", c=l.coil_no, e=str(e)))
+            q = Decimal(str(l.mtl))
+            before = (Decimal(str(l.purchase_rate)), Decimal(str(l.sale_rate)))
+            row = {'id': l.id, 'coil_no': l.coil_no, 'mtl': str(l.mtl), 'purchase_before': str(before[0]), 'sale_before': str(before[1]),
+                   'purchase_after': str(r['purchase_rate']), 'sale_after': str(r['sale_rate']), 'spread_after': str(r['spread_per_mtl'])}
+            tot['purchase_before'] += fe.money(before[0] * q); tot['sale_before'] += fe.money(before[1] * q)
+            tot['spread_before'] += Decimal(str(l.gross_spread))
+            tot['purchase_after'] += fe.money(r['purchase_rate'] * q); tot['sale_after'] += fe.money(r['sale_rate'] * q)
+            tot['spread_after'] += r['total_spread']
+            changed.append(row); plans.append((l, vals, r))
+        if not changed:
+            raise UserError(_("None of the selected coils takes these rates (they are of another kind)."))
+        if confirm:
+            self._lock_da(d)
+            for l, vals, r in plans:
+                if r['spread_per_mtl'] < 0 and not vals.get('loss_reason'):
+                    raise UserError(_("Coil %s would be sold below cost. Write why on that coil first (Edit), then apply.", l.coil_no))
+                self._write_line(d, l.id, vals)
+            d.message_post(body=_("Rates applied to %(n)s coil(s) by %(u)s: %(r)s%(m)s.", n=len(plans), u=self.env.user.name,
+                                  r=', '.join('%s %s' % (k, v) for k, v in rates.items()) or _('recalculated'),
+                                  m=method and _(', method %s', method) or ''))
+        return {'count': len(changed), 'rows': changed, 'skipped': skipped, 'totals': {k: str(v) for k, v in tot.items()},
+                'applied': bool(confirm), 'da': self.da_load(d.id) if confirm else None}
 
     @api.model
     def product_search(self, term=''):
@@ -446,14 +567,91 @@ class EiFeedingDesk(models.AbstractModel):
         res['next'] = nxt
         return res
 
+    def _da_docs(self, da_id):
+        d = self.env['ei.da'].browse(int(da_id)).exists()
+        if not d:
+            raise UserError(_("This DA no longer exists."))
+        d.check_access('write')
+        return d
+
     @api.model
-    def attach(self, da_id, name, data_b64, mimetype=None):
-        d = self._da(da_id, write=True)
+    def attach(self, da_id, name, data_b64, mimetype=None, replace_id=False):
+        """Attach DA (Optional): never required to save, continue or submit. A paper can be added at any stage; replacing or
+        removing one is for a draft, by the person who attached it or a person who may delete DAs, and is written on the DA."""
+        d = self._da_docs(da_id)
         raw = base64.b64decode(data_b64 or '')
         if not raw or len(raw) > 20 * 1024 * 1024:
             raise UserError(_("The file is empty or larger than 20 MB."))
-        self.env['ir.attachment'].create({'name': name or 'DA.pdf', 'raw': raw, 'mimetype': mimetype or False,
-                                          'res_model': 'ei.da', 'res_id': d.id})
+        old = replace_id and self._doc(d, replace_id, remove=True)
+        att = self.env['ir.attachment'].create({'name': name or 'DA.pdf', 'raw': raw, 'mimetype': mimetype or False,
+                                                'res_model': 'ei.da', 'res_id': d.id})
+        if old:
+            d.message_post(body=_("DA paper %(o)s replaced by %(n)s (%(u)s).", o=old.name, n=att.name, u=self.env.user.name))
+            old.unlink()
+        else:
+            d.message_post(body=_("DA paper %(n)s attached (%(u)s).", n=att.name, u=self.env.user.name))
+        return self.da_load(d.id)
+
+    def _doc(self, d, att_id, remove=False):
+        att = self.env['ir.attachment'].search([('id', '=', int(att_id)), ('res_model', '=', 'ei.da'), ('res_id', '=', d.id)], limit=1)
+        if not att:
+            raise UserError(_("This paper is not on DA %s.", d.name))
+        if remove and not self._can_remove_doc(d, att):
+            raise AccessError(_("Only the person who attached this paper, or a person who may delete DAs, replaces or removes it, "
+                                "and only while the DA is a draft."))
+        return att
+
+    def _can_remove_doc(self, d, att):
+        return d.state == 'draft' and (att.create_uid == self.env.user or d.has_access('unlink'))
+
+    @api.model
+    def detach(self, da_id, att_id):
+        d = self._da_docs(da_id)
+        att = self._doc(d, att_id, remove=True)
+        d.message_post(body=_("DA paper %(n)s removed (%(u)s).", n=att.name, u=self.env.user.name))
+        att.unlink()
+        return self.da_load(d.id)
+
+    # ------------------------------------------------------------------ contract quantity (500 MTL, 425 entered, 75 remaining)
+    def _quota_options(self, supplier, pin):
+        Q = self.env['ei.feeding.quota']
+        if not supplier or not Q.has_access('read'):
+            return []
+        qs = Q.search([('supplier_id', '=', supplier.id), ('state', '=', 'open'), '|', ('purchase_in_id', '=', False), ('purchase_in_id', '=', pin.id)])
+        return [q.summary() for q in qs]
+
+    @api.model
+    def quota_link(self, da_id, quota_id):
+        d = self._da(da_id, write=True)
+        q = self.env['ei.feeding.quota'].browse(int(quota_id or 0)).exists()
+        if q and q.supplier_id != d.parent_partner_id:
+            raise UserError(_("%(c)s is a contract of %(s)s, not of this DA's supplier.", c=q.name, s=q.supplier_id.name))
+        d.write({'quota_id': q.id or False})
+        return self.da_load(d.id)
+
+    @api.model
+    def quota_create(self, da_id, name, total):
+        d = self._da(da_id, write=True)
+        name = (name or '').strip()
+        if not name:
+            raise UserError(_("Name the contract, e.g. December 2026."))
+        t = num(total, _("Total quantity"))
+        if not t or t <= 0:
+            raise UserError(_("Type the contract's total quantity in MTL."))
+        q = self.env['ei.feeding.quota'].with_context(ei_quota_new=True).create({
+            'name': name, 'supplier_id': d.parent_partner_id.id, 'purchase_in_id': d.purchase_in_id.id or False, 'total_mtl': float(t)})
+        d.write({'quota_id': q.id})
+        return self.da_load(d.id)
+
+    @api.model
+    def quota_adjust(self, da_id, quota_id, total, reason):
+        """The documented way past the total: a person with the right raises it, and the reason stays on the contract."""
+        d = self._da(da_id)
+        q = self.env['ei.feeding.quota'].browse(int(quota_id)).exists()
+        if not q or q != d.quota_id:
+            raise UserError(_("This DA is not on that contract."))
+        t = num(total, _("Total quantity"))
+        q.with_context(ei_quota_reason=(reason or '').strip()).write({'total_mtl': float(t or 0)})
         return self.da_load(d.id)
 
     # ------------------------------------------------------------------ look-ups

@@ -32,6 +32,11 @@ const kgOf = (qty, unit) => {
     return String(parseFloat(kg.toFixed(3)));
 };
 const SMALL_KG = 100;
+const blankRate = () => ({ method: "", basic_rate: "", sale_offset: "", purchase_rate: "", sale_rate: "" });
+const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+// MTL to whole grams as an integer: totals of many coils without floating-point dust
+const grams = (mtl) => { const n = toNum(mtl); return Number.isNaN(n) ? 0 : Math.round(n * 1000); };
+let bulkKey = 0;
 // fields that move on with Enter (FoxPro style); lookups, buttons and text areas keep their own Enter
 const NEXT_SEL = ["input:not([type=hidden]):not([type=file]):not([type=checkbox]):not([readonly]):not([disabled])", "select:not([disabled])",
     ".ei-fd-pick > button.ei-fd-btn", ".ei-fd-mpick:not([disabled])", ".ei-fd-savebtn"].join(", ");
@@ -50,6 +55,7 @@ export class EiDaFeeding extends Component {
             look: { field: null, term: "", rows: [], busy: false }, busy: false, error: "", header: null, docIndex: 0,
             review: false, next: null, partyLook: { term: "", rows: [] }, itemLook: null, dupes: null,
             pl: { supplier: { term: "", rows: [] }, pin: { term: "", rows: [] } },
+            docsOpen: false, quotaUi: null, quotaMore: false, sel: {}, rate: blankRate(), ratePlan: null, bulk: null,
         });
         this.timers = { lab: null, prev: null, look: null, party: null, item: null };
         this.onKey = (ev) => {
@@ -94,6 +100,10 @@ export class EiDaFeeding extends Component {
         if (!el.matches("input, select") || el.type === "checkbox" || el.type === "file") { return; }
         ev.preventDefault();
         if (el.id === "ei-fd-daname" || el.closest(".ei-fd-newhead")) { this.focusNext(el); return; }
+        if (el.classList.contains("ei-fd-bcount")) { this.addRows(); return; }                          // the number of rows: Enter adds them
+        if (el.classList.contains("ei-fd-bqty") && el.closest("tr") && !el.closest("tr").nextElementSibling) {   // last weight: stop on Save all
+            const b = document.querySelector(".ei-fd-bsave"); if (b) { b.focus(); b.scrollIntoView({ block: "center" }); } return;
+        }
         if (el.classList.contains("ei-fd-lastrate")) { const b = document.querySelector(".ei-fd-savebtn"); if (b) { b.focus(); b.scrollIntoView({ block: "center" }); } return; }
         this.focusNext(el);
     }
@@ -110,6 +120,8 @@ export class EiDaFeeding extends Component {
 
     // ------------------------------------------------------------------ helpers for the template
     fmt(v, d) { return fmt(v, d); }
+    toNum(v) { return toNum(v); }
+    dmy(day) { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(day || ""); return m ? `${m[3]}/${m[2]}/${m[1]}` : ""; }
     str(v) { return v === undefined || v === null ? "" : String(v); }       // templates have no String()/Number()
     toInt(v) { return parseInt(v, 10) || 0; }
     signed(v) { const n = toNum(v); return Number.isNaN(n) ? "" : (n > 0 ? "+" : n < 0 ? "−" : "") + fmt(Math.abs(n)); }
@@ -169,10 +181,13 @@ export class EiDaFeeding extends Component {
     async loadList() { try { this.state.list = await this.call("da_list", []); } catch { this.state.list = { rows: [], contracts: [] }; } }
     async openDa(id) {
         this.state.line = null; this.state.preview = null; this.state.docIndex = 0; this.state.next = null; this.state.review = false;
+        this.state.docsOpen = false; this.state.quotaUi = null; this.state.sel = {}; this.state.ratePlan = null; this.state.bulk = null;
         try { this.setDa(await this.call("da_load", [id])); } catch { /* shown */ }
     }
     setDa(da) {
         this.state.da = da;
+        const ids = new Set(da.lines.map((l) => l.id));                     // a removed coil is no longer selected
+        for (const k of Object.keys(this.state.sel)) { if (!ids.has(Number(k))) { delete this.state.sel[k]; } }
         this.state.header = { printed_customer: da.printed_customer, order_datetime: da.order_datetime, ship_date: da.ship_date, date: da.date };
         // keep the DA list on the left in step with the DA open on the right (coil count and tons change with every saved coil)
         const row = this.state.list && this.state.list.rows.find((x) => x.id === da.id);
@@ -334,12 +349,166 @@ export class EiDaFeeding extends Component {
         clearTimeout(this.timers.head);
         this.timers.head = setTimeout(() => this.saveHeader(), 700);
     }
-    async attach(ev) {
+    // Attach DA (Optional): never needed to save or submit; replace and remove are for a draft, by whoever may do it
+    async attach(ev, replaceId = false) {
         const file = ev.target.files && ev.target.files[0];
         if (!file) { return; }
         const data = await new Promise((ok) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(",")[1]); r.readAsDataURL(file); });
-        try { this.setDa(await this.call("attach", [this.state.da.id, file.name, data, file.type])); this.toast("Paper attached."); } catch { /* shown */ }
+        try {
+            this.setDa(await this.call("attach", [this.state.da.id, file.name, data, file.type, replaceId]));
+            this.state.docIndex = 0;
+            this.toast(replaceId ? "Paper replaced." : "Paper attached.");
+        } catch { /* shown */ }
         ev.target.value = "";
+    }
+    async detach(a) {
+        if (!window.confirm(`Remove ${a.name} from DA ${this.state.da.name}? The removal is written on the DA.`)) { return; }
+        try { this.setDa(await this.call("detach", [this.state.da.id, a.id])); this.state.docIndex = 0; this.toast("Paper removed."); } catch { /* shown */ }
+    }
+
+    // ------------------------------------------------------------------ contract quantity (500 MTL: 425 entered, 75 remaining)
+    get quotaPct() {
+        const q = this.state.da && this.state.da.quota, t = q ? grams(q.total) : 0;
+        return t ? Math.max(0, Math.min(100, Math.round((grams(q.entered) / t) * 100))) : 0;
+    }
+    quotaStart(mode) {
+        const d = this.state.da, q = d.quota, m = /^(\d{4})-(\d{2})/.exec(d.date || "");
+        this.state.quotaUi = { mode, name: m ? `${MONTHS[Number(m[2]) - 1]} ${m[1]}` : "", total: mode === "adjust" && q ? String(toNum(q.total)) : "", reason: "" };
+        if (mode === "new") { this.focusSoon("#ei-fd-qnewtotal"); }
+    }
+    async quotaLink(id) {
+        try { this.setDa(await this.call("quota_link", [this.state.da.id, id || false])); this.state.quotaUi = null; } catch { /* shown */ }
+    }
+    async quotaSaveNew() {
+        const u = this.state.quotaUi;
+        this.state.busy = true;
+        try { this.setDa(await this.call("quota_create", [this.state.da.id, u.name, u.total])); this.state.quotaUi = null; this.toast(`Contract ${u.name}: ${fmt(u.total, 3)} MTL.`); }
+        catch { /* shown */ } finally { this.state.busy = false; }
+    }
+    async quotaSaveAdjust() {
+        const u = this.state.quotaUi, q = this.state.da.quota;
+        this.state.busy = true;
+        try { this.setDa(await this.call("quota_adjust", [this.state.da.id, q.id, u.total, u.reason])); this.state.quotaUi = null; this.toast("Total changed; the reason is kept on the contract."); }
+        catch { /* shown */ } finally { this.state.busy = false; }
+    }
+    // the coil being typed would go past the contract: say so before Save (the server refuses it anyway)
+    get overQuota() {
+        const d = this.state.da, l = this.state.line, q = d && d.quota;
+        if (!q || !l || !l.weight_kg) { return null; }
+        const was = l.id ? grams((d.lines.find((x) => x.id === l.id) || {}).mtl) : 0;
+        const room = grams(q.remaining) + was, now = Math.round(toNum(l.weight_kg));
+        return now > room ? { room: room / 1000, mtl: now / 1000 } : null;
+    }
+
+    // ------------------------------------------------------------------ Apply Rate to Selected
+    get selCount() { return Object.values(this.state.sel).filter(Boolean).length; }
+    get selectedIds() { return Object.keys(this.state.sel).filter((k) => this.state.sel[k]).map(Number); }
+    get selBasis() {
+        const d = this.state.da, ids = new Set(this.selectedIds), b = { formula: false, direct: false };
+        const forced = this.state.rate.method && this.methodOf(this.state.rate.method).basis;
+        for (const l of d ? d.lines : []) {
+            if (!ids.has(l.id)) { continue; }
+            const basis = forced || this.methodOf(l.method).basis;
+            if (basis === "direct") { b.direct = true; } else { b.formula = true; }
+        }
+        return b;
+    }
+    toggleSel(id, on) { this.state.sel[id] = on; this.state.ratePlan = null; }
+    selAll(on) {
+        const sel = {};
+        if (on) { for (const l of this.state.da.lines) { sel[l.id] = true; } }
+        this.state.sel = sel; this.state.ratePlan = null;
+    }
+    setRate(k, ev) { this.state.rate[k] = ev.target.value; this.state.ratePlan = null; }
+    copyPrevRate() {
+        const d = this.state.da, last = d.lines[d.lines.length - 1];
+        if (!last) { return; }
+        Object.assign(this.state.rate, { basic_rate: last.basic_rate ? String(last.basic_rate) : "", sale_offset: String(last.sale_offset || 0),
+            purchase_rate: String(last.purchase_rate || ""), sale_rate: String(last.sale_rate || "") });
+        if (this.methodOf(last.method).basis !== "direct") { this.state.rate.purchase_rate = ""; this.state.rate.sale_rate = last.sale_typed ? String(last.sale_rate) : ""; }
+        else { this.state.rate.basic_rate = ""; this.state.rate.sale_offset = ""; }
+        this.state.ratePlan = null;
+    }
+    async previewRates(recalc = false) {
+        const rates = recalc ? {} : { ...this.state.rate };
+        if (!recalc && !Object.values(rates).some((v) => v !== "")) { this.state.error = "Type the rate to apply first."; return; }
+        this.state.busy = true;
+        try { this.state.ratePlan = { ...(await this.call("apply_rates", [this.state.da.id, this.selectedIds, rates, false])), rates }; }
+        catch { /* shown */ } finally { this.state.busy = false; }
+    }
+    async applyRates() {
+        const p = this.state.ratePlan;
+        this.state.busy = true;
+        try {
+            const r = await this.call("apply_rates", [this.state.da.id, p.rows.map((x) => x.id), p.rates, true]);
+            this.setDa(r.da); this.state.ratePlan = null; this.state.rate = blankRate(); this.state.sel = {};
+            this.toast(`Rate applied to ${r.count} coil(s).`);
+        } catch { /* shown */ } finally { this.state.busy = false; }
+    }
+
+    // ------------------------------------------------------------------ Add Multiple Coils
+    startBulk() {
+        const d = this.state.da, last = d.lines[d.lines.length - 1];
+        if (!last) { return; }
+        const basis = this.methodOf(last.method).basis, codes = [last.customer_code, last.trade_code, last.pl_code].filter(Boolean).map((c) => c.code);
+        this.state.line = null; this.state.ratePlan = null;
+        this.state.bulk = {
+            count: 20, rows: [], unit: "MTL", basis, from: last.coil_no, cn: basis === "with_cn", sameCn: false, cnAmount: "", cnText: "",
+            label: [last.product, last.method_label, last.customer && last.customer.name, codes.join(" / ")].filter(Boolean).join(" · "),
+            shared: { contract_line_id: last.contract_line_id, grade: last.grade, thickness: last.thickness, width: last.width, method: last.method,
+                basic_rate: last.basic_rate ? String(last.basic_rate) : "", sale_offset: String(last.sale_offset || 0), sale_typed: last.sale_typed,
+                sale_rate: String(last.sale_rate || ""), purchase_rate: String(last.purchase_rate || ""), loss_reason: last.loss_reason, rate_note: last.rate_note,
+                customer_id: last.customer && last.customer.id, customer_code_id: last.customer_code && last.customer_code.id,
+                trade_code_id: last.trade_code && last.trade_code.id, pl_code_id: last.pl_code && last.pl_code.id },
+        };
+        this.focusSoon(".ei-fd-bcount");
+    }
+    addRows() {
+        const b = this.state.bulk, n = Math.min(200, Math.max(1, this.toInt(b.count)));
+        for (let i = 0; i < n; i++) { b.rows.push({ key: ++bulkKey, coil_no: "", qty: "", cn_amount: "", cn_text: "" }); }
+        this.focusSoon(`.ei-fd-btable tbody tr:nth-child(${b.rows.length - n + 1}) .ei-fd-bcoil`);
+    }
+    removeBulkRow(i) { this.state.bulk.rows.splice(i, 1); }
+    // two columns copied from Excel (coil number, weight) fill the rows from this one down; one column fills that column
+    bulkPaste(ev, i, field) {
+        const text = (ev.clipboardData && ev.clipboardData.getData("text/plain")) || "";
+        const lines = text.replace(/\r/g, "").split("\n").filter((x) => x.trim() !== "");
+        if (lines.length < 2 && !text.includes("\t")) { return; }                   // one value: the browser pastes it
+        ev.preventDefault();
+        const rows = this.state.bulk.rows;
+        lines.forEach((ln, k) => {
+            const r = rows[i + k];
+            if (!r) { return; }
+            const cols = ln.split("\t").map((x) => x.trim());
+            if (field === "coil_no") { r.coil_no = cols[0]; if (cols.length > 1) { r.qty = cols[1].replace(/,/g, ""); } }
+            else { r.qty = cols[0].replace(/,/g, ""); }
+        });
+        const left = lines.length - (rows.length - i);
+        if (left > 0) { this.toast(`${left} pasted line(s) had no row: add rows and paste them again.`, "warning"); }
+    }
+    get bulkTotals() {
+        const b = this.state.bulk, d = this.state.da;
+        let g = 0, filled = 0;
+        for (const r of b ? b.rows : []) {
+            if (r.coil_no.trim() || r.qty !== "") { filled++; }
+            const kg = toNum(kgOf(r.qty, b.unit));
+            if (!Number.isNaN(kg)) { g += Math.round(kg); }
+        }
+        const q = d && d.quota, entered = q ? grams(q.entered) + g : 0;
+        return { filled, mtl: g / 1000, entered: entered / 1000, after: q ? (grams(q.total) - entered) / 1000 : 0 };
+    }
+    async saveBulk() {
+        const b = this.state.bulk;
+        if (this.state.busy) { return; }
+        if (b.rows.some((r) => (r.coil_no.trim() === "") !== (r.qty === ""))) { this.state.error = "Every row needs both its coil number and its weight (or remove the row)."; return; }
+        const rows = b.rows.filter((r) => r.coil_no.trim()).map((r) => ({ coil_no: r.coil_no.trim(), weight_kg: kgOf(r.qty, b.unit),
+            cn_amount: b.sameCn ? b.cnAmount : r.cn_amount, cn_text: b.sameCn ? b.cnText : r.cn_text }));
+        this.state.busy = true;
+        try {
+            const r = await this.call("save_lines", [this.state.da.id, b.shared, rows]);
+            this.setDa(r.da); this.state.bulk = null;
+            this.toast(`${r.created} coil(s) saved together.`);
+        } catch { /* shown */ } finally { this.state.busy = false; }
     }
     // Save & Continue: confirmed now when approval is off (the default), or sent to the approver when ticked / switched on
     async submit() {

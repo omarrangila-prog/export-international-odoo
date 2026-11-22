@@ -65,9 +65,10 @@ module.exports = {
     await p.locator('.ei-fd-main .ei-fd-field.is-wide input').last().fill('M/S DEMO PRINTED TRADERS');
     await p.locator('#ei-fd-gocoil').click();
     await p.waitForSelector('.ei-fd-daname', { timeout: 15000 });
-    await p.locator('.ei-fd-more input[type="file"]').setInputFiles(require('../lib').synthPdf());
-    await p.waitForTimeout(1200);
-    ctx.check(await p.locator('.ei-fd-docframe').count() === 1, '2 the attached paper is shown beside the entry');
+    await p.locator('.ei-fd-attachbtn').click(); await p.locator('.ei-fd-docpop input.ei-fd-docfile').setInputFiles(require('../lib').synthPdf()); await p.waitForTimeout(1500);
+    ctx.check(await p.locator('.ei-fd-docpop .ei-fd-docframe').count() === 1 && /paper\.pdf/.test(await p.locator('.ei-fd-attachbtn').innerText()),
+      '2 the attached paper is previewed in the Attach DA panel and named on the button (22 Nov 2026: no paper card beside the entry)');
+    await p.locator('.ei-fd-docpop').getByRole('button', { name: 'Close' }).click(); await p.waitForTimeout(600);
     const shownTime = await p.locator('.ei-fd-work input[type="datetime-local"]').first().inputValue();
     ctx.check(shownTime === '2026-11-06T16:03', '2 the printed order time comes back as typed (Karachi time), apart from the DA date', shownTime);
     if (await p.getByRole('button', { name: 'Add Coil' }).count()) await p.getByRole('button', { name: 'Add Coil' }).click(); await p.waitForSelector('#ei-fd-qty');

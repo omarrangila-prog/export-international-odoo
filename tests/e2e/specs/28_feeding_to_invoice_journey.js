@@ -47,7 +47,7 @@ module.exports = {
     await p.fill('#ei-fd-daname', da);
     await p.locator('#ei-fd-sold').pressSequentially('Rehman', { delay: 40 }); await p.waitForTimeout(1200); await p.locator('.ei-fd-sold .ei-fd-lookrows button').first().click();
     await p.locator('#ei-fd-gocoil').click(); await p.waitForSelector('.ei-fd-daname');
-    await p.locator('.ei-fd-more input[type="file"]').setInputFiles(synthPdf()); await p.waitForTimeout(1500);
+    await p.locator('.ei-fd-attachbtn').click(); await p.locator('.ei-fd-docpop input.ei-fd-docfile').setInputFiles(synthPdf()); await p.waitForTimeout(1500); await p.locator('.ei-fd-docpop').getByRole('button', { name: 'Close' }).click(); await p.waitForTimeout(1500);
     if (await p.getByRole('button', { name: 'Add Coil' }).count()) await p.getByRole('button', { name: 'Add Coil' }).click(); await p.waitForSelector('#ei-fd-qty');
     await p.locator('#ei-fd-item').click(); await p.locator('#ei-fd-item').pressSequentially('DEMO HR', { delay: 40 }); await p.waitForTimeout(1200);
     await p.locator('.ei-fd-item .ei-fd-lookrows button').first().click(); await p.waitForTimeout(1200);

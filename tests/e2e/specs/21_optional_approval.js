@@ -24,7 +24,7 @@ module.exports = {
         await p.fill('#ei-fd-daname', name);
         await p.locator('.ei-fd-main .ei-fd-field.is-wide input').last().fill('M/S DEMO CUSTOMER - REHMAN TRADERS');
         await p.locator('#ei-fd-gocoil').click(); await p.waitForSelector('.ei-fd-daname', { timeout: 15000 });
-        await p.locator('.ei-fd-more input[type="file"]').setInputFiles(require('../lib').synthPdf());
+        await p.locator('.ei-fd-attachbtn').click(); await p.locator('.ei-fd-docpop input.ei-fd-docfile').setInputFiles(require('../lib').synthPdf()); await p.waitForTimeout(1500); await p.locator('.ei-fd-docpop').getByRole('button', { name: 'Close' }).click();
         await p.waitForTimeout(900);
         if (await p.getByRole('button', { name: 'Add Coil' }).count()) await p.getByRole('button', { name: 'Add Coil' }).click(); await p.waitForSelector('#ei-fd-qty');
         await p.fill('#ei-fd-coil', name + '-C1');

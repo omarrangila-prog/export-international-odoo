@@ -29,7 +29,7 @@ module.exports = {
     await p.locator('#ei-fd-gocoil').click(); await p.waitForSelector('.ei-fd-daname');
     const chain = (await p.locator('.ei-fd-chain').innerText()).replace(/\s+/g, ' ');
     ctx.check(/DEMO Parent Steel Mill\s*→\s*DEMO Buying Entity\s*→\s*DEMO Customer - Rehman Traders/.test(chain), '2 the DA shows the chain Supplier → Purchase (IN) → Sold (OUT)', chain);
-    await p.locator('.ei-fd-more input[type="file"]').setInputFiles(synthPdf()); await p.waitForTimeout(1500);
+    await p.locator('.ei-fd-attachbtn').click(); await p.locator('.ei-fd-docpop input.ei-fd-docfile').setInputFiles(synthPdf()); await p.waitForTimeout(1500); await p.locator('.ei-fd-docpop').getByRole('button', { name: 'Close' }).click(); await p.waitForTimeout(1500);
 
     // coil 1: the item is searched by name; Sold (OUT) is already there; the FoxPro direct figures
     if (await p.getByRole('button', { name: 'Add Coil' }).count()) await p.getByRole('button', { name: 'Add Coil' }).click(); await p.waitForSelector('#ei-fd-qty');

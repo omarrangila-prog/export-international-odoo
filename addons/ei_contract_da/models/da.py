@@ -79,8 +79,8 @@ class EiDa(models.Model):
                 raise UserError(_("Only a draft DA can be sent for review."))
             if not d.line_ids:
                 raise UserError(_("Add at least one DA line."))
-            # the paper is required unless the owner switched it off for the client's server (17 Nov 2026: no extra step)
-            if not d.attachment_count and self.env['ir.config_parameter'].sudo().get_bool('ei_contract_da.require_da_paper', True):
+            # the DA paper is optional (client, 22 Nov 2026); management can require it again with this switch
+            if not d.attachment_count and self.env['ir.config_parameter'].sudo().get_bool('ei_contract_da.require_da_paper', False):
                 raise UserError(_("Attach the DA document received from the parent company."))
             d.line_ids._check_rates()
             d._sys({'state': 'under_review'})

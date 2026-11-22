@@ -76,7 +76,7 @@ module.exports = {
         await p.locator('#ei-fd-contract').selectOption(opts.find(([, t]) => t.includes(ref))[0]);
         await p.fill('#ei-fd-daname', da); await p.locator('.ei-fd-main .ei-fd-field.is-wide input').last().fill('M/S DEMO CUSTOMER - REHMAN TRADERS');
         await p.locator('#ei-fd-gocoil').click(); await p.waitForSelector('.ei-fd-daname');
-        await p.locator('.ei-fd-more input[type="file"]').setInputFiles(DOC); await p.waitForTimeout(1500);
+        await p.locator('.ei-fd-attachbtn').click(); await p.locator('.ei-fd-docpop input.ei-fd-docfile').setInputFiles(DOC); await p.waitForTimeout(1500); await p.locator('.ei-fd-docpop').getByRole('button', { name: 'Close' }).click(); await p.waitForTimeout(1500);
         if (await p.getByRole('button', { name: 'Add Coil' }).count()) await p.getByRole('button', { name: 'Add Coil' }).click(); await p.waitForSelector('#ei-fd-qty');
         await p.fill('#ei-fd-coil', 'E-1'); await (await p.locator('.ei-fd-unit button', { hasText: 'kg' }).click(), p.locator('#ei-fd-qty')).fill('4000');
         for (const [label, term, row] of [['Sold (OUT)', 'Rehman', null], ['Sales code', 'D.01', 'D.01']]) {

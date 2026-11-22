@@ -158,12 +158,35 @@
                         <t t-set="d" t-value="this.state.da"/>
                         <div class="ei-fd-dahead">
                             <div>
-                                <h2 class="ei-fd-daname">DA <t t-out="d.name"/> <span t-att-class="'ei-fd-chip ' + (d.state === 'draft' ? 'is-neutral' : 'is-warn')" t-out="d.state_label"/></h2>
+                                <h2 class="ei-fd-daname">DA <t t-out="d.name"/> <span t-att-class="'ei-fd-chip ' + (d.state === 'draft' ? 'is-neutral' : 'is-warn')" t-out="d.state_label"/> <small class="ei-fd-muted ei-fd-dadate" t-out="this.dmy(d.date)"/></h2>
                                 <p class="ei-fd-chain"><b t-out="d.supplier"/> <span aria-hidden="true">→</span> <b t-out="d.purchase_in or 'Purchase (IN) not set'"/> <span aria-hidden="true">→</span>
                                     <b t-if="d.sold_out" t-out="d.sold_out.name"/><span t-else="" class="ei-fd-chip is-neutral">Not sold yet</span></p>
                                 <p class="ei-fd-muted"><t t-if="!d.is_feeding">contract <t t-out="d.contract"/> · </t><b t-out="d.currency"/><t t-if="d.fx_text"> · <span t-att-class="d.fx_missing ? 'ei-fd-bad' : ''" t-out="d.fx_text"/></t></p>
                             </div>
                             <div class="ei-fd-actions">
+                                <div class="ei-fd-attachwrap">
+                                    <button type="button" t-att-class="'ei-fd-btn is-sm is-ghost ei-fd-attachbtn' + (d.attachments.length ? ' has-doc' : '')" t-att-aria-expanded="this.state.docsOpen ? 'true' : 'false'" t-on-click="() => this.state.docsOpen = !this.state.docsOpen">
+                                        <span aria-hidden="true">📎</span> <t t-if="d.attachments.length"><t t-out="d.attachments[0].name"/><t t-if="d.attachments.length gt 1"> +<t t-out="d.attachments.length - 1"/></t></t><t t-else="">Attach DA <small>(Optional)</small></t>
+                                    </button>
+                                    <div t-if="this.state.docsOpen" class="ei-fd-docpop" role="dialog" aria-label="DA paper">
+                                        <div class="ei-fd-listhead"><b>DA paper</b><button type="button" class="ei-fd-link" t-on-click="() => this.state.docsOpen = false">Close</button></div>
+                                        <p t-if="!d.attachments.length" class="ei-fd-muted">No paper attached. It is optional: the DA can be saved and submitted without it.</p>
+                                        <t t-else="">
+                                            <select t-if="d.attachments.length gt 1" class="ei-fd-in is-sm" t-on-change="(ev) => this.state.docIndex = this.toInt(ev.target.value)">
+                                                <option t-foreach="d.attachments" t-as="a" t-key="a.id" t-att-value="a_index" t-out="a.name"/>
+                                            </select>
+                                            <p class="ei-fd-docname"><b t-out="this.doc.name"/> <small class="ei-fd-muted">attached by <t t-out="this.doc.by"/></small></p>
+                                            <img t-if="this.isImage(this.doc)" class="ei-fd-docimg" t-att-src="this.docUrl(this.doc)" t-att-alt="this.doc.name"/>
+                                            <iframe t-elif="this.doc.mimetype === 'application/pdf'" class="ei-fd-docframe" t-att-src="this.docUrl(this.doc)" t-att-title="this.doc.name"/>
+                                        </t>
+                                        <div class="ei-fd-docacts">
+                                            <a t-if="this.doc" class="ei-fd-btn is-sm" t-att-href="this.docUrl(this.doc)" target="_blank" rel="noopener">Open</a>
+                                            <label t-if="this.doc and this.doc.can_remove" class="ei-fd-btn is-sm">Replace<input type="file" accept="application/pdf,image/*" class="visually-hidden" t-on-change="(ev) => this.attach(ev, this.doc.id)"/></label>
+                                            <button t-if="this.doc and this.doc.can_remove" type="button" class="ei-fd-btn is-sm is-ghost ei-fd-danger" t-on-click="() => this.detach(this.doc)">Remove</button>
+                                            <label t-if="d.can_attach" class="ei-fd-btn is-sm is-primary"><t t-out="d.attachments.length ? 'Add another' : 'Choose file'"/><input type="file" accept="application/pdf,image/*" class="visually-hidden ei-fd-docfile" t-on-change="(ev) => this.attach(ev)"/></label>
+                                        </div>
+                                    </div>
+                                </div>
                                 <span class="ei-fd-muted"><b class="ei-fd-num" t-out="this.fmt(d.total_mtl, 3)"/> MTL on <t t-out="d.lines.length"/> coil(s)</span>
                                 <button t-if="d.editable and this.state.list and this.state.list.can_delete" class="ei-fd-btn is-ghost ei-fd-danger is-sm" t-on-click="() => this.deleteDa()">Delete draft</button>
                                 <label t-if="d.editable and !d.approval_on" class="ei-fd-review" title="Tick only when someone else should check this DA first.">
@@ -173,6 +196,51 @@
                                 <span t-elif="d.editable" class="ei-fd-muted" title="Maker-checker: a different authorised person approves every DA.">A different person approves it</span>
                                 <button t-if="d.editable" class="ei-fd-btn is-primary" t-att-disabled="this.state.busy or !d.lines.length" t-on-click="() => this.submit()"
                                         t-out="d.approval_on ? 'Submit for Approval' : 'Save &amp; Continue'"/>
+                            </div>
+                        </div>
+                        <t t-set="q" t-value="d.quota"/>
+                        <div class="ei-fd-quota" aria-label="Contract quantity">
+                            <t t-if="q">
+                                <span class="ei-fd-qname">Contract <b t-out="q.name"/></span>
+                                <span>Total <b class="ei-fd-num ei-fd-qtotal" t-out="this.fmt(q.total, 3)"/> MTL</span>
+                                <span>Entered <b class="ei-fd-num ei-fd-qentered" t-out="this.fmt(q.entered, 3)"/></span>
+                                <span t-att-class="'ei-fd-qrem' + (this.toNum(q.remaining) lte 0 ? ' is-zero' : '')">Remaining to enter <b class="ei-fd-num ei-fd-qremaining" t-out="this.fmt(q.remaining, 3)"/> MTL</span>
+                                <span class="ei-fd-qbar" role="progressbar" aria-label="Entered of total" t-att-aria-valuenow="this.quotaPct" aria-valuemin="0" aria-valuemax="100"><i t-attf-style="width: {{ this.quotaPct }}%"/></span>
+                                <button type="button" class="ei-fd-link" t-att-aria-expanded="this.state.quotaMore ? 'true' : 'false'" t-on-click="() => this.state.quotaMore = !this.state.quotaMore">Details</button>
+                                <button t-if="d.editable" type="button" class="ei-fd-link" t-on-click="() => this.quotaStart('link')">Change</button>
+                                <button t-if="d.can_adjust_quota" type="button" class="ei-fd-link" t-on-click="() => this.quotaStart('adjust')">Raise total</button>
+                                <dl t-if="this.state.quotaMore" class="ei-fd-qmore">
+                                    <div><dt>Draft or waiting for approval</dt><dd class="ei-fd-num" t-out="this.fmt(q.pending, 3)"/></div>
+                                    <div><dt>Confirmed</dt><dd class="ei-fd-num" t-out="this.fmt(q.confirmed, 3)"/></div>
+                                    <div><dt>Sold (Sold OUT chosen)</dt><dd class="ei-fd-num" t-out="this.fmt(q.sold, 3)"/></div>
+                                    <div><dt>Lifted (verified)</dt><dd class="ei-fd-num" t-out="this.fmt(q.lifted, 3)"/></div>
+                                </dl>
+                            </t>
+                            <t t-else="">
+                                <span class="ei-fd-muted">No contract quantity linked.</span>
+                                <button t-if="d.editable" type="button" class="ei-fd-link ei-fd-qset" t-on-click="() => this.quotaStart(d.quota_options.length ? 'link' : 'new')">Set contract quantity</button>
+                            </t>
+                            <div t-if="this.state.quotaUi" class="ei-fd-qform">
+                                <t t-if="this.state.quotaUi.mode === 'link'">
+                                    <label class="ei-fd-field"><span>Contract</span>
+                                        <select class="ei-fd-in" t-on-change="(ev) => this.quotaLink(ev.target.value)">
+                                            <option value="" t-att-selected="!q">None</option>
+                                            <option t-foreach="d.quota_options" t-as="o" t-key="o.id" t-att-value="o.id" t-att-selected="q and q.id === o.id"
+                                                    t-out="o.name + ' · ' + this.fmt(o.total, 3) + ' MTL · ' + this.fmt(o.remaining, 3) + ' remaining'"/>
+                                        </select></label>
+                                    <button type="button" class="ei-fd-link" t-on-click="() => this.quotaStart('new')">New contract quantity</button>
+                                </t>
+                                <t t-elif="this.state.quotaUi.mode === 'new'">
+                                    <label class="ei-fd-field"><span>Contract</span><input id="ei-fd-qnewname" class="ei-fd-in" t-att-value="this.state.quotaUi.name" t-on-input="(ev) => this.state.quotaUi.name = ev.target.value"/></label>
+                                    <label class="ei-fd-field"><span>Total quantity (MTL)</span><input id="ei-fd-qnewtotal" class="ei-fd-in is-num" inputmode="decimal" t-att-value="this.state.quotaUi.total" t-on-input="(ev) => this.state.quotaUi.total = ev.target.value"/></label>
+                                    <button type="button" class="ei-fd-btn is-sm is-primary ei-fd-qsave" t-att-disabled="this.state.busy" t-on-click="() => this.quotaSaveNew()">Save</button>
+                                </t>
+                                <t t-else="">
+                                    <label class="ei-fd-field"><span>New total (MTL)</span><input class="ei-fd-in is-num" inputmode="decimal" t-att-value="this.state.quotaUi.total" t-on-input="(ev) => this.state.quotaUi.total = ev.target.value"/></label>
+                                    <label class="ei-fd-field is-wide"><span>Why (stays on the contract)</span><input class="ei-fd-in" t-att-value="this.state.quotaUi.reason" t-on-input="(ev) => this.state.quotaUi.reason = ev.target.value"/></label>
+                                    <button type="button" class="ei-fd-btn is-sm is-primary" t-att-disabled="this.state.busy" t-on-click="() => this.quotaSaveAdjust()">Save</button>
+                                </t>
+                                <button type="button" class="ei-fd-link" t-on-click="() => this.state.quotaUi = null">Cancel</button>
                             </div>
                         </div>
                         <div t-if="this.state.next or d.state === 'approved'" class="ei-fd-done" role="status">
@@ -193,19 +261,8 @@
                         </div>
                         <div class="ei-fd-split">
                             <div class="ei-fd-work">
-                                <details class="ei-fd-card ei-fd-more">
-                                    <summary>Paper and printed details <span class="ei-fd-muted">(optional)</span></summary>
-                                    <div class="ei-fd-paperhead">
-                                        <select t-if="d.attachments.length gt 1" class="ei-fd-in is-sm" t-on-change="(ev) => this.state.docIndex = this.toInt(ev.target.value)">
-                                            <option t-foreach="d.attachments" t-as="a" t-key="a.id" t-att-value="a_index" t-out="a.name"/>
-                                        </select>
-                                        <label t-if="d.editable" class="ei-fd-btn is-sm">Attach the DA paper<input type="file" accept="application/pdf,image/*" class="visually-hidden" t-on-change="(ev) => this.attach(ev)"/></label>
-                                    </div>
-                                    <t t-if="this.doc">
-                                        <img t-if="this.isImage(this.doc)" class="ei-fd-docimg" t-att-src="this.docUrl(this.doc)" t-att-alt="this.doc.name"/>
-                                        <iframe t-elif="this.doc.mimetype === 'application/pdf'" class="ei-fd-docframe" t-att-src="this.docUrl(this.doc)" t-att-title="this.doc.name"/>
-                                        <a t-else="" t-att-href="'/web/content/' + this.doc.id + '?download=true'">Download <t t-out="this.doc.name"/></a>
-                                    </t>
+                                <details class="ei-fd-more ei-fd-printed">
+                                    <summary>More details <span class="ei-fd-muted">(printed on the DA, optional)</span></summary>
                                     <div class="ei-fd-fields">
                                         <label class="ei-fd-field is-wide"><span>Customer name printed on the DA</span><input class="ei-fd-in" t-att-readonly="!d.editable" t-att-value="this.state.header.printed_customer" t-on-input="(ev) => this.setHeader('printed_customer', ev)"/></label>
                                         <label class="ei-fd-field"><span>Order date and time</span><input class="ei-fd-in" type="datetime-local" t-att-readonly="!d.editable" t-att-value="this.state.header.order_datetime" t-on-input="(ev) => this.setHeader('order_datetime', ev)"/></label>
@@ -217,15 +274,17 @@
                                 <!-- the coils -->
                                 <div class="ei-fd-card">
                                     <div class="ei-fd-listhead"><h3 class="ei-fd-step">Coils</h3>
-                                        <span t-if="d.editable and !this.state.line" class="ei-fd-actions">
+                                        <span t-if="d.editable and !this.state.line and !this.state.bulk" class="ei-fd-actions">
                                             <button t-if="d.lines.length" class="ei-fd-btn is-sm" t-on-click="() => this.copyPrevious()">Copy Previous</button>
+                                            <button t-if="d.lines.length" class="ei-fd-btn is-sm ei-fd-bulkbtn" t-on-click="() => this.startBulk()">Add Multiple Coils</button>
                                             <button class="ei-fd-btn is-primary is-sm" t-on-click="() => this.newLine()">Add Coil</button></span></div>
                                     <p t-if="!d.lines.length and !this.state.line" class="ei-fd-muted">No coil yet. Press Add Coil.</p>
                                     <div t-else="" class="ei-fd-tablewrap" tabindex="0" role="region" aria-label="Coils on this DA">
                                         <table class="ei-fd-table">
-                                            <thead><tr><th>Coil</th><th class="ei-fd-r">MTL</th><th>Method</th><th class="ei-fd-r">Purchase</th><th class="ei-fd-r">Sale</th><th class="ei-fd-r">Spread / MTL</th><th>Check</th><th/></tr></thead>
+                                            <thead><tr><th t-if="d.editable" class="ei-fd-tick"><input type="checkbox" aria-label="Select all coils" class="ei-fd-selall" t-att-checked="d.lines.length and this.selCount === d.lines.length" t-on-change="(ev) => this.selAll(ev.target.checked)"/></th><th>Coil</th><th class="ei-fd-r">MTL</th><th>Method</th><th class="ei-fd-r">Purchase</th><th class="ei-fd-r">Sale</th><th class="ei-fd-r">Spread / MTL</th><th>Check</th><th/></tr></thead>
                                             <tbody>
-                                                <tr t-foreach="d.lines" t-as="r" t-key="r.id">
+                                                <tr t-foreach="d.lines" t-as="r" t-key="r.id" t-att-class="this.state.sel[r.id] ? 'is-sel' : ''">
+                                                    <td t-if="d.editable" class="ei-fd-tick"><input type="checkbox" class="ei-fd-selrow" t-att-aria-label="'Select coil ' + (r.coil_no or '')" t-att-checked="!!this.state.sel[r.id]" t-on-change="(ev) => this.toggleSel(r.id, ev.target.checked)"/></td>
                                                     <th scope="row"><t t-out="r.coil_no or r.product"/><small t-if="r.customer_code" class="ei-fd-muted"> · <t t-out="r.customer_code.code"/></small></th>
                                                     <td class="ei-fd-r ei-fd-num" t-out="this.fmt(r.mtl, 3)"/>
                                                     <td t-out="r.method_label"/>
@@ -237,10 +296,111 @@
                                                         <button class="ei-fd-link" t-on-click="() => this.duplicateLine(r)" t-att-aria-label="'Duplicate row ' + (r.coil_no or '')">Duplicate</button></t></td>
                                                 </tr>
                                             </tbody>
-                                            <tfoot><tr><th scope="row"><t t-out="d.lines.length"/> coil(s)</th><td class="ei-fd-r ei-fd-num" t-out="this.fmt(d.total_mtl, 3)"/>
+                                            <tfoot><tr><td t-if="d.editable"/><th scope="row"><t t-out="d.lines.length"/> coil(s)</th><td class="ei-fd-r ei-fd-num" t-out="this.fmt(d.total_mtl, 3)"/>
                                                 <td colspan="3" class="ei-fd-muted">Expected gross spread</td>
                                                 <td t-att-class="'ei-fd-r ei-fd-num' + (d.total_spread lt 0 ? ' ei-fd-bad' : '')" t-out="this.signed(d.total_spread) + ' ' + d.currency"/><td colspan="2"/></tr></tfoot>
                                         </table>
+                                    </div>
+                                </div>
+
+                                <!-- Apply Rate to Selected -->
+                                <div t-if="d.editable and this.selCount and !this.state.bulk" class="ei-fd-card ei-fd-ratebar" aria-label="Apply rate to selected coils">
+                                    <t t-set="rt" t-value="this.state.rate"/>
+                                    <div class="ei-fd-listhead"><h3 class="ei-fd-step">Apply Rate to Selected <span class="ei-fd-muted">(<t t-out="this.selCount"/> coil(s))</span></h3>
+                                        <span class="ei-fd-actions"><button type="button" class="ei-fd-link" t-on-click="() => this.copyPrevRate()">Copy previous rate</button>
+                                            <button type="button" class="ei-fd-link" t-on-click="() => this.selAll(false)">Clear selection</button></span></div>
+                                    <div class="ei-fd-fields">
+                                        <label class="ei-fd-field"><span>Method</span>
+                                            <select class="ei-fd-in" t-on-change="(ev) => this.setRate('method', ev)">
+                                                <option value="">Keep each coil's method</option>
+                                                <option t-foreach="this.state.methods.filter((m) => m.ready)" t-as="m" t-key="m.key" t-att-value="m.key" t-att-selected="rt.method === m.key" t-out="m.label"/>
+                                            </select></label>
+                                        <t t-if="this.selBasis.formula">
+                                            <label class="ei-fd-field"><span>Basic rate / MTL</span><input class="ei-fd-in is-num ei-fd-rbasic" inputmode="decimal" t-att-value="rt.basic_rate" t-on-input="(ev) => this.setRate('basic_rate', ev)"/></label>
+                                            <label class="ei-fd-field"><span>Sale = mill rate +/−</span><input class="ei-fd-in is-num ei-fd-roffset" inputmode="decimal" t-att-value="rt.sale_offset" t-on-input="(ev) => this.setRate('sale_offset', ev)"/></label>
+                                        </t>
+                                        <t t-if="this.selBasis.direct">
+                                            <label class="ei-fd-field"><span>Purchase rate / MTL</span><input class="ei-fd-in is-num ei-fd-rpurchase" inputmode="decimal" t-att-value="rt.purchase_rate" t-on-input="(ev) => this.setRate('purchase_rate', ev)"/></label>
+                                            <label class="ei-fd-field"><span>Sale rate / MTL</span><input class="ei-fd-in is-num ei-fd-rsale" inputmode="decimal" t-att-value="rt.sale_rate" t-on-input="(ev) => this.setRate('sale_rate', ev)"/></label>
+                                        </t>
+                                    </div>
+                                    <p class="ei-fd-muted">Only the boxes you fill are changed. Weights, codes, customers and each coil's credit note stay as they are.</p>
+                                    <div t-if="!this.state.ratePlan" class="ei-fd-actions">
+                                        <button type="button" class="ei-fd-btn" t-att-disabled="this.state.busy" t-on-click="() => this.previewRates(true)">Recalculate selected</button>
+                                        <button type="button" class="ei-fd-btn is-primary ei-fd-rapply" t-att-disabled="this.state.busy" t-on-click="() => this.previewRates()">Apply to Selected</button>
+                                    </div>
+                                    <div t-else="" class="ei-fd-warnbox ei-fd-rconfirm" role="alertdialog" aria-label="Confirm">
+                                        <t t-set="pl" t-value="this.state.ratePlan"/>
+                                        <b>Apply this rate to <t t-out="pl.count"/> selected coil(s)?</b>
+                                        <dl class="ei-fd-figs">
+                                            <div><dt>Purchase amount</dt><dd class="ei-fd-num"><t t-out="this.fmt(pl.totals.purchase_before)"/> → <t t-out="this.fmt(pl.totals.purchase_after)"/></dd></div>
+                                            <div><dt>Sale amount</dt><dd class="ei-fd-num"><t t-out="this.fmt(pl.totals.sale_before)"/> → <t t-out="this.fmt(pl.totals.sale_after)"/></dd></div>
+                                            <div class="is-key"><dt>Gross spread</dt><dd class="ei-fd-num"><t t-out="this.signed(pl.totals.spread_before)"/> → <t t-out="this.signed(pl.totals.spread_after)"/></dd></div>
+                                        </dl>
+                                        <p t-if="pl.skipped.length" class="ei-fd-muted">Left as they are: <t t-foreach="pl.skipped" t-as="x" t-key="x.id"><b t-out="x.coil_no"/> (<t t-out="x.why"/>)<t t-if="!x_last">, </t></t>.</p>
+                                        <div class="ei-fd-actions">
+                                            <button type="button" class="ei-fd-btn" t-on-click="() => this.state.ratePlan = null">Cancel</button>
+                                            <button type="button" class="ei-fd-btn is-primary ei-fd-ryes" t-att-disabled="this.state.busy" t-on-click="() => this.applyRates()">Yes, apply to <t t-out="pl.count"/> coil(s)</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Add Multiple Coils -->
+                                <div t-if="this.state.bulk" class="ei-fd-card ei-fd-bulk" aria-label="Add multiple coils">
+                                    <t t-set="b" t-value="this.state.bulk"/>
+                                    <div class="ei-fd-listhead"><h3 class="ei-fd-step">Add Multiple Coils</h3>
+                                        <span class="ei-fd-actions">
+                                            <span class="ei-fd-muted">Rows:</span>
+                                            <button t-foreach="[5, 10, 20, 50]" t-as="n" t-key="n" type="button" t-att-class="'ei-fd-btn is-sm ei-fd-nrows' + (this.toInt(b.count) === n ? ' is-on' : '')" t-on-click="() => b.count = n" t-out="n"/>
+                                            <input class="ei-fd-in is-num is-sm ei-fd-bcount" inputmode="numeric" aria-label="Number of rows" t-att-value="b.count" t-on-input="(ev) => b.count = ev.target.value"/>
+                                            <button type="button" class="ei-fd-btn is-sm is-primary ei-fd-addrows" t-on-click="() => this.addRows()">Add Rows</button>
+                                        </span></div>
+                                    <p class="ei-fd-bshared">Same for every row, from coil <b t-out="b.from"/>: <b t-out="b.label"/></p>
+                                    <div class="ei-fd-fields">
+                                        <t t-if="b.basis === 'direct'">
+                                            <label class="ei-fd-field"><span>Purchase rate / MTL</span><input class="ei-fd-in is-num ei-fd-bpurchase" inputmode="decimal" t-att-value="b.shared.purchase_rate" t-on-input="(ev) => b.shared.purchase_rate = ev.target.value"/></label>
+                                            <label class="ei-fd-field"><span>Sale rate / MTL</span><input class="ei-fd-in is-num ei-fd-bsale" inputmode="decimal" t-att-value="b.shared.sale_rate" t-on-input="(ev) => b.shared.sale_rate = ev.target.value"/></label>
+                                        </t>
+                                        <t t-else="">
+                                            <label class="ei-fd-field"><span>Basic rate / MTL</span><input class="ei-fd-in is-num ei-fd-bbasic" inputmode="decimal" t-att-value="b.shared.basic_rate" t-on-input="(ev) => b.shared.basic_rate = ev.target.value"/></label>
+                                            <label t-if="!b.shared.sale_typed" class="ei-fd-field"><span>Sale = mill rate +/−</span><input class="ei-fd-in is-num ei-fd-boffset" inputmode="decimal" t-att-value="b.shared.sale_offset" t-on-input="(ev) => b.shared.sale_offset = ev.target.value"/></label>
+                                            <label t-else="" class="ei-fd-field"><span>Sale rate / MTL</span><input class="ei-fd-in is-num" inputmode="decimal" t-att-value="b.shared.sale_rate" t-on-input="(ev) => b.shared.sale_rate = ev.target.value"/></label>
+                                        </t>
+                                        <div class="ei-fd-field ei-fd-qty"><span>Weights in</span>
+                                            <div class="ei-fd-unit" role="radiogroup" aria-label="Unit of the weights">
+                                                <button type="button" role="radio" t-att-aria-checked="b.unit === 'MTL' ? 'true' : 'false'" t-att-class="b.unit === 'MTL' ? 'is-on' : ''" t-on-click="() => b.unit = 'MTL'">MTL</button>
+                                                <button type="button" role="radio" t-att-aria-checked="b.unit === 'kg' ? 'true' : 'false'" t-att-class="b.unit === 'kg' ? 'is-on' : ''" t-on-click="() => b.unit = 'kg'">kg</button>
+                                            </div></div>
+                                        <label t-if="b.cn" class="ei-fd-field ei-fd-check"><input type="checkbox" t-att-checked="b.sameCn" t-on-change="(ev) => b.sameCn = ev.target.checked"/><span>Same credit note on every row</span></label>
+                                        <t t-if="b.cn and b.sameCn">
+                                            <label class="ei-fd-field"><span>Credit note on each coil</span><input class="ei-fd-in is-num" inputmode="decimal" t-att-value="b.cnAmount" t-on-input="(ev) => b.cnAmount = ev.target.value"/></label>
+                                            <label class="ei-fd-field is-wide"><span>Credit note text</span><input class="ei-fd-in" t-att-value="b.cnText" t-on-input="(ev) => b.cnText = ev.target.value"/></label>
+                                        </t>
+                                    </div>
+                                    <p t-if="!b.rows.length" class="ei-fd-muted">Choose how many rows, then press Add Rows. Each row is one coil: type its number and weight. You can paste the two columns from Excel.</p>
+                                    <div t-else="" class="ei-fd-tablewrap" tabindex="0" role="region" aria-label="New coils">
+                                        <table class="ei-fd-table ei-fd-btable">
+                                            <thead><tr><th class="ei-fd-r">#</th><th>Coil No</th><th class="ei-fd-r">Weight (<t t-out="b.unit"/>)</th><t t-if="b.cn and !b.sameCn"><th class="ei-fd-r">Credit note</th><th>CN text</th></t><th/></tr></thead>
+                                            <tbody>
+                                                <tr t-foreach="b.rows" t-as="row" t-key="row.key">
+                                                    <td class="ei-fd-r ei-fd-muted" t-out="row_index + 1"/>
+                                                    <td><input class="ei-fd-in ei-fd-bcoil" t-att-aria-label="'Coil number, row ' + (row_index + 1)" t-att-value="row.coil_no" t-on-input="(ev) => row.coil_no = ev.target.value" t-on-paste="(ev) => this.bulkPaste(ev, row_index, 'coil_no')"/></td>
+                                                    <td><input class="ei-fd-in is-num ei-fd-bqty" inputmode="decimal" t-att-aria-label="'Weight, row ' + (row_index + 1)" t-att-value="row.qty" t-on-input="(ev) => row.qty = ev.target.value" t-on-paste="(ev) => this.bulkPaste(ev, row_index, 'qty')"/></td>
+                                                    <t t-if="b.cn and !b.sameCn">
+                                                        <td><input class="ei-fd-in is-num" inputmode="decimal" t-att-value="row.cn_amount" t-on-input="(ev) => row.cn_amount = ev.target.value"/></td>
+                                                        <td><input class="ei-fd-in" t-att-value="row.cn_text" t-on-input="(ev) => row.cn_text = ev.target.value"/></td>
+                                                    </t>
+                                                    <td class="ei-fd-r"><button type="button" class="ei-fd-link ei-fd-danger" t-att-aria-label="'Remove row ' + (row_index + 1)" t-on-click="() => this.removeBulkRow(row_index)">Remove</button></td>
+                                                </tr>
+                                            </tbody>
+                                            <tfoot><tr><th class="ei-fd-r" scope="row" t-out="this.bulkTotals.filled"/><td class="ei-fd-muted">coil(s) typed</td><td class="ei-fd-r ei-fd-num ei-fd-btotal" t-out="this.fmt(this.bulkTotals.mtl, 3) + ' MTL'"/><td t-att-colspan="b.cn and !b.sameCn ? 3 : 1"/></tr></tfoot>
+                                        </table>
+                                    </div>
+                                    <p t-if="d.quota and b.rows.length" t-att-class="this.bulkTotals.after lt 0 ? 'ei-fd-warnbox' : 'ei-fd-muted'">
+                                        After saving: entered <b class="ei-fd-num" t-out="this.fmt(this.bulkTotals.entered, 3)"/> of <t t-out="this.fmt(d.quota.total, 3)"/> MTL, remaining <b class="ei-fd-num ei-fd-bafter" t-out="this.fmt(this.bulkTotals.after, 3)"/> MTL<t t-if="this.bulkTotals.after lt 0">: more than the contract. Correct the weights first.</t></p>
+                                    <div class="ei-fd-actions">
+                                        <button type="button" class="ei-fd-btn" t-on-click="() => this.state.bulk = null">Cancel</button>
+                                        <button type="button" class="ei-fd-btn is-primary ei-fd-bsave" t-att-disabled="this.state.busy or !b.rows.length" t-on-click="() => this.saveBulk()">Save all <t t-out="this.bulkTotals.filled"/> coil(s)</button>
                                     </div>
                                 </div>
 
@@ -277,6 +437,7 @@
                                                 </div>
                                             </div>
                                             <em class="ei-fd-hint" t-if="l.weight_kg">= <b class="ei-fd-num" t-out="this.kgText"/> kg = <b class="ei-fd-num" t-out="this.mtl"/> MTL</em>
+                                            <div t-if="this.overQuota" class="ei-fd-warnbox ei-fd-overq" role="alert">Only <b t-out="this.fmt(this.overQuota.room, 3)"/> MTL remains on contract <t t-out="this.state.da.quota.name"/>; this coil is <t t-out="this.fmt(this.overQuota.mtl, 3)"/> MTL.</div>
                                             <div t-if="this.smallWeight" class="ei-fd-warnbox ei-fd-smallw" role="alert">
                                                 <t t-out="l.weight_kg"/> kg is only <t t-out="this.mtl"/> MTL. A coil is usually thousands of kg.
                                                 <button t-if="l.unit === 'kg'" type="button" class="ei-fd-btn is-sm is-primary" t-on-click="() => this.setUnit('MTL')">It is <t t-out="l.qty"/> MTL</button>

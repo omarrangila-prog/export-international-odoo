@@ -437,3 +437,123 @@ class TestFeeding(TransactionCase):
         r = self.desk.save_line(d.id, False, dict(line, coil_no='KG-2', weight_kg='4574'))
         l2 = d.line_ids.filtered(lambda l: l.id == r['line_id'])
         self.assertEqual((l2.weight_kg, l2.mtl), (4574, 4.574))                 # 4,574 kg = 4.574 MTL
+
+    # ------------------------------------------------------------------ 22 Nov 2026: paper optional, many coils, one rate, contract quantity
+    def bare(self, name):
+        """A DA with no paper attached (the entry() helper attaches one)."""
+        supplier, pin = self.parties()
+        da_id = self.desk.da_create({'supplier_id': supplier.id, 'purchase_in_id': pin.id, 'sold_out_id': self.cust.id, 'name': name, 'date': '2026-11-22'})
+        return self.env['ei.da'].browse(da_id), self.desk.ensure_line(da_id, self.prod.id)['contract_line_id']
+
+    def shared(self, cl, **kw):
+        return dict({'contract_line_id': cl, 'method': 'normal_sale', 'basic_rate': '229500', 'sale_offset': '-1000',
+                     'customer_id': self.cust.id, 'customer_code_id': self.code_alpha.id, 'trade_code_id': self.code_trade.id,
+                     'pl_code_id': self.code_pl.id}, **kw)
+
+    def test_29_the_da_paper_is_optional_and_kept(self):
+        self.env['ei.approval.policy'].sudo().set_all(False)
+        d, cl = self.bare('SYN-NOPAPER-1')
+        self.desk.save_line(d.id, False, dict(self.shared(cl), coil_no='NP-1', weight_kg='4574'))
+        r = self.desk.submit(d.id, False)                                   # saved and continued with no paper at all
+        self.assertEqual((r['state'], d.attachment_count), ('approved', 0))
+        d2, cl2 = self.bare('SYN-NOPAPER-2')
+        self.env['ei.approval.policy'].sudo().set_all(True)
+        self.desk.save_line(d2.id, False, dict(self.shared(cl2), coil_no='NP-2', weight_kg='4574'))
+        self.assertEqual(self.desk.submit(d2.id, False)['state'], 'under_review')      # submitted for approval with no paper
+        d3, _cl = self.bare('SYN-PAPER-3')
+        r = self.desk.attach(d3.id, 'da.pdf', 'JVBERi0xLjQK', 'application/pdf')
+        first = r['attachments'][0]
+        self.assertTrue(first['can_remove'])
+        r = self.desk.attach(d3.id, 'da-v2.pdf', 'JVBERi0xLjUK', 'application/pdf', first['id'])          # replace
+        self.assertEqual([a['name'] for a in r['attachments']], ['da-v2.pdf'])
+        viewer = self.env['res.users'].with_context(no_reset_password=True).create({'name': 'f_view', 'login': 'f_view',
+                    'group_ids': [Command.set([self.env.ref('ei_legacy_master.group_ei_auditor').id])]})
+        with self.assertRaises(AccessError):
+            self.env['ei.feeding.desk'].with_user(viewer).detach(d3.id, r['attachments'][0]['id'])      # a read-only person: never
+        self.assertIn('replaced by da-v2.pdf', ' '.join(d3.message_ids.mapped('body')))
+        self.desk.detach(d3.id, r['attachments'][0]['id'])
+        self.assertEqual(d3.attachment_count, 0)
+
+    def test_30_many_coils_are_saved_together_and_never_twice(self):
+        d, cl = self.bare('SYN-BULK-20')
+        rows = [{'coil_no': 'B-%02d' % i, 'weight_kg': str(4000 + i)} for i in range(1, 21)]
+        r = self.desk.save_lines(d.id, self.shared(cl), rows)
+        self.assertEqual((r['created'], len(d.line_ids)), (20, 20))
+        self.assertEqual(round(d.total_mtl, 3), round(sum(4000 + i for i in range(1, 21)) / 1000, 3))
+        l = d.line_ids[0]
+        self.assertEqual((l.purchase_rate, l.sale_rate, l.customer_id, l.cn_amount), (268051.41, 270080.81, self.cust, 0.0))
+        with self.assertRaisesRegex(UserError, 'already on this DA'):
+            self.desk.save_lines(d.id, self.shared(cl), rows)                    # Save pressed twice: nothing is added
+        self.assertEqual(len(d.line_ids), 20)
+        with self.assertRaisesRegex(UserError, 'typed twice'):
+            self.desk.save_lines(d.id, self.shared(cl), [{'coil_no': 'X', 'weight_kg': '4000'}, {'coil_no': 'X', 'weight_kg': '4100'}])
+        with self.assertRaisesRegex(UserError, 'Row 2'):
+            self.desk.save_lines(d.id, self.shared(cl), [{'coil_no': 'Y-1', 'weight_kg': '4000'}, {'coil_no': 'Y-2', 'weight_kg': ''}])
+        self.assertEqual(len(d.line_ids), 20)                                    # all or nothing
+        d50, cl50 = self.bare('SYN-BULK-50')
+        self.desk.save_lines(d50.id, self.shared(cl50), [{'coil_no': 'F-%02d' % i, 'weight_kg': '5000'} for i in range(50)])
+        self.assertEqual((len(d50.line_ids), round(d50.total_mtl, 3)), (50, 250.0))
+
+    def test_31_one_rate_to_selected_coils(self):
+        d, cl = self.bare('SYN-RATE-1')
+        self.desk.save_lines(d.id, self.shared(cl, basic_rate='230000'), [{'coil_no': 'R-%d' % i, 'weight_kg': '4574'} for i in range(1, 6)])
+        cn = self.desk.save_line(d.id, False, dict(self.shared(cl, method='purchase_with_cn', basic_rate='230000'), coil_no='R-CN', weight_kg='4574', sale_offset='0',
+                                                   cn_amount='1000', cn_text='CN 1000'))['line_id']
+        direct = self.desk.save_line(d.id, False, {'contract_line_id': cl, 'coil_no': 'R-D', 'weight_kg': '4574', 'method': 'direct_no_commission',
+                                                   'purchase_rate': '229500', 'sale_rate': '230500', 'customer_id': self.cust.id})['line_id']
+        wrong = d.line_ids.filtered(lambda l: l.coil_no in ('R-1', 'R-2', 'R-3'))
+        keep = d.line_ids.filtered(lambda l: l.coil_no == 'R-4')
+        before = (keep.purchase_rate, keep.sale_rate)
+        ids = wrong.ids + [cn, direct]
+        p = self.desk.apply_rates(d.id, ids, {'basic_rate': '229500'})
+        self.assertEqual((p['count'], p['applied'], [s['coil_no'] for s in p['skipped']]), (4, False, ['R-D']))
+        self.assertTrue(all(l.basic_rate == 230000 for l in wrong))             # a preview saves nothing
+        r = self.desk.apply_rates(d.id, ids, {'basic_rate': '229500'}, True)
+        self.assertTrue(r['applied'])
+        self.assertTrue(all((l.basic_rate, l.purchase_rate, l.sale_rate) == (229500, 268051.41, 270080.81) for l in wrong))
+        cnl = d.line_ids.filtered(lambda l: l.id == cn)
+        self.assertEqual((cnl.basic_rate, cnl.cn_amount, cnl.cn_text), (229500, 1000, 'CN 1000'))      # the coil's own CN is kept
+        self.assertEqual((keep.purchase_rate, keep.sale_rate), before)                                  # not selected: untouched
+        dl = d.line_ids.filtered(lambda l: l.id == direct)
+        self.assertEqual((dl.purchase_rate, dl.sale_rate), (229500, 230500))                          # another kind of rate: untouched
+        self.desk.apply_rates(d.id, [direct], {'purchase_rate': '229000', 'sale_rate': '231000'}, True)
+        self.assertEqual((dl.purchase_rate, dl.sale_rate), (229000, 231000))
+
+    def test_32_contract_quantity_500_425_75(self):
+        d, cl = self.bare('SYN-DEC-1')
+        r = self.desk.quota_create(d.id, 'December 2026', '500')
+        q = self.env['ei.feeding.quota'].browse(r['quota']['id'])
+        self.desk.save_lines(d.id, self.shared(cl), [{'coil_no': 'D-%02d' % i, 'weight_kg': '42500'} for i in range(10)])   # 425 MTL
+        s = self.desk.da_load(d.id)['quota']
+        self.assertEqual((s['total'], s['entered'], s['remaining']), ('500.000', '425.000', '75.000'))
+        d2, cl2 = self.bare('SYN-DEC-2')                       # the supplier's one open contract is linked by itself
+        self.assertEqual(d2.quota_id, q)
+        self.desk.save_lines(d2.id, self.shared(cl2), [{'coil_no': 'E-%d' % i, 'weight_kg': '10000'} for i in range(5)])      # +50 MTL
+        self.assertEqual(self.desk.da_load(d2.id)['quota']['remaining'], '25.000')
+        with self.assertRaisesRegex(UserError, 'more than the total'):
+            self.desk.save_line(d2.id, False, dict(self.shared(cl2), coil_no='E-OVER', weight_kg='25001'))
+        self.desk.save_line(d2.id, False, dict(self.shared(cl2), coil_no='E-FULL', weight_kg='25000'))                       # exactly to 500
+        self.assertEqual(self.desk.da_load(d2.id)['quota']['remaining'], '0.000')
+        with self.assertRaises(AccessError):                     # staff do not raise the total
+            self.desk.quota_adjust(d2.id, q.id, '520', 'extra 20 MTL agreed')
+        over = self.env['ei.feeding.desk'].with_user(self.over)
+        with self.assertRaisesRegex(UserError, 'why'):
+            over.quota_adjust(d2.id, q.id, '520', '')
+        over.quota_adjust(d2.id, q.id, '520', 'Mill letter 22 Nov: 20 MTL more')
+        self.assertIn('Mill letter 22 Nov', ' '.join(q.message_ids.mapped('body')))
+        with self.assertRaisesRegex(UserError, 'cannot be less'):
+            over.quota_adjust(d2.id, q.id, '400', 'typo')
+        line = d2.line_ids.filtered(lambda l: l.coil_no == 'E-FULL')
+        self.desk.delete_line(d2.id, line.id)                    # removing a draft coil gives its quantity back
+        self.assertEqual(self.desk.da_load(d2.id)['quota']['remaining'], '45.000')
+        self.desk.save_line(d2.id, line.id and False, dict(self.shared(cl2), coil_no='E-EDIT', weight_kg='5000'))
+        e = d2.line_ids.filtered(lambda l: l.coil_no == 'E-EDIT')
+        self.desk.save_line(d2.id, e.id, dict(self.shared(cl2), coil_no='E-EDIT', weight_kg='45000'))                      # edited up to the total
+        self.assertEqual(self.desk.da_load(d2.id)['quota']['remaining'], '0.000')
+        with self.assertRaisesRegex(UserError, 'more than the total'):
+            self.desk.save_line(d2.id, e.id, dict(self.shared(cl2), coil_no='E-EDIT', weight_kg='45001'))
+        d2.with_context(ei_system=True)._sys({'state': 'cancelled'})             # a cancelled DA releases what it used
+        q.invalidate_recordset()
+        self.assertEqual(q.figures()['entered'], Decimal('425.000'))
+        f = q.figures()
+        self.assertEqual((f['confirmed'], f['pending'], f['sold']), (Decimal('0.000'), Decimal('425.000'), Decimal('425.000')))
