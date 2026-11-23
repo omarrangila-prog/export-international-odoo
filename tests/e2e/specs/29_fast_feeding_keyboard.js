@@ -49,7 +49,7 @@ module.exports = {
     await p.keyboard.press('Enter'); await p.waitForSelector('#ei-fd-look'); await typeEnter('D.01');
     const codeTxt = await p.locator('.ei-fd-picks').innerText().catch(() => '');
     ctx.check(/D\.01/.test(await p.locator('.ei-fd-pick[data-f="customer_code"]').innerText()), 'T18 the sales code is chosen by its exact text D.01 with its name', codeTxt.replace(/\s+/g, ' ') + ' | focus ' + await focused());
-    await p.getByRole('radio', { name: /Direct purchase/ }).click(); await p.waitForTimeout(500);
+    await p.getByRole('radio', { name: /Direct \(no commission\)/ }).click(); await p.waitForTimeout(500);
     await p.keyboard.type('229500', { delay: 30 }); await p.keyboard.press('Enter'); await p.waitForTimeout(300);
     await p.keyboard.type('230500', { delay: 30 }); await p.waitForTimeout(1500); await p.keyboard.press('Enter'); await p.waitForTimeout(400);
     ctx.check(/ei-fd-savebtn/.test(await focused()), 'T06 Enter after the last rate stops on Save Entry; nothing is saved by accident', await focused());

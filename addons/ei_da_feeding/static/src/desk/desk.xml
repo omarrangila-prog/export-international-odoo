@@ -313,7 +313,7 @@
                                         <label class="ei-fd-field"><span>Method</span>
                                             <select class="ei-fd-in" t-on-change="(ev) => this.setRate('method', ev)">
                                                 <option value="">Keep each coil's method</option>
-                                                <option t-foreach="this.state.methods.filter((m) => m.ready)" t-as="m" t-key="m.key" t-att-value="m.key" t-att-selected="rt.method === m.key" t-out="m.label"/>
+                                                <option t-foreach="this.picks" t-as="m" t-key="m.key" t-att-value="m.key" t-att-selected="rt.method === m.key" t-out="m.label"/>
                                             </select></label>
                                         <t t-if="this.selBasis.formula">
                                             <label class="ei-fd-field"><span>Basic rate / MTL</span><input class="ei-fd-in is-num ei-fd-rbasic" inputmode="decimal" t-att-value="rt.basic_rate" t-on-input="(ev) => this.setRate('basic_rate', ev)"/></label>
@@ -371,8 +371,9 @@
                                                 <button type="button" role="radio" t-att-aria-checked="b.unit === 'MTL' ? 'true' : 'false'" t-att-class="b.unit === 'MTL' ? 'is-on' : ''" t-on-click="() => b.unit = 'MTL'">MTL</button>
                                                 <button type="button" role="radio" t-att-aria-checked="b.unit === 'kg' ? 'true' : 'false'" t-att-class="b.unit === 'kg' ? 'is-on' : ''" t-on-click="() => b.unit = 'kg'">kg</button>
                                             </div></div>
-                                        <label t-if="b.cn" class="ei-fd-field ei-fd-check"><input type="checkbox" t-att-checked="b.sameCn" t-on-change="(ev) => b.sameCn = ev.target.checked"/><span>Same credit note on every row</span></label>
-                                        <t t-if="b.cn and b.sameCn">
+                                        <label t-if="b.cn" class="ei-fd-field ei-fd-check"><input type="checkbox" t-att-checked="b.cnOn" t-on-change="(ev) => b.cnOn = ev.target.checked"/><span>Credit notes on these coils</span></label>
+                                        <label t-if="b.cn and b.cnOn" class="ei-fd-field ei-fd-check"><input type="checkbox" t-att-checked="b.sameCn" t-on-change="(ev) => b.sameCn = ev.target.checked"/><span>Same credit note on every row</span></label>
+                                        <t t-if="b.cn and b.cnOn and b.sameCn">
                                             <label class="ei-fd-field"><span>Credit note on each coil</span><input class="ei-fd-in is-num" inputmode="decimal" t-att-value="b.cnAmount" t-on-input="(ev) => b.cnAmount = ev.target.value"/></label>
                                             <label class="ei-fd-field is-wide"><span>Credit note text</span><input class="ei-fd-in" t-att-value="b.cnText" t-on-input="(ev) => b.cnText = ev.target.value"/></label>
                                         </t>
@@ -380,20 +381,20 @@
                                     <p t-if="!b.rows.length" class="ei-fd-muted">Choose how many rows, then press Add Rows. Each row is one coil: type its number and weight. You can paste the two columns from Excel.</p>
                                     <div t-else="" class="ei-fd-tablewrap" tabindex="0" role="region" aria-label="New coils">
                                         <table class="ei-fd-table ei-fd-btable">
-                                            <thead><tr><th class="ei-fd-r">#</th><th>Coil No</th><th class="ei-fd-r">Weight (<t t-out="b.unit"/>)</th><t t-if="b.cn and !b.sameCn"><th class="ei-fd-r">Credit note</th><th>CN text</th></t><th/></tr></thead>
+                                            <thead><tr><th class="ei-fd-r">#</th><th>Coil No</th><th class="ei-fd-r">Weight (<t t-out="b.unit"/>)</th><t t-if="b.cn and b.cnOn and !b.sameCn"><th class="ei-fd-r">Credit note</th><th>CN text</th></t><th/></tr></thead>
                                             <tbody>
                                                 <tr t-foreach="b.rows" t-as="row" t-key="row.key">
                                                     <td class="ei-fd-r ei-fd-muted" t-out="row_index + 1"/>
                                                     <td><input class="ei-fd-in ei-fd-bcoil" t-att-aria-label="'Coil number, row ' + (row_index + 1)" t-att-value="row.coil_no" t-on-input="(ev) => row.coil_no = ev.target.value" t-on-paste="(ev) => this.bulkPaste(ev, row_index, 'coil_no')"/></td>
                                                     <td><input class="ei-fd-in is-num ei-fd-bqty" inputmode="decimal" t-att-aria-label="'Weight, row ' + (row_index + 1)" t-att-value="row.qty" t-on-input="(ev) => row.qty = ev.target.value" t-on-paste="(ev) => this.bulkPaste(ev, row_index, 'qty')"/></td>
-                                                    <t t-if="b.cn and !b.sameCn">
+                                                    <t t-if="b.cn and b.cnOn and !b.sameCn">
                                                         <td><input class="ei-fd-in is-num" inputmode="decimal" t-att-value="row.cn_amount" t-on-input="(ev) => row.cn_amount = ev.target.value"/></td>
                                                         <td><input class="ei-fd-in" t-att-value="row.cn_text" t-on-input="(ev) => row.cn_text = ev.target.value"/></td>
                                                     </t>
                                                     <td class="ei-fd-r"><button type="button" class="ei-fd-link ei-fd-danger" t-att-aria-label="'Remove row ' + (row_index + 1)" t-on-click="() => this.removeBulkRow(row_index)">Remove</button></td>
                                                 </tr>
                                             </tbody>
-                                            <tfoot><tr><th class="ei-fd-r" scope="row" t-out="this.bulkTotals.filled"/><td class="ei-fd-muted">coil(s) typed</td><td class="ei-fd-r ei-fd-num ei-fd-btotal" t-out="this.fmt(this.bulkTotals.mtl, 3) + ' MTL'"/><td t-att-colspan="b.cn and !b.sameCn ? 3 : 1"/></tr></tfoot>
+                                            <tfoot><tr><th class="ei-fd-r" scope="row" t-out="this.bulkTotals.filled"/><td class="ei-fd-muted">coil(s) typed</td><td class="ei-fd-r ei-fd-num ei-fd-btotal" t-out="this.fmt(this.bulkTotals.mtl, 3) + ' MTL'"/><td t-att-colspan="b.cn and b.cnOn and !b.sameCn ? 3 : 1"/></tr></tfoot>
                                         </table>
                                     </div>
                                     <p t-if="d.quota and b.rows.length" t-att-class="this.bulkTotals.after lt 0 ? 'ei-fd-warnbox' : 'ei-fd-muted'">
@@ -470,9 +471,9 @@
 
                                     <h3 class="ei-fd-step">Method and rates</h3>
                                     <div class="ei-fd-methods" role="radiogroup" aria-label="Feeding method">
-                                        <button t-foreach="this.state.methods" t-as="m" t-key="m.key" role="radio" t-att-aria-checked="l.method === m.key ? 'true' : 'false'"
-                                                t-att-class="'ei-fd-mpick' + (l.method === m.key ? ' is-on' : '') + (m.ready ? '' : ' is-off')" t-att-disabled="!m.ready" t-att-title="m.why" t-on-click="() => this.pickMethod(m.key)">
-                                            <b t-out="m.label"/><small t-out="m.ready ? m.why : 'Waiting for the client example and the accountant rule'"/>
+                                        <button t-foreach="this.picks" t-as="m" t-key="m.key" role="radio" t-att-aria-checked="l.method === m.key ? 'true' : 'false'"
+                                                t-att-class="'ei-fd-mpick' + (l.method === m.key ? ' is-on' : '')" t-att-title="m.why" t-on-click="() => this.pickMethod(m.key)">
+                                            <b t-out="m.label"/><small t-out="m.why"/>
                                         </button>
                                     </div>
                                     <div t-if="l.method" class="ei-fd-fields">
@@ -483,11 +484,11 @@
                                         <t t-else="">
                                             <label class="ei-fd-field ei-fd-rate"><span>Basic rate / MTL</span><input class="ei-fd-in is-num" inputmode="decimal" t-att-value="l.basic_rate" t-on-input="(ev) => this.setLine('basic_rate', ev)"/><em t-if="this.cl and this.cl.basic_rate and this.str(this.cl.basic_rate) !== this.str(l.basic_rate)" class="ei-fd-hint is-warn">Contract says <t t-out="this.fmt(this.cl.basic_rate)"/></em></label>
                                             <label class="ei-fd-field ei-fd-check"><input type="checkbox" t-att-checked="l.sale_typed" t-on-change="(ev) => this.setLine('sale_typed', ev)"/><span>Type the sale rate instead</span></label>
-                                            <label t-if="!l.sale_typed" class="ei-fd-field"><span>Sale = mill rate +/−</span><input t-att-class="'ei-fd-in is-num' + (this.lineBasis === 'with_cn' ? '' : ' ei-fd-lastrate')" inputmode="decimal" t-att-value="l.sale_offset" t-on-input="(ev) => this.setLine('sale_offset', ev)"/></label>
-                                            <label t-else="" class="ei-fd-field"><span>Sale rate / MTL</span><input t-att-class="'ei-fd-in is-num' + (this.lineBasis === 'with_cn' ? '' : ' ei-fd-lastrate')" inputmode="decimal" t-att-value="l.sale_rate" t-on-input="(ev) => this.setLine('sale_rate', ev)"/></label>
-                                            <t t-if="this.lineBasis === 'with_cn'">
-                                                <label class="ei-fd-field"><span>Credit note on THIS coil</span><input class="ei-fd-in is-num" inputmode="decimal" t-att-value="l.cn_amount" t-on-input="(ev) => this.setLine('cn_amount', ev)"/></label>
-                                                <label class="ei-fd-field is-wide"><span>Credit note text (as on the paper)</span><input class="ei-fd-in ei-fd-lastrate" t-att-value="l.cn_text" t-on-input="(ev) => this.setLine('cn_text', ev)"/></label>
+                                            <label t-if="!l.sale_typed" class="ei-fd-field"><span>Sale = mill rate +/−</span><input class="ei-fd-in is-num ei-fd-lastrate" inputmode="decimal" t-att-value="l.sale_offset" t-on-input="(ev) => this.setLine('sale_offset', ev)"/></label>
+                                            <label t-else="" class="ei-fd-field"><span>Sale rate / MTL</span><input class="ei-fd-in is-num ei-fd-lastrate" inputmode="decimal" t-att-value="l.sale_rate" t-on-input="(ev) => this.setLine('sale_rate', ev)"/></label>
+                                            <t t-if="this.lineBasis === 'commission'">
+                                                <label class="ei-fd-field"><span>Credit note on this coil <small class="ei-fd-muted">(optional)</small></span><input class="ei-fd-in is-num ei-fd-cn" inputmode="decimal" t-att-value="l.cn_amount" t-on-input="(ev) => this.setLine('cn_amount', ev)"/></label>
+                                                <label t-if="this.toNum(l.cn_amount) gt 0" class="ei-fd-field is-wide"><span>Credit note text <small class="ei-fd-muted">(optional)</small></span><input class="ei-fd-in" t-att-value="l.cn_text" t-on-input="(ev) => this.setLine('cn_text', ev)"/></label>
                                             </t>
                                             <label t-if="this.cl and this.cl.basic_rate and this.str(this.cl.basic_rate) !== this.str(l.basic_rate)" class="ei-fd-field is-wide"><span>Why the basic rate differs from the contract</span><input class="ei-fd-in" t-att-value="l.rate_note" t-on-input="(ev) => this.setLine('rate_note', ev)"/></label>
                                         </t>

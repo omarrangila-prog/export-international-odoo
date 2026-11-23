@@ -198,7 +198,18 @@ class EiDaLine(models.Model):
 
     @api.model
     def _feed(self, cl, vals):
-        """Work out one coil from what the operator typed. The server always recomputes: numbers from the screen are never trusted."""
+        """Work out one coil from what the operator typed. The server always recomputes: numbers from the screen are never trusted.
+        'commission' (the screen's "Commission based", 23 Nov 2026) is the mill formula: with a credit note on the coil it is worked
+        out as Purchase with CN; without one, the result names it (normal, high-profit, at mill rate, or loss). Same numbers as before."""
+        if vals.get('feeding_method') == 'commission':
+            cn = Decimal(str(vals.get('cn_amount') or 0))
+            if cn > 0:
+                return self._feed(cl, dict(vals, feeding_method='purchase_with_cn'))
+            r = self._feed(cl, dict(vals, feeding_method='normal_sale'))
+            m = 'loss_sale' if r['spread_per_mtl'] < 0 else 'sale_at_mill_rate' if r['sale_offset'] == 0 else \
+                'high_profit_sale' if r['sale_offset'] > 0 else 'normal_sale'
+            r.update(method=m, label=fe.METHODS[m][0])
+            return r
         method = vals.get('feeding_method')
         basis = fe.METHODS.get(method, (None, None))[1]
         kw = {}
@@ -230,8 +241,6 @@ class EiDaLine(models.Model):
             out.append(_("its rates were changed by hand after the calculation; open it in the feeding desk and save it again."))
         if r['spread_per_mtl'] < 0 and not (self.loss_reason or '').strip():
             out.append(_("it is sold below cost (%s per MTL); write why.", r['spread_per_mtl']))
-        if self.feeding_method == 'purchase_with_cn' and not (self.cn_text or '').strip():
-            out.append(_("write the credit note text for this coil."))
         signed = self.contract_line_id.contract_id.contract_type != 'feeding'          # a feeding account has no agreed basic rate to differ from
         if signed and (fe.money(self.basic_rate or 0) != fe.money(self.contract_line_id.basic_rate or 0)) and r['formula'] and not (self.rate_note or '').strip():
             out.append(_("its basic rate differs from the contract (%s); explain in the rate note.", self.contract_line_id.basic_rate))

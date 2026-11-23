@@ -32,6 +32,12 @@ const kgOf = (qty, unit) => {
     return String(parseFloat(kg.toFixed(3)));
 };
 const SMALL_KG = 100;
+// the two choices on the screen (client, 23 Nov 2026); the server records what a commission coil works out to
+const PICKS = [
+    { key: "commission", label: "Commission based", basis: "commission", ready: true, why: "Basic rate and mill rate +/−. Credit note optional: leave it empty if there is none." },
+    { key: "direct_no_commission", label: "Direct (no commission)", basis: "direct", ready: true, why: "Type the purchase rate and the sale rate." },
+];
+const pickOf = (method) => (!method ? "" : method === "direct_no_commission" ? "direct_no_commission" : "commission");
 const blankRate = () => ({ method: "", basic_rate: "", sale_offset: "", purchase_rate: "", sale_rate: "" });
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 // MTL to whole grams as an integer: totals of many coils without floating-point dust
@@ -126,7 +132,8 @@ export class EiDaFeeding extends Component {
     toInt(v) { return parseInt(v, 10) || 0; }
     signed(v) { const n = toNum(v); return Number.isNaN(n) ? "" : (n > 0 ? "+" : n < 0 ? "−" : "") + fmt(Math.abs(n)); }
     isOffset(key) { return OFFSET_METHODS.includes(key); }
-    methodOf(key) { return this.state.methods.find((m) => m.key === key) || {}; }
+    methodOf(key) { return PICKS.find((m) => m.key === key) || this.state.methods.find((m) => m.key === key) || {}; }
+    get picks() { return PICKS; }
     lookLabel(f) { return LOOKUPS[f]; }
     lookWord(f) { return LOOK_WORDS[f]; }
     get mtl() { const kg = toNum(this.state.line && this.state.line.weight_kg); return Number.isNaN(kg) ? "" : String(parseFloat((kg / 1000).toFixed(6))); }
@@ -453,9 +460,9 @@ export class EiDaFeeding extends Component {
         const basis = this.methodOf(last.method).basis, codes = [last.customer_code, last.trade_code, last.pl_code].filter(Boolean).map((c) => c.code);
         this.state.line = null; this.state.ratePlan = null;
         this.state.bulk = {
-            count: 20, rows: [], unit: "MTL", basis, from: last.coil_no, cn: basis === "with_cn", sameCn: false, cnAmount: "", cnText: "",
+            count: 20, rows: [], unit: "MTL", basis, from: last.coil_no, cn: basis !== "direct", cnOn: false, sameCn: false, cnAmount: "", cnText: "",
             label: [last.product, last.method_label, last.customer && last.customer.name, codes.join(" / ")].filter(Boolean).join(" · "),
-            shared: { contract_line_id: last.contract_line_id, grade: last.grade, thickness: last.thickness, width: last.width, method: last.method,
+            shared: { contract_line_id: last.contract_line_id, grade: last.grade, thickness: last.thickness, width: last.width, method: pickOf(last.method),
                 basic_rate: last.basic_rate ? String(last.basic_rate) : "", sale_offset: String(last.sale_offset || 0), sale_typed: last.sale_typed,
                 sale_rate: String(last.sale_rate || ""), purchase_rate: String(last.purchase_rate || ""), loss_reason: last.loss_reason, rate_note: last.rate_note,
                 customer_id: last.customer && last.customer.id, customer_code_id: last.customer_code && last.customer_code.id,
@@ -502,7 +509,7 @@ export class EiDaFeeding extends Component {
         if (this.state.busy) { return; }
         if (b.rows.some((r) => (r.coil_no.trim() === "") !== (r.qty === ""))) { this.state.error = "Every row needs both its coil number and its weight (or remove the row)."; return; }
         const rows = b.rows.filter((r) => r.coil_no.trim()).map((r) => ({ coil_no: r.coil_no.trim(), weight_kg: kgOf(r.qty, b.unit),
-            cn_amount: b.sameCn ? b.cnAmount : r.cn_amount, cn_text: b.sameCn ? b.cnText : r.cn_text }));
+            cn_amount: !b.cnOn ? "" : b.sameCn ? b.cnAmount : r.cn_amount, cn_text: !b.cnOn ? "" : b.sameCn ? b.cnText : r.cn_text }));
         this.state.busy = true;
         try {
             const r = await this.call("save_lines", [this.state.da.id, b.shared, rows]);
@@ -565,7 +572,7 @@ export class EiDaFeeding extends Component {
         const last = d.lines[d.lines.length - 1];
         if (last) {            // the next coil of the same DA usually goes to the same customer with the same codes
             l.customer = last.customer; l.customer_code = last.customer_code; l.trade_code = last.trade_code; l.pl_code = last.pl_code;
-            l.method = last.method; l.basic_rate = last.basic_rate ? String(last.basic_rate) : l.basic_rate;
+            l.method = pickOf(last.method); l.basic_rate = last.basic_rate ? String(last.basic_rate) : l.basic_rate;
         }
         this.state.line = l; this.state.preview = null;
         this.focusSoon(l.contract_line_id ? "#ei-fd-coil" : "#ei-fd-item");
@@ -573,7 +580,7 @@ export class EiDaFeeding extends Component {
     // a new coil with the repeatable details of an existing one; the coil number, weight and credit note are left empty
     duplicateLine(row) {
         const l = blankLine();
-        Object.assign(l, { contract_line_id: String(row.contract_line_id), grade: row.grade, method: row.method,
+        Object.assign(l, { contract_line_id: String(row.contract_line_id), grade: row.grade, method: pickOf(row.method),
             basic_rate: row.basic_rate ? String(row.basic_rate) : "", sale_offset: String(row.sale_offset || 0), sale_typed: row.sale_typed,
             sale_rate: row.sale_typed ? String(row.sale_rate || "") : "", purchase_rate: row.method === "direct_no_commission" ? String(row.purchase_rate || "") : "",
             customer: row.customer, customer_code: row.customer_code, trade_code: row.trade_code, pl_code: row.pl_code, rate_note: row.rate_note });
@@ -582,7 +589,7 @@ export class EiDaFeeding extends Component {
         this.refresh();
     }
     editLine(row) {
-        this.state.line = { ...blankLine(), ...row, contract_line_id: String(row.contract_line_id), weight_kg: String(row.weight_kg || ""),
+        this.state.line = { ...blankLine(), ...row, method: pickOf(row.method), contract_line_id: String(row.contract_line_id), weight_kg: String(row.weight_kg || ""),
             unit: "MTL", qty: row.weight_kg ? String(parseFloat((row.weight_kg / 1000).toFixed(6))) : "", small_ok: !!(row.weight_kg && row.weight_kg < SMALL_KG),
             basic_rate: row.basic_rate ? String(row.basic_rate) : "", sale_offset: String(row.sale_offset || 0),
             cn_amount: row.cn_amount ? String(row.cn_amount) : "", sale_rate: String(row.sale_rate || ""), purchase_rate: String(row.purchase_rate || "") };
@@ -604,7 +611,6 @@ export class EiDaFeeding extends Component {
     pickMethod(key) {
         const l = this.state.line;
         l.method = key;
-        if (key === "purchase_with_cn" || key === "sale_at_mill_rate") { l.sale_offset = "0"; }
         this.refresh();
         this.focusSoon(".ei-fd-editor .ei-fd-rate input");
     }

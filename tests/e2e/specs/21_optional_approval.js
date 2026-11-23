@@ -34,11 +34,11 @@ module.exports = {
           await p.fill('#ei-fd-look', term); await p.waitForTimeout(700); await p.locator('.ei-fd-lookrows button').first().click(); await p.waitForTimeout(300);
         }
         if (direct) {
-          await p.getByRole('radio', { name: /Direct purchase/ }).click();
+          await p.getByRole('radio', { name: /Direct \(no commission\)/ }).click();
           await p.locator('.ei-fd-editor .ei-fd-field:has-text("Purchase rate") input').fill('200000');
           await p.locator('.ei-fd-editor .ei-fd-field:has-text("Sale rate") input').fill('201000');
         } else {
-          await p.getByRole('radio', { name: /Normal sale/ }).click();
+          await p.getByRole('radio', { name: /Commission based/ }).click();
           await p.locator('.ei-fd-editor .ei-fd-field:has-text("Sale = mill rate") input').fill('-1000');
         }
         await p.waitForTimeout(900);
@@ -49,7 +49,7 @@ module.exports = {
         ctx.check(coilVal === '' && /D\.01/.test(custShown), `2 ${name}: the next coil keeps the customer and code, with an empty coil number`);
         await p.locator('.ei-fd-editor').getByRole('button', { name: 'Close', exact: true }).click();
         await p.locator('.ei-fd-table tbody tr').first().getByRole('button', { name: /Duplicate/ }).click(); await p.waitForTimeout(600);
-        ctx.check(await p.locator('#ei-fd-coil').inputValue() === '' && await p.locator('.ei-fd-mpick.is-on', { hasText: direct ? 'Direct purchase' : 'Normal sale' }).count() === 1,
+        ctx.check(await p.locator('#ei-fd-coil').inputValue() === '' && await p.locator('.ei-fd-mpick.is-on', { hasText: direct ? 'Direct (no commission)' : 'Commission based' }).count() === 1,
           `2 ${name}: Duplicate Row copies the method and codes but not the coil number`);
         await p.fill('#ei-fd-coil', name + '-C2');
         await (await p.locator('.ei-fd-unit button', { hasText: 'kg' }).click(), p.locator('#ei-fd-qty')).fill('3980'); await p.waitForTimeout(900);

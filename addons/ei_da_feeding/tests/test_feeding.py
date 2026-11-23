@@ -557,3 +557,26 @@ class TestFeeding(TransactionCase):
         self.assertEqual(q.figures()['entered'], Decimal('425.000'))
         f = q.figures()
         self.assertEqual((f['confirmed'], f['pending'], f['sold']), (Decimal('0.000'), Decimal('425.000'), Decimal('425.000')))
+
+    def test_33_two_choices_commission_or_direct(self):
+        """23 Nov 2026: the screen offers Commission based (CN optional) and Direct. A commission coil gives the same numbers as the
+        old six methods and is recorded as what it worked out to."""
+        d, cl = self.bare('SYN-TWO-1')
+        cases = [('C-N', '-1000', None, 'normal_sale', 268051.41, 270080.81), ('C-H', '10000', None, 'high_profit_sale', 268051.41, 281080.81),
+                 ('C-M', '0', None, 'sale_at_mill_rate', 268051.41, 271080.81), ('C-CN', '0', '1000', 'purchase_with_cn', 267064.61, 271080.81)]
+        for coil, off, cn, method, pur, sale in cases:
+            vals = dict(self.shared(cl, method='commission', sale_offset=off), coil_no=coil, weight_kg='4574')
+            if cn:
+                vals['cn_amount'] = cn                                          # no CN text: it is optional
+            p = self.desk.preview(d.id, vals)
+            self.assertEqual((p['method'], p['purchase_rate'], p['sale_rate']), (method, '%.2f' % pur, '%.2f' % sale), coil)
+            l = self.env['ei.da.line'].browse(self.desk.save_line(d.id, False, vals)['line_id'])
+            self.assertEqual((l.feeding_method, l.purchase_rate, l.sale_rate, l.cn_amount), (method, pur, sale, float(cn or 0)), coil)
+        loss = dict(self.shared(cl, method='commission', sale_offset='-10000'), coil_no='C-L', weight_kg='4574')
+        with self.assertRaisesRegex(UserError, 'below cost'):
+            self.desk.save_line(d.id, False, loss)                             # a coil sold below cost still needs a reason
+        l = self.env['ei.da.line'].browse(self.desk.save_line(d.id, False, dict(loss, loss_reason='market fell'))['line_id'])
+        self.assertEqual((l.feeding_method, l.sale_rate), ('loss_sale', 261080.81))
+        r = self.desk.apply_rates(d.id, d.line_ids.filtered(lambda x: x.coil_no == 'C-N').ids, {'method': 'commission', 'sale_offset': '0'}, True)
+        self.assertEqual(d.line_ids.filtered(lambda x: x.coil_no == 'C-N').feeding_method, 'sale_at_mill_rate')
+        self.assertEqual(self.env['ei.da.line'].browse(d.line_ids.filtered(lambda x: x.coil_no == 'C-CN').id).cn_amount, 1000)

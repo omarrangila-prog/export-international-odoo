@@ -40,7 +40,7 @@ module.exports = {
       await p.keyboard.press('Enter'); await p.keyboard.press('Enter'); await p.keyboard.press('Enter'); await p.waitForTimeout(300);
       await p.keyboard.type(mtl, { delay: 30 }); await p.keyboard.press('Enter'); await p.waitForTimeout(400);
       await p.keyboard.press('Enter'); await p.waitForSelector('#ei-fd-look'); await typeEnter('D.01');
-      await p.getByRole('radio', { name: /Direct purchase/ }).click(); await p.waitForTimeout(400);
+      await p.getByRole('radio', { name: /Direct \(no commission\)/ }).click(); await p.waitForTimeout(400);
       await p.keyboard.type('229500', { delay: 25 }); await p.keyboard.press('Enter'); await p.waitForTimeout(300);
       await p.keyboard.type('230500', { delay: 25 }); await p.waitForTimeout(1300);
       await p.getByRole('button', { name: 'Save Entry' }).click(); await p.waitForTimeout(1800);

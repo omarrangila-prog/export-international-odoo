@@ -339,8 +339,7 @@ class EiFeedingDesk(models.AbstractModel):
             r = self.env['ei.da.line']._feed(cl, clean)
         except fe.FeedingError as e:
             raise UserError(str(e))
-        if clean['feeding_method'] == 'purchase_with_cn' and not (vals.get('cn_text') or '').strip():
-            raise UserError(_("Write the credit note text for this coil, as on the parent's paper."))
+        clean['feeding_method'] = r['method']            # "Commission based" is stored as what it worked out to (CN, normal, ...)
         if r['spread_per_mtl'] < 0 and not (vals.get('loss_reason') or '').strip():
             raise UserError(_("This coil is sold below cost (%s per MTL). Write why; an approver will check it.", r['spread_per_mtl']))
         write = {
@@ -426,7 +425,7 @@ class EiFeedingDesk(models.AbstractModel):
         d = self._da(da_id, write=True)
         rates = {k: v for k, v in (rates or {}).items() if v not in (None, '')}
         method = rates.pop('method', None)
-        if method and method not in fe.METHODS:
+        if method and method not in fe.METHODS and method != 'commission':
             raise UserError(_("Unknown feeding method."))
         lines = d.line_ids.filtered(lambda l: l.id in [int(x) for x in line_ids or []])
         if not lines:
@@ -437,7 +436,7 @@ class EiFeedingDesk(models.AbstractModel):
         for l in lines:
             vals = self._vals_of(l)
             m = method or l.feeding_method
-            basis = fe.METHODS.get(m, (None, None))[1]
+            basis = 'dealer_net' if m == 'commission' else fe.METHODS.get(m, (None, None))[1]
             use = {}
             if basis == 'direct':
                 use = {k: rates[k] for k in ('purchase_rate', 'sale_rate') if k in rates}
@@ -449,8 +448,6 @@ class EiFeedingDesk(models.AbstractModel):
                 skipped.append({'id': l.id, 'coil_no': l.coil_no, 'why': _("%s: these rates are of another kind", dict(l._fields['feeding_method'].selection).get(l.feeding_method))})
                 continue
             vals.update(use, method=m)
-            if method and method != l.feeding_method and m in ('purchase_with_cn', 'sale_at_mill_rate'):
-                vals['sale_offset'] = '0'
             try:
                 r = self.env['ei.da.line']._feed(l.contract_line_id, self._clean(vals))
             except fe.FeedingError as e:

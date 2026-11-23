@@ -84,7 +84,7 @@ module.exports = {
           await p.locator('#ei-fd-look').pressSequentially(term, { delay: 50 }); await p.waitForTimeout(1200);
           await p.locator('.ei-fd-lookrows button', row ? { hasText: row } : {}).first().click(); await p.waitForTimeout(400);
         }
-        await p.locator('.ei-fd-mpick', { hasText: /^Direct purchase and sale/ }).click();
+        await p.locator('.ei-fd-mpick', { hasText: /^Direct \(no commission\)/ }).click();
         await p.locator('.ei-fd-editor .ei-fd-field', { hasText: 'Purchase rate / MTL' }).locator('input').fill('200000');
         await p.locator('.ei-fd-editor .ei-fd-field', { hasText: 'Sale rate / MTL' }).locator('input').fill('201000');
         await p.waitForSelector('.ei-fd-answer', { timeout: 40000 });

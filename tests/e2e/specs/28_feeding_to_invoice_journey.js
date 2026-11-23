@@ -56,7 +56,7 @@ module.exports = {
     await (await p.locator('.ei-fd-unit button', { hasText: 'kg' }).click(), p.locator('#ei-fd-qty')).fill('4574');
     await p.locator('.ei-fd-pick', { hasText: 'Sales code' }).getByRole('button', { name: /Choose|Change/ }).first().click();
     await p.locator('#ei-fd-look').pressSequentially('D.01', { delay: 40 }); await p.waitForTimeout(1200); await p.locator('.ei-fd-lookrows button', { hasText: 'D.01' }).first().click();
-    await p.locator('.ei-fd-mpick', { hasText: /^Direct purchase and sale/ }).click();
+    await p.locator('.ei-fd-mpick', { hasText: /^Direct \(no commission\)/ }).click();
     await coilField('Purchase rate / MTL').fill('229500'); await coilField('Sale rate / MTL').fill('230500');
     await p.waitForSelector('.ei-fd-answer', { timeout: 40000 }); await p.getByRole('button', { name: 'Save Entry' }).click(); await p.waitForTimeout(1800);
     await p.getByRole('button', { name: 'Submit for Approval' }).click(); await p.waitForSelector('.ei-fd-done.is-wait', { timeout: 30000 });

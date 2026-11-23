@@ -82,8 +82,8 @@ module.exports = {
     };
     await pick('Sold (OUT)', 'Rehman');
     await pick('Sales code', '1.2');
-    await p.getByRole('radio', { name: /Purchase with CN/ }).click();
-    await p.locator('.ei-fd-editor .ei-fd-field:has-text("Credit note on THIS coil") input').fill('1000');
+    await p.getByRole('radio', { name: /Commission based/ }).click();
+    await p.locator('.ei-fd-editor .ei-fd-field:has-text("Credit note on this coil") input').fill('1000');
     await p.locator('.ei-fd-editor .ei-fd-field:has-text("Credit note text") input').fill('CN 1000 (synthetic)');
     await p.waitForTimeout(1200);
     const ans = (await p.locator('.ei-fd-answer .ei-fd-figs dd').allInnerTexts()).map((t) => t.trim());
