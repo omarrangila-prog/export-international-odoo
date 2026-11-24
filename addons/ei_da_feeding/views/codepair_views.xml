@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ei_code_pair_list" model="ir.ui.view">
+        <field name="name">ei.code.pair.list</field>
+        <field name="model">ei.code.pair</field>
+        <field name="arch" type="xml">
+            <list decoration-muted="state == 'rejected'" decoration-info="state in ('suggested', 'proposed')">
+                <header>
+                    <button name="action_suggest" type="object" string="Suggest pairs from the code names" display="always"/>
+                    <button name="action_approve" type="object" string="Approve selected"/>
+                    <button name="action_reject" type="object" string="Reject selected"/>
+                </header>
+                <field name="trade_code_id"/>
+                <field name="pl_code_id"/>
+                <field name="supplier_id" optional="show"/>
+                <field name="purchase_in_id" optional="show"/>
+                <field name="uses"/>
+                <field name="note" optional="hide"/>
+                <field name="state" widget="badge" decoration-success="state == 'approved'" decoration-warning="state in ('suggested', 'proposed')"/>
+                <button name="action_approve" type="object" string="Approve" invisible="state == 'approved'" class="btn-link"/>
+                <button name="action_reject" type="object" string="Reject" invisible="state == 'rejected'" class="btn-link"/>
+            </list>
+        </field>
+    </record>
+    <record id="ei_code_pair_form" model="ir.ui.view">
+        <field name="name">ei.code.pair.form</field>
+        <field name="model">ei.code.pair</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_approve" type="object" string="Approve" class="btn-primary" invisible="state == 'approved'"/>
+                    <button name="action_reject" type="object" string="Reject" invisible="state == 'rejected'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet><group>
+                    <group><field name="trade_code_id"/><field name="pl_code_id"/></group>
+                    <group><field name="supplier_id"/><field name="purchase_in_id"/><field name="uses"/><field name="approved_by"/><field name="approved_at"/></group>
+                    <field name="note"/>
+                </group></sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    <record id="ei_code_pair_search" model="ir.ui.view">
+        <field name="name">ei.code.pair.search</field>
+        <field name="model">ei.code.pair</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="trade_code_id"/><field name="pl_code_id"/><field name="supplier_id"/>
+                <filter name="f_todo" string="To confirm" domain="[('state', 'in', ('suggested', 'proposed'))]"/>
+                <filter name="f_ok" string="Approved" domain="[('state', '=', 'approved')]"/>
+            </search>
+        </field>
+    </record>
+    <record id="ei_code_pair_action" model="ir.actions.act_window">
+        <field name="name">Code pairs (purchase + P&amp;L)</field>
+        <field name="res_model">ei.code.pair</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_f_todo': 1}</field>
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">No code pairs to confirm</p>
+            <p>Which purchase code goes with which P&amp;L code. Press <b>Suggest pairs from the code names</b>, check each suggestion and
+            approve it. Only approved pairs are used to warn on the feeding screen; codes used on coils appear here to confirm.</p></field>
+    </record>
+    <menuitem id="menu_ei_code_pair" name="Code pairs (purchase + P&amp;L)" parent="ei_contract_da.menu_ei_contracts" action="ei_code_pair_action" sequence="31"/>
+</odoo>

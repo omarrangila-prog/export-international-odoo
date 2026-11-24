@@ -62,7 +62,9 @@ export class EiDaFeeding extends Component {
             review: false, next: null, partyLook: { term: "", rows: [] }, itemLook: null, dupes: null,
             pl: { supplier: { term: "", rows: [] }, pin: { term: "", rows: [] } },
             docsOpen: false, quotaUi: null, quotaMore: false, sel: {}, rate: blankRate(), ratePlan: null, bulk: null,
+            missing: [], itemMsg: "", codeCheck: null, soldChange: null,
         });
+        this.lookSeq = 0;
         this.timers = { lab: null, prev: null, look: null, party: null, item: null };
         this.onKey = (ev) => {
             if ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === "s" && this.state.tab === "real" && this.state.line) {
@@ -85,6 +87,13 @@ export class EiDaFeeding extends Component {
 
     // ------------------------------------------------------------------ Enter moves to the next box (like FoxPro)
     onFieldKey(ev) {
+        // arrow keys move through a list of matches; Enter on a row picks it (the button's own click)
+        if ((ev.key === "ArrowDown" || ev.key === "ArrowUp") && ev.target && ev.target.closest && ev.target.closest(".ei-fd-lookrows")) {
+            const li = ev.target.closest("li"), to = ev.key === "ArrowDown" ? li && li.nextElementSibling : li && li.previousElementSibling;
+            const b = to && to.querySelector("button");
+            if (b) { ev.preventDefault(); b.focus(); b.scrollIntoView({ block: "nearest" }); }
+            return;
+        }
         // a letter typed on a "Choose … code" button, or while its search box is still opening, goes into that search box
         const printable = ev.key && ev.key.length === 1 && !ev.ctrlKey && !ev.altKey && !ev.metaKey;
         if (printable && !ev.defaultPrevented && ev.target && ev.target.id !== "ei-fd-look") {
@@ -134,6 +143,7 @@ export class EiDaFeeding extends Component {
     isOffset(key) { return OFFSET_METHODS.includes(key); }
     methodOf(key) { return PICKS.find((m) => m.key === key) || this.state.methods.find((m) => m.key === key) || {}; }
     get picks() { return PICKS; }
+    noFormula(m) { return m.key === "commission" && !!this.cl && !this.cl.formula && !!(this.state.da && this.state.da.is_feeding); }
     lookLabel(f) { return LOOKUPS[f]; }
     lookWord(f) { return LOOK_WORDS[f]; }
     get mtl() { const kg = toNum(this.state.line && this.state.line.weight_kg); return Number.isNaN(kg) ? "" : String(parseFloat((kg / 1000).toFixed(6))); }
@@ -142,6 +152,35 @@ export class EiDaFeeding extends Component {
     get smallWeight() { const l = this.state.line, kg = toNum(l && l.weight_kg); return !!l && !Number.isNaN(kg) && kg > 0 && kg < SMALL_KG; }
     get cl() { const l = this.state.line, d = this.state.da; return l && d ? d.contract_lines.find((c) => c.id === Number(l.contract_line_id)) : null; }
     get lineBasis() { const m = this.methodOf(this.state.line && this.state.line.method); return m.basis || ""; }
+    // what is missing for this coil, by field (shown beside the box and listed above Save)
+    get fieldErr() {
+        const e = {};
+        for (const m of this.state.missing) { e[m.key] = m.msg; }
+        if (!e.item && this.state.itemMsg) { e.item = this.state.itemMsg; }
+        return e;
+    }
+    lineProblems() {
+        const l = this.state.line, out = [], basis = this.lineBasis, term = this.state.itemLook && this.state.itemLook.term.trim();
+        if (!l.contract_line_id) {
+            out.push({ key: "item", msg: term ? `Item: “${term}” is typed but not chosen. Pick it from the list under the box, or press “+ Add new item”.`
+                : "Item: choose the item (material) of this coil." });
+        }
+        if (!(l.coil_no || "").trim()) { out.push({ key: "coil", msg: "Coil No: type the coil number as printed." }); }
+        if (!l.weight_kg || toNum(l.weight_kg) <= 0) { out.push({ key: "weight", msg: "Weight: type the weight (MTL or kg)." }); }
+        if (!l.method) { out.push({ key: "method", msg: "Method: choose Commission based or Direct." }); }
+        else if (basis === "direct" && (!l.purchase_rate || !l.sale_rate)) { out.push({ key: "rate", msg: "Rates: type the purchase rate and the sale rate." }); }
+        else if (basis !== "direct" && !l.basic_rate) { out.push({ key: "rate", msg: "Rates: type the basic rate." }); }
+        const p = this.state.preview;
+        if (p && p.ok && p.result === "loss" && !(l.loss_reason || "").trim()) {
+            out.push({ key: "loss", msg: "Sold below cost: write why in the box under the calculation (an approver checks it)." });
+        }
+        return out;
+    }
+    fixField(m) {
+        const sel = { item: "#ei-fd-item", coil: "#ei-fd-coil", weight: "#ei-fd-qty", method: ".ei-fd-mpick", rate: ".ei-fd-editor .ei-fd-rate input", loss: ".ei-fd-lossbox input" }[m.key];
+        if (m.key === "item" && !document.querySelector("#ei-fd-item")) { this.openItems(); }
+        setTimeout(() => { const el = document.querySelector(sel); if (el) { el.scrollIntoView({ block: "center" }); el.focus(); } }, 60);
+    }
     get doc() { const a = this.state.da && this.state.da.attachments; return a && a.length ? a[Math.min(this.state.docIndex, a.length - 1)] : null; }
     docUrl(a) { return `/web/content/${a.id}?download=false`; }
     isImage(a) { return /^image\//.test(a.mimetype || ""); }
@@ -187,6 +226,7 @@ export class EiDaFeeding extends Component {
     }
     async loadList() { try { this.state.list = await this.call("da_list", []); } catch { this.state.list = { rows: [], contracts: [] }; } }
     async openDa(id) {
+        this.state.newDa = null; this.state.dupes = null;         // a recent entry clicked while a new form is open: show that entry
         this.state.line = null; this.state.preview = null; this.state.docIndex = 0; this.state.next = null; this.state.review = false;
         this.state.docsOpen = false; this.state.quotaUi = null; this.state.sel = {}; this.state.ratePlan = null; this.state.bulk = null;
         try { this.setDa(await this.call("da_load", [id])); } catch { /* shown */ }
@@ -229,7 +269,7 @@ export class EiDaFeeding extends Component {
         const d = this.state.newDa;
         if (role === "pin") { d.purchase_in_id = String(p.id); d.purchase_in_name = p.name; }
         else { d.supplier_id = String(p.id); d.supplier_name = p.name; }
-        this.state.pl[role] = { term: "", rows: [] };
+        this.state.pl[role] = { term: "", rows: [] }; this.state.error = "";
         this.advanceSoon(role === "supplier" ? ".ei-fd-supplier" : ".ei-fd-pin");     // the next box that is there (one may be filled already)
     }
     async plKey(role, ev) {
@@ -264,7 +304,7 @@ export class EiDaFeeding extends Component {
         const p = await this.call("party_take", ["customer", row]);
         if (!p) { return; }
         if (this.state.newDa) { this.state.newDa.sold_out_id = String(p.id); this.state.newDa.sold_out_name = p.name; }
-        this.state.partyLook = { term: "", rows: [] };
+        this.state.partyLook = { term: "", rows: [] }; this.state.error = "";
         this.focusSoon("#ei-fd-gocoil");                    // on to the coil, on the same screen
     }
     async soldKey(ev) {
@@ -283,6 +323,8 @@ export class EiDaFeeding extends Component {
     // the item of a coil on a feeding-account DA: any material; its line in the account is found or opened
     async itemLookInput(ev) {
         const term = ev.target.value;
+        if (this.state.line && this.state.line.contract_line_id) { this.state.line.contract_line_id = ""; this.state.preview = null; }   // a new text: the old item no longer counts
+        this.state.itemMsg = "";
         this.state.itemLook = { term, rows: this.state.itemLook ? this.state.itemLook.rows : [] };
         clearTimeout(this.timers.item);
         this.timers.item = setTimeout(async () => {
@@ -298,8 +340,11 @@ export class EiDaFeeding extends Component {
         const term = ev.target.value;
         clearTimeout(this.timers.item);
         const rows = term.trim() ? await this.orm.call(MODEL, "product_search", [term]) : this.state.itemLook.rows;
-        const hit = rows.find((r) => r.kind !== "new");
-        if (hit) { this.pickItem(hit); } else { this.state.itemLook.rows = rows; this.noMatch(term); }
+        const hit = rows.find((r) => r.kind !== "new" && r.name.trim().toLowerCase() === term.trim().toLowerCase()) || rows.find((r) => r.kind !== "new" && !r.similar);
+        if (hit) { this.pickItem(hit); } else {
+            this.state.itemLook.rows = rows;
+            this.state.itemMsg = `“${term}” is not in the item list yet. Pick a similar one below, or press “+ Add new item” to add it.`;
+        }
     }
     async openItems() {
         // show the list at once, and never wipe what the person already typed while it loads
@@ -316,7 +361,8 @@ export class EiDaFeeding extends Component {
             this.state.line.contract_line_id = String(r.contract_line_id);
             // the size printed in the item's name decides thickness and width: a new item never keeps the previous item's size
             if (r.dims) { this.state.line.thickness = r.dims.thickness; this.state.line.width = r.dims.width; }
-            this.state.itemLook = null;
+            this.state.itemLook = null; this.state.itemMsg = ""; this.state.error = "";
+            this.state.missing = this.state.missing.filter((m) => m.key !== "item");
             this.refresh();
             this.focusSoon("#ei-fd-coil");
         } catch { /* shown */ }
@@ -334,6 +380,8 @@ export class EiDaFeeding extends Component {
             if (!force) {
                 const found = await this.call("da_find", [n.name]);
                 if (found.length) { this.state.dupes = found; return; }
+                const similar = await this.call("da_similar", [n.name, n.supplier_id || false]);       // 40038934NV / 40038934NOV
+                if (similar.length) { this.state.dupes = similar; return; }
             }
             const id = await this.call("da_create", [n]);
             this.state.newDa = null; this.state.dupes = null;
@@ -574,7 +622,10 @@ export class EiDaFeeding extends Component {
             l.customer = last.customer; l.customer_code = last.customer_code; l.trade_code = last.trade_code; l.pl_code = last.pl_code;
             l.method = pickOf(last.method); l.basic_rate = last.basic_rate ? String(last.basic_rate) : l.basic_rate;
         }
-        this.state.line = l; this.state.preview = null;
+        const auto = d.auto_codes || {};
+        for (const f of ["customer_code", "trade_code", "pl_code"]) { if (!l[f] && auto[f]) { l[f] = auto[f]; } }
+        this.state.line = l; this.state.preview = null; this.state.missing = []; this.state.itemMsg = ""; this.state.error = "";
+        this.checkCodes();
         this.focusSoon(l.contract_line_id ? "#ei-fd-coil" : "#ei-fd-item");
     }
     // a new coil with the repeatable details of an existing one; the coil number, weight and credit note are left empty
@@ -584,21 +635,24 @@ export class EiDaFeeding extends Component {
             basic_rate: row.basic_rate ? String(row.basic_rate) : "", sale_offset: String(row.sale_offset || 0), sale_typed: row.sale_typed,
             sale_rate: row.sale_typed ? String(row.sale_rate || "") : "", purchase_rate: row.method === "direct_no_commission" ? String(row.purchase_rate || "") : "",
             customer: row.customer, customer_code: row.customer_code, trade_code: row.trade_code, pl_code: row.pl_code, rate_note: row.rate_note });
-        this.state.line = l; this.state.preview = null;
+        this.state.line = l; this.state.preview = null; this.state.missing = []; this.state.itemMsg = "";
         this.focusSoon("#ei-fd-coil");
-        this.refresh();
+        this.refresh(); this.checkCodes();
     }
     editLine(row) {
         this.state.line = { ...blankLine(), ...row, method: pickOf(row.method), contract_line_id: String(row.contract_line_id), weight_kg: String(row.weight_kg || ""),
             unit: "MTL", qty: row.weight_kg ? String(parseFloat((row.weight_kg / 1000).toFixed(6))) : "", small_ok: !!(row.weight_kg && row.weight_kg < SMALL_KG),
             basic_rate: row.basic_rate ? String(row.basic_rate) : "", sale_offset: String(row.sale_offset || 0),
             cn_amount: row.cn_amount ? String(row.cn_amount) : "", sale_rate: String(row.sale_rate || ""), purchase_rate: String(row.purchase_rate || "") };
-        this.refresh();
+        this.state.missing = []; this.state.itemMsg = "";
+        this.refresh(); this.checkCodes();
     }
-    closeLine() { this.state.line = null; this.state.preview = null; }
+    closeLine() { this.state.line = null; this.state.preview = null; this.state.missing = []; this.state.itemMsg = ""; this.state.codeCheck = null; this.state.itemLook = null; }
     setLine(key, ev) {
         const v = ev.target.type === "checkbox" ? ev.target.checked : ev.target.value;
         this.state.line[key] = v;
+        const fk = { coil_no: "coil", qty: "weight", basic_rate: "rate", purchase_rate: "rate", sale_rate: "rate", loss_reason: "loss" }[key];
+        if (fk && this.state.missing.length) { this.state.missing = this.state.missing.filter((m) => m.key !== fk); }
         if (key === "qty") { this.state.line.weight_kg = kgOf(v, this.state.line.unit); this.state.line.small_ok = false; }
         if (key === "contract_line_id" && this.cl && !this.state.line.basic_rate) { this.state.line.basic_rate = String(this.cl.basic_rate || ""); }
         this.refresh();
@@ -611,6 +665,7 @@ export class EiDaFeeding extends Component {
     pickMethod(key) {
         const l = this.state.line;
         l.method = key;
+        this.state.missing = this.state.missing.filter((m) => m.key !== "method");
         this.refresh();
         this.focusSoon(".ei-fd-editor .ei-fd-rate input");
     }
@@ -635,6 +690,9 @@ export class EiDaFeeding extends Component {
     }
     async saveLine(addNext = false) {
         if (!this.state.line || this.state.busy) { return; }
+        const problems = this.lineProblems();
+        this.state.missing = problems;
+        if (problems.length) { this.state.error = ""; this.fixField(problems[0]); return; }
         if (this.smallWeight && !this.state.line.small_ok) { this.state.error = `${this.state.line.weight_kg} kg is only ${this.mtl} MTL. Choose MTL, or tick “Yes, the weight is in kg”.`; return; }
         this.state.busy = true;
         try {
@@ -655,20 +713,22 @@ export class EiDaFeeding extends Component {
     openLook(field) {
         this.state.look = { field, term: "", rows: [], busy: false };
         this.runLook();
-        this.focusSoon("#ei-fd-look");
+        this.focusSoon("#ei-fd-look"); this.openLookScroll();
     }
     lookInput(ev) {
-        this.state.look.term = ev.target.value;
+        this.state.look.term = ev.target.value; this.state.look.ambiguous = 0;
         clearTimeout(this.timers.look);
         this.timers.look = setTimeout(() => { this.timers.look = null; this.runLook(); }, 200);
     }
     async runLook() {
         const s = this.state.look, kind = { customer_code: "customer", trade_code: "trade", pl_code: "pl" }[s.field];
+        const seq = ++this.lookSeq, term = s.term, field = s.field;
         s.busy = true;
         try {
-            s.rows = s.field === "customer" ? await this.orm.call(MODEL, "party_search", ["customer", s.term])
-                : await this.orm.call(MODEL, "code_search", [kind, s.term, this.state.da.printed_customer || ""]);
-        } finally { s.busy = false; }
+            const rows = field === "customer" ? await this.orm.call(MODEL, "party_search", ["customer", term])
+                : await this.orm.call(MODEL, "code_search", [kind, term, this.state.da.printed_customer || ""]);
+            if (seq === this.lookSeq && this.state.look.field === field) { this.state.look.rows = rows; }   // an older, slower answer never wins
+        } finally { if (seq === this.lookSeq) { s.busy = false; } }
     }
     async choose(row) {
         const f = this.state.look.field;
@@ -678,22 +738,75 @@ export class EiDaFeeding extends Component {
             row = p;
         }
         this.state.line[f] = f === "customer" ? { id: row.id, name: row.name } : row;
-        this.state.look = { field: null, term: "", rows: [], busy: false };
-        this.refresh();
+        this.state.look = { field: null, term: "", rows: [], busy: false }; this.state.error = "";
+        this.refresh(); this.checkCodes();
         this.advanceSoon(`.ei-fd-pick[data-f="${f}"] .ei-fd-link`);
     }
-    clearPick(f) { this.state.line[f] = null; this.refresh(); }
+    clearPick(f) { this.state.line[f] = null; this.refresh(); this.checkCodes(); }
+    openLookScroll() { setTimeout(() => { const el = document.querySelector(".ei-fd-look"); if (el) { el.scrollIntoView({ block: "nearest" }); } }, 80); }
+    // ------------------------------------------------------------------ codes: checked together, filled by themselves where verified
+    checkCodes() {
+        clearTimeout(this.timers.codes);
+        this.timers.codes = setTimeout(async () => {
+            const l = this.state.line;
+            if (!l || !this.state.da) { this.state.codeCheck = null; return; }
+            const v = { trade_code_id: l.trade_code && l.trade_code.id, pl_code_id: l.pl_code && l.pl_code.id,
+                customer_code_id: l.customer_code && l.customer_code.id, customer_id: l.customer && l.customer.id };
+            try { this.state.codeCheck = await this.orm.call(MODEL, "check_codes", [this.state.da.id, v]); } catch { this.state.codeCheck = null; }
+        }, 150);
+    }
+    useCode(f, o) { this.state.line[f] = o; this.refresh(); this.checkCodes(); }
+    async allowPair() {
+        const reason = window.prompt("Why are these purchase and P&L codes right for this coil? (kept on the coil)");
+        if (!reason || !reason.trim()) { return; }
+        try {
+            const da = await this.call("allow_pair", [this.state.da.id, this.state.line.id, reason]);
+            this.setDa(da); const row = da.lines.find((x) => x.id === this.state.line.id);
+            if (row) { this.state.line.pair_allowed = row.pair_allowed; }
+            this.toast("Codes allowed on this coil; the reason is kept.");
+        } catch { /* shown */ }
+    }
+    // ------------------------------------------------------------------ Sold To changed on a draft: which coils follow
+    get soldFollowers() {
+        const d = this.state.da, old = d && d.sold_out;
+        return d ? d.lines.filter((l) => !l.customer || (old && l.customer.id === old.id)).length : 0;
+    }
+    soldChangeStart() { this.state.soldChange = { term: "", rows: [], picked: null }; this.focusSoon("#ei-fd-soldnew"); }
+    soldChangeInput(ev) {
+        const sc = this.state.soldChange, term = ev.target.value; sc.term = term;
+        clearTimeout(this.timers.sold);
+        this.timers.sold = setTimeout(async () => { const rows = term.trim() ? await this.orm.call(MODEL, "party_search", ["customer", term]) : []; if (sc.term === term) { sc.rows = rows; } }, 200);
+    }
+    async soldChangeKey(ev) {
+        if (ev.key === "Escape") { this.state.soldChange = null; return; }
+        if (ev.key !== "Enter") { return; }
+        ev.preventDefault();
+        const term = ev.target.value; if (!term.trim()) { return; }
+        const rows = await this.orm.call(MODEL, "party_search", ["customer", term]);
+        const hit = rows.find((r) => r.kind !== "new");
+        if (hit) { this.soldChangePick(hit); } else { this.state.soldChange.rows = rows; this.noMatch(term); }
+    }
+    soldChangePick(row) { this.state.soldChange.picked = row; this.state.error = ""; }
+    async soldChangeApply(mode) {
+        try { this.setDa(await this.call("da_set_sold_out", [this.state.da.id, this.state.soldChange.picked, mode])); this.state.soldChange = null; this.toast("Sold To changed."); }
+        catch { /* shown */ }
+    }
     async lookKey(ev) {
         if (ev.key === "Escape") { this.state.look.field = null; return; }
         if (ev.key === "ArrowDown") { const o = ev.target.parentElement.querySelector(".ei-fd-lookrows button"); if (o) { ev.preventDefault(); o.focus(); } return; }
         if (ev.key !== "Enter") { return; }
         ev.preventDefault();
-        if (this.state.look.term !== ev.target.value || this.timers.look) {         // finish the search for what is typed now
-            this.state.look.term = ev.target.value; clearTimeout(this.timers.look); this.timers.look = null;
-            await this.runLook();
-        }
-        const hit = this.state.look.rows.find((r) => r.kind !== "new");
-        if (hit) { this.choose(hit); } else if (this.state.look.term) { this.noMatch(this.state.look.term); }
+        // always the search for exactly what is typed now: an earlier search still on its way never answers this Enter
+        this.state.look.term = ev.target.value; clearTimeout(this.timers.look); this.timers.look = null;
+        await this.runLook();
+        const t = this.state.look.term.trim().toLowerCase(), rows = this.state.look.rows.filter((r) => r.kind !== "new");
+        const exact = rows.find((r) => (r.code || "").toLowerCase() === t || (r.ref || "").toLowerCase() === t || (r.name || "").trim().toLowerCase() === t);
+        // a code is an accounting choice: Enter takes it only when it is certain (the exact code or name, or the only match);
+        // several codes matching a few letters stay listed for the person to pick (a customer name keeps the first match)
+        const hit = exact || (this.state.look.field === "customer" || rows.length === 1 ? rows[0] : null);
+        if (hit) { this.choose(hit); }
+        else if (rows.length) { this.state.error = ""; this.state.look.ambiguous = rows.length; const o = document.querySelector(".ei-fd-look .ei-fd-lookrows button"); if (o) { o.focus(); } }
+        else if (this.state.look.term) { this.noMatch(this.state.look.term); }
     }
 
     focusSoon(sel) {

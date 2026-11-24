@@ -12,7 +12,7 @@
                     <button role="tab" t-att-aria-selected="this.state.tab === 'real' ? 'true' : 'false'" t-att-class="'ei-fd-tab' + (this.state.tab === 'real' ? ' is-on' : '')" t-on-click="() => this.setTab('real')">Real entry <small>draft, then approval</small></button>
                 </div>
             </header>
-            <p t-if="this.state.error" class="ei-fd-error" role="alert" t-out="this.state.error"/>
+            <p t-if="this.state.error and !this.state.line" class="ei-fd-error" role="alert" t-out="this.state.error"/>
 
             <!-- ================= PRACTICE ================= -->
             <section t-if="this.state.tab === 'practice' and this.state.lab" class="ei-fd-body" aria-label="Practice">
@@ -122,7 +122,8 @@
                         </div>
                         <p class="ei-fd-muted ei-fd-partyhint">Type a name or an old code, then Enter: the first matching name is taken. A new name is added only with its Add button. Sold To may stay empty.</p>
                         <div t-if="this.state.dupes" class="ei-fd-warnbox" role="alert">
-                            <b>This DA number is already in the system.</b> Open it instead of entering it twice:
+                            <b t-if="this.state.dupes[0].similar">A very similar DA number is already in the system. A typing mistake?</b>
+                            <b t-else="">This DA number is already in the system.</b> Open it instead of entering it twice:
                             <ul class="ei-fd-dupes">
                                 <li t-foreach="this.state.dupes" t-as="x" t-key="x.id">
                                     <b t-out="x.name"/> · <t t-out="x.supplier"/> · <t t-out="x.date"/> · <t t-out="x.coils"/> coil(s) · <t t-out="x.state_label"/>
@@ -130,7 +131,8 @@
                                     <button t-if="x.state === 'draft'" class="ei-fd-btn is-sm is-primary" t-on-click="() => this.openExisting(x, true)">Add coil to it</button>
                                 </li>
                             </ul>
-                            <button t-if="!this.state.dupes.some((x) => this.str(x.supplier_id) === this.state.newDa.supplier_id)" class="ei-fd-link" t-on-click="() => this.ensureDa(true)">It is a different DA from another supplier: continue</button>
+                            <button t-if="this.state.dupes[0].similar" class="ei-fd-link ei-fd-notdupe" t-on-click="() => this.ensureDa(true)">No, <t t-out="this.state.newDa.name"/> is a different DA: continue</button>
+                            <button t-elif="!this.state.dupes.some((x) => this.str(x.supplier_id) === this.state.newDa.supplier_id)" class="ei-fd-link" t-on-click="() => this.ensureDa(true)">It is a different DA from another supplier: continue</button>
                         </div>
                         <div class="ei-fd-coilnext">
                             <label class="ei-fd-field is-wide"><span>Item (first coil)</span>
@@ -160,7 +162,27 @@
                             <div>
                                 <h2 class="ei-fd-daname">DA <t t-out="d.name"/> <span t-att-class="'ei-fd-chip ' + (d.state === 'draft' ? 'is-neutral' : 'is-warn')" t-out="d.state_label"/> <small class="ei-fd-muted ei-fd-dadate" t-out="this.dmy(d.date)"/></h2>
                                 <p class="ei-fd-chain"><b t-out="d.supplier"/> <span aria-hidden="true">→</span> <b t-out="d.purchase_in or 'Purchase (IN) not set'"/> <span aria-hidden="true">→</span>
-                                    <b t-if="d.sold_out" t-out="d.sold_out.name"/><span t-else="" class="ei-fd-chip is-neutral">Not sold yet</span></p>
+                                    <b t-if="d.sold_out" t-out="d.sold_out.name"/><span t-else="" class="ei-fd-chip is-neutral">Not sold yet</span>
+                                    <button t-if="d.editable and !this.state.soldChange" type="button" class="ei-fd-link ei-fd-soldchange" t-on-click="() => this.soldChangeStart()">Change</button></p>
+                                <div t-if="this.state.soldChange" class="ei-fd-soldbox">
+                                    <t t-set="sc" t-value="this.state.soldChange"/>
+                                    <t t-if="!sc.picked">
+                                        <label class="ei-fd-field"><span>Sold To (OUT)</span>
+                                            <input id="ei-fd-soldnew" class="ei-fd-in" autocomplete="off" placeholder="Customer name or code" t-att-value="sc.term" t-on-input="(ev) => this.soldChangeInput(ev)" t-on-keydown="(ev) => this.soldChangeKey(ev)"/></label>
+                                        <ul t-if="sc.rows.length" class="ei-fd-lookrows" role="listbox">
+                                            <li t-foreach="sc.rows" t-as="o" t-key="o.key"><button role="option" t-on-click="() => this.soldChangePick(o)"><t t-if="o.kind === 'new'">Add “</t><t t-out="o.name"/><t t-if="o.kind === 'new'">”</t><small t-if="o.ref" class="ei-fd-muted"> · <t t-out="o.ref"/></small></button></li>
+                                        </ul>
+                                        <button type="button" class="ei-fd-link" t-on-click="() => this.state.soldChange = null">Cancel</button>
+                                    </t>
+                                    <div t-else="" class="ei-fd-warnbox" role="alertdialog">
+                                        <b>Sold To becomes <t t-out="sc.picked.name"/>.</b> <t t-if="this.soldFollowers">Which coils follow?</t>
+                                        <div class="ei-fd-actions is-left">
+                                            <button type="button" class="ei-fd-btn is-sm" t-on-click="() => this.state.soldChange = null">Cancel</button>
+                                            <button t-if="this.soldFollowers" type="button" class="ei-fd-btn is-sm ei-fd-soldnewonly" t-on-click="() => this.soldChangeApply('new')">Only coils added from now on</button>
+                                            <button type="button" class="ei-fd-btn is-sm is-primary ei-fd-soldall" t-on-click="() => this.soldChangeApply('all')"><t t-if="this.soldFollowers">Also the <t t-out="this.soldFollowers"/> coil(s) sold to <t t-out="d.sold_out ? d.sold_out.name : 'nobody'"/></t><t t-else="">Change it</t></button>
+                                        </div>
+                                    </div>
+                                </div>
                                 <p class="ei-fd-muted"><t t-if="!d.is_feeding">contract <t t-out="d.contract"/> · </t><b t-out="d.currency"/><t t-if="d.fx_text"> · <span t-att-class="d.fx_missing ? 'ei-fd-bad' : ''" t-out="d.fx_text"/></t></p>
                             </div>
                             <div class="ei-fd-actions">
@@ -411,12 +433,13 @@
                                     <h3 class="ei-fd-step">Coil</h3>
                                     <div class="ei-fd-fields">
                                         <div t-if="d.is_feeding" class="ei-fd-field is-wide ei-fd-item"><span>Item</span>
+                                            <em t-if="this.fieldErr.item" class="ei-fd-ferr" role="alert" t-out="this.fieldErr.item"/>
                                             <div t-if="this.cl and !this.state.itemLook" class="ei-fd-picked"><span t-out="this.cl.name"/><small t-if="this.cl.formula" class="ei-fd-muted"> · <t t-out="this.cl.formula"/></small>
                                                 <button class="ei-fd-link" t-on-click="() => this.openItems()">Change</button></div>
                                             <t t-else="">
                                                 <input id="ei-fd-item" class="ei-fd-in" autocomplete="off" placeholder="Type the item name…" t-att-value="this.state.itemLook ? this.state.itemLook.term : ''" t-on-focus="() => this.state.itemLook or this.openItems()" t-on-input="(ev) => this.itemLookInput(ev)" t-on-keydown="(ev) => this.itemKey(ev)"/>
                                                 <ul t-if="this.state.itemLook and this.state.itemLook.rows.length" class="ei-fd-lookrows" role="listbox">
-                                                    <li t-foreach="this.state.itemLook.rows" t-as="o" t-key="o.key or o.id"><button role="option" t-on-click="() => this.pickItem(o)"><t t-if="o.kind === 'new'">Add “</t><t t-out="o.name"/><t t-if="o.kind === 'new'">”</t></button></li>
+                                                    <li t-foreach="this.state.itemLook.rows" t-as="o" t-key="o.key or o.id"><button role="option" t-att-class="o.kind === 'new' ? 'is-new' : ''" t-on-click="() => this.pickItem(o)"><t t-if="o.kind === 'new'">+ Add new item “</t><t t-out="o.name"/><t t-if="o.kind === 'new'">”</t><small t-if="o.similar" class="ei-fd-muted"> · same size</small></button></li>
                                                 </ul>
                                             </t>
                                         </div>
@@ -425,7 +448,7 @@
                                                 <option value="">Choose…</option>
                                                 <option t-foreach="d.contract_lines" t-as="c" t-key="c.id" t-att-value="c.id" t-att-selected="this.str(c.id) === this.str(l.contract_line_id)" t-out="c.name + ' · ' + this.fmt(c.free_mtl, 3) + ' MTL free' + (c.formula ? ' · ' + c.formula : '')"/>
                                             </select></label>
-                                        <label class="ei-fd-field"><span>Coil No</span><input id="ei-fd-coil" class="ei-fd-in" t-att-value="l.coil_no" t-on-input="(ev) => this.setLine('coil_no', ev)"/></label>
+                                        <label class="ei-fd-field"><span>Coil No</span><input id="ei-fd-coil" t-att-class="'ei-fd-in' + (this.fieldErr.coil ? ' is-bad' : '')" t-att-value="l.coil_no" t-on-input="(ev) => this.setLine('coil_no', ev)"/><em t-if="this.fieldErr.coil" class="ei-fd-ferr" t-out="this.fieldErr.coil"/></label>
                                         <label class="ei-fd-field is-short"><span>Grade</span><input class="ei-fd-in" t-att-value="l.grade" t-on-input="(ev) => this.setLine('grade', ev)"/></label>
                                         <label class="ei-fd-field is-short"><span>Thickness</span><input class="ei-fd-in" t-att-value="l.thickness" t-on-input="(ev) => this.setLine('thickness', ev)"/></label>
                                         <label class="ei-fd-field is-short"><span>Width</span><input class="ei-fd-in" t-att-value="l.width" t-on-input="(ev) => this.setLine('width', ev)"/></label>
@@ -437,6 +460,7 @@
                                                     <button type="button" role="radio" t-att-aria-checked="l.unit === 'kg' ? 'true' : 'false'" t-att-class="l.unit === 'kg' ? 'is-on' : ''" t-on-click="() => this.setUnit('kg')">kg</button>
                                                 </div>
                                             </div>
+                                            <em t-if="this.fieldErr.weight" class="ei-fd-ferr" t-out="this.fieldErr.weight"/>
                                             <em class="ei-fd-hint" t-if="l.weight_kg">= <b class="ei-fd-num" t-out="this.kgText"/> kg = <b class="ei-fd-num" t-out="this.mtl"/> MTL</em>
                                             <div t-if="this.overQuota" class="ei-fd-warnbox ei-fd-overq" role="alert">Only <b t-out="this.fmt(this.overQuota.room, 3)"/> MTL remains on contract <t t-out="this.state.da.quota.name"/>; this coil is <t t-out="this.fmt(this.overQuota.mtl, 3)"/> MTL.</div>
                                             <div t-if="this.smallWeight" class="ei-fd-warnbox ei-fd-smallw" role="alert">
@@ -449,14 +473,18 @@
                                     <div class="ei-fd-picks">
                                         <div t-foreach="['customer', 'customer_code', 'trade_code', 'pl_code']" t-as="f" t-key="f" class="ei-fd-pick" t-att-data-f="f">
                                             <span class="ei-fd-picklabel" t-out="this.lookLabel(f)"/>
-                                            <div t-if="l[f]" class="ei-fd-picked">
+                                            <div t-if="f === 'customer' and d.sold_out and (!l.customer or l.customer.id === d.sold_out.id) and this.state.look.field !== f" class="ei-fd-picked is-inherited">
+                                                <span><t t-out="d.sold_out.name"/> <small class="ei-fd-muted">(from the DA)</small></span>
+                                                <button class="ei-fd-link ei-fd-custchange" t-on-click="() => this.openLook(f)">Change for this coil</button>
+                                            </div>
+                                            <div t-elif="l[f]" class="ei-fd-picked">
                                                 <span t-if="f === 'customer'" t-out="l[f].name"/>
                                                 <span t-else=""><b class="ei-fd-num" t-out="l[f].code"/> <t t-out="l[f].name"/><small t-if="l[f].nick" class="ei-fd-muted"> (<t t-out="l[f].nick"/>)</small><span t-if="!l[f].verified" class="ei-fd-chip is-warn">not verified</span></span>
                                                 <button class="ei-fd-link" t-on-click="() => this.openLook(f)">Change</button><button class="ei-fd-link" t-on-click="() => this.clearPick(f)">Clear</button>
                                             </div>
-                                            <button t-else="" class="ei-fd-btn is-sm is-ghost" t-on-click="() => this.openLook(f)">Choose <t t-out="this.lookWord(f)"/>…</button>
+                                            <button t-elif="this.state.look.field !== f" class="ei-fd-btn is-sm is-ghost" t-on-click="() => this.openLook(f)">Choose <t t-out="this.lookWord(f)"/>… <small class="ei-fd-muted">(name or code)</small></button>
                                             <div t-if="this.state.look.field === f" class="ei-fd-look">
-                                                <input id="ei-fd-look" class="ei-fd-in" autocomplete="off" t-att-placeholder="f === 'customer' ? 'Type a name…' : 'Type a code, a name or a nickname…'" t-att-value="this.state.look.term" t-on-input="(ev) => this.lookInput(ev)" t-on-keydown="(ev) => this.lookKey(ev)"/>
+                                                <input id="ei-fd-look" class="ei-fd-in" autocomplete="off" t-att-placeholder="f === 'customer' ? 'Type a name or an old code…' : 'Type the name (or the code if you know it)…'" t-att-value="this.state.look.term" t-on-input="(ev) => this.lookInput(ev)" t-on-keydown="(ev) => this.lookKey(ev)"/>
                                                 <p t-if="f !== 'customer' and !this.state.look.term and this.state.look.rows.length" class="ei-fd-muted">Suggested from the printed name. Check them against the paper; nothing is chosen for you.</p>
                                                 <ul class="ei-fd-lookrows" role="listbox">
                                                     <li t-foreach="this.state.look.rows" t-as="o" t-key="o.key or o.id"><button role="option" t-on-click="() => this.choose(o)">
@@ -464,16 +492,33 @@
                                                         <t t-else=""><b class="ei-fd-num" t-out="o.code"/> <t t-out="o.name"/><small t-if="o.nick" class="ei-fd-muted"> (<t t-out="o.nick"/>)</small> <span t-if="!o.verified" class="ei-fd-chip is-warn" t-out="o.status"/></t>
                                                     </button></li>
                                                 </ul>
+                                                <p t-if="this.state.look.ambiguous" class="ei-fd-ferr ei-fd-ambig"><t t-out="this.state.look.ambiguous"/> codes match: pick the right one (arrow keys, then Enter).</p>
                                                 <p t-if="!this.state.look.busy and this.state.look.term and !this.state.look.rows.length" class="ei-fd-muted">Nothing found.</p>
                                             </div>
                                         </div>
                                     </div>
+                                    <t t-set="cc" t-value="this.state.codeCheck"/>
+                                    <div t-if="cc and (cc.status === 'mismatch' or cc.sales)" class="ei-fd-warnbox ei-fd-codecheck" role="alert">
+                                        <p t-if="cc.status === 'mismatch'" t-out="cc.message"/>
+                                        <div t-if="cc.status === 'mismatch' and (cc.pl.length or cc.trade.length)" class="ei-fd-actions is-left">
+                                            <button t-foreach="cc.pl" t-as="o" t-key="'p' + o.id" type="button" class="ei-fd-btn is-sm is-primary ei-fd-usepl" t-on-click="() => this.useCode('pl_code', o)">Use P&amp;L <t t-out="o.code"/> <t t-out="o.name"/></button>
+                                            <button t-foreach="cc.trade" t-as="o" t-key="'t' + o.id" type="button" class="ei-fd-btn is-sm ei-fd-usetrade" t-on-click="() => this.useCode('trade_code', o)">Use purchase <t t-out="o.code"/> <t t-out="o.name"/></button>
+                                        </div>
+                                        <p t-if="cc.status === 'mismatch' and cc.can_allow and l.id and !l.pair_allowed" class="ei-fd-muted">A real exception?
+                                            <button type="button" class="ei-fd-link ei-fd-allowpair" t-on-click="() => this.allowPair()">Allow these codes on this coil, with a reason</button></p>
+                                        <p t-elif="cc.status === 'mismatch'" class="ei-fd-muted">The coil can be saved as a draft; it cannot be submitted until the codes match or the accountant allows them.</p>
+                                        <p t-if="cc.sales" class="ei-fd-salescheck"><b>Sales code:</b> <t t-out="cc.sales"/></p>
+                                    </div>
+                                    <p t-elif="cc and cc.status === 'unverified'" class="ei-fd-muted ei-fd-codecheck"><t t-out="cc.message"/></p>
+                                    <p t-elif="cc and cc.status === 'ok'" class="ei-fd-okline ei-fd-codecheck">✓ <t t-out="cc.message"/></p>
+                                    <p t-if="l.pair_allowed" class="ei-fd-muted">Codes allowed on this coil: <i t-out="l.pair_allowed"/></p>
 
                                     <h3 class="ei-fd-step">Method and rates</h3>
+                                    <p t-if="this.fieldErr.method" class="ei-fd-ferr" t-out="this.fieldErr.method"/>
                                     <div class="ei-fd-methods" role="radiogroup" aria-label="Feeding method">
                                         <button t-foreach="this.picks" t-as="m" t-key="m.key" role="radio" t-att-aria-checked="l.method === m.key ? 'true' : 'false'"
-                                                t-att-class="'ei-fd-mpick' + (l.method === m.key ? ' is-on' : '')" t-att-title="m.why" t-on-click="() => this.pickMethod(m.key)">
-                                            <b t-out="m.label"/><small t-out="m.why"/>
+                                                t-att-class="'ei-fd-mpick' + (l.method === m.key ? ' is-on' : '') + (this.noFormula(m) ? ' is-off' : '')" t-att-disabled="this.noFormula(m)" t-att-title="m.why" t-on-click="() => this.pickMethod(m.key)">
+                                            <b t-out="m.label"/><small t-out="this.noFormula(m) ? 'This mill has no rate formula yet (the accountant sets it). Use Direct.' : m.why"/>
                                         </button>
                                     </div>
                                     <div t-if="l.method" class="ei-fd-fields">
@@ -494,6 +539,7 @@
                                         </t>
                                     </div>
 
+                                    <p t-if="this.fieldErr.rate" class="ei-fd-ferr" t-out="this.fieldErr.rate"/>
                                     <!-- the answer -->
                                     <t t-set="p" t-value="this.state.preview"/>
                                     <p t-if="p and p.code_issue" class="ei-fd-warnbox ei-fd-codewarn" role="alert" t-out="p.code_issue"/>
@@ -519,7 +565,11 @@
                                     <p t-elif="this.state.previewBusy" class="ei-fd-muted">Working it out…</p>
                                     <p t-else="" class="ei-fd-muted">Item, weight and method: the calculation appears here.</p>
 
-                                    <p t-if="this.state.error" class="ei-fd-error" role="alert" t-out="this.state.error"/>
+                                    <div t-if="this.state.missing.length" class="ei-fd-error ei-fd-missing" role="alert">
+                                        <b><t t-out="this.state.missing.length"/> thing(s) to complete before saving:</b>
+                                        <ul><li t-foreach="this.state.missing" t-as="mi" t-key="mi.key"><t t-out="mi.msg"/> <button type="button" class="ei-fd-link" t-on-click="() => this.fixField(mi)">Fix this</button></li></ul>
+                                    </div>
+                                    <p t-elif="this.state.error" class="ei-fd-error" role="alert" t-out="this.state.error"/>
                                     <div class="ei-fd-actions is-sticky">
                                         <button t-if="l.id" class="ei-fd-btn is-ghost ei-fd-danger" t-on-click="() => this.deleteLine(l)">Remove coil</button>
                                         <span class="ei-fd-spacer"/>

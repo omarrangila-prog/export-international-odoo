@@ -580,3 +580,81 @@ class TestFeeding(TransactionCase):
         r = self.desk.apply_rates(d.id, d.line_ids.filtered(lambda x: x.coil_no == 'C-N').ids, {'method': 'commission', 'sale_offset': '0'}, True)
         self.assertEqual(d.line_ids.filtered(lambda x: x.coil_no == 'C-N').feeding_method, 'sale_at_mill_rate')
         self.assertEqual(self.env['ei.da.line'].browse(d.line_ids.filtered(lambda x: x.coil_no == 'C-CN').id).cn_amount, 1000)
+
+    # ------------------------------------------------------------------ 24 Nov 2026: codes by name, codes that belong together, ask once
+    def pairs_setup(self):
+        batch = self.env['ei.import.batch'].sudo().create({'name': 'synthetic pairs'})
+        mk = lambda c, sheet, name: self.env['ei.legacy.code'].sudo().create({'legacy_code': c, 'source_sheet': sheet, 'source_sheet_key': sheet,
+                                                                              'source_row': 1, 'original_name': name, 'batch_id': batch.id})
+        return (mk('91.01', 'FOR PURCHASE', 'ALPHA EXPORT PUR & SLS'), mk('97.84', 'PROFIT & LOSS', 'ALPHA EXPORT P&L'),
+                mk('91.12', 'FOR PURCHASE', 'BETA EXPORT NEW PUR & SLS'), mk('97.99', 'PROFIT & LOSS', 'BETA EXPORT NEW P&L'))
+
+    def test_34_purchase_and_pl_codes_that_belong_together(self):
+        ta, pa, tb, pb = self.pairs_setup()
+        Pair = self.env['ei.code.pair']
+        Pair.with_user(self.mapper).action_suggest()                              # suggestions from the names change nothing yet
+        sug = Pair.search([('state', '=', 'suggested'), ('trade_code_id', 'in', (ta | tb).ids)])
+        self.assertEqual(sorted((p.trade_code_id.legacy_code, p.pl_code_id.legacy_code) for p in sug), [('91.01', '97.84'), ('91.12', '97.99')])
+        d, cl = self.bare('SYN-PAIR-1')
+        self.assertEqual(self.desk.check_codes(d.id, {'trade_code_id': ta.id, 'pl_code_id': pb.id})['status'], 'unverified')
+        with self.assertRaises(AccessError):
+            sug.with_user(self.maker).action_approve()                           # staff do not decide accounting pairs
+        sug.with_user(self.mapper).action_approve()
+        r = self.desk.check_codes(d.id, {'trade_code_id': ta.id, 'pl_code_id': pb.id})
+        self.assertEqual(r['status'], 'mismatch')
+        self.assertIn('91.01 ALPHA EXPORT PUR & SLS goes with P&L 97.84 ALPHA EXPORT P&L', r['message'])
+        self.assertEqual([x['code'] for x in r['pl']], ['97.84'])
+        self.assertEqual(self.desk.check_codes(d.id, {'trade_code_id': ta.id, 'pl_code_id': pa.id})['status'], 'ok')
+        # a coil with the wrong pair saves as a draft but cannot be submitted
+        lid = self.desk.save_line(d.id, False, dict(self.shared(cl, trade_code_id=ta.id, pl_code_id=pb.id), coil_no='PR-1', weight_kg='4574'))['line_id']
+        self.assertIn('goes with', self.desk.da_load(d.id)['lines'][0]['pair_issue'])
+        with self.assertRaisesRegex(UserError, 'goes with'):
+            self.desk.submit(d.id, False)
+        with self.assertRaises(AccessError):
+            self.desk.allow_pair(d.id, lid, 'mill letter')                       # staff cannot allow it
+        self.env['ei.feeding.desk'].with_user(self.checker).allow_pair(d.id, lid, 'Mill letter: this coil is booked to the other P&L')
+        self.assertEqual(self.desk.da_load(d.id)['lines'][0]['pair_issue'], '')
+        self.assertEqual(self.desk.submit(d.id, False)['state'], 'under_review')
+        # a pair used on a coil that is not in the list is put there for the accountant
+        d2, cl2 = self.bare('SYN-PAIR-2')
+        self.desk.save_line(d2.id, False, dict(self.shared(cl2), coil_no='PR-2', weight_kg='4574'))
+        used = Pair.search([('trade_code_id', '=', self.code_trade.id), ('pl_code_id', '=', self.code_pl.id)])
+        self.assertTrue(used and used.uses >= 1 and used.state in ('suggested', 'proposed'))      # counted, never approved by use alone
+        self.desk.save_line(d2.id, False, dict(self.shared(cl2, trade_code_id=self.code_trade.id, pl_code_id=pa.id), coil_no='PR-3', weight_kg='4574'))
+        self.assertEqual(Pair.search([('trade_code_id', '=', self.code_trade.id), ('pl_code_id', '=', pa.id)]).state, 'proposed')   # a new pair: to confirm
+
+    def test_35_parties_once_and_codes_by_themselves(self):
+        ta, pa, tb, pb = self.pairs_setup()
+        supplier, pin = self.parties()
+        self.env['ei.code.pair'].sudo().create({'trade_code_id': ta.id, 'pl_code_id': pa.id, 'supplier_id': supplier.id, 'state': 'approved'})
+        d, cl = self.bare('SYN-ONCE-1')
+        auto = self.desk.da_load(d.id)['auto_codes']
+        self.assertEqual((auto['customer_code']['code'], auto['trade_code']['code'], auto['pl_code']['code']), ('9.01', '91.01', '97.84'))
+        vals = dict(self.shared(cl), coil_no='ON-1', weight_kg='4574'); vals.pop('customer_id')
+        l = self.env['ei.da.line'].browse(self.desk.save_line(d.id, False, vals)['line_id'])
+        self.assertEqual(l.customer_id, self.cust)                              # the coil takes Sold To from the DA
+        l2 = self.env['ei.da.line'].browse(self.desk.save_line(d.id, False, dict(self.shared(cl, customer_id=self.other.id), coil_no='ON-2', weight_kg='4574'))['line_id'])
+        # Sold To changed on the draft: coils sold to the old customer follow; a coil changed on purpose keeps its own
+        self.desk.da_set_sold_out(d.id, {'kind': 'partner', 'id': self.other.id}, 'all')
+        self.assertEqual((d.sold_out_id, l.customer_id, l.customer_code_id, l2.customer_id), (self.other, self.other, self.env['ei.legacy.code'], self.other))
+        d3, cl3 = self.bare('SYN-ONCE-3')
+        l3 = self.env['ei.da.line'].browse(self.desk.save_line(d3.id, False, dict(self.shared(cl3), coil_no='ON-3', weight_kg='4574'))['line_id'])
+        self.desk.da_set_sold_out(d3.id, {'kind': 'partner', 'id': self.other.id}, 'new')
+        self.assertEqual((d3.sold_out_id, l3.customer_id), (self.other, self.cust))
+
+    def test_36_item_not_chosen_is_said_plainly(self):
+        d, cl = self.bare('SYN-ITEM-1')
+        with self.assertRaisesRegex(UserError, r'Choose the item \(material\)'):
+            self.desk.save_line(d.id, False, dict(self.shared(cl), contract_line_id=False, coil_no='IT-1', weight_kg='4574'))
+        self.assertIn('Choose the item (material)', self.desk.preview(d.id, dict(self.shared(cl), contract_line_id=False, weight_kg='4574'))['error'])
+        sized = self.env['product.product'].create({'name': 'SYN GP 1.50X1219', 'uom_id': self.env.ref('uom.product_uom_ton').id})
+        rows = self.desk.product_search('SYN GP 1.50X1219 (P)')
+        self.assertTrue(any(r.get('similar') and r['id'] == sized.id for r in rows))  # offered to click, never taken by Enter
+        self.assertTrue(any(r.get('kind') == 'new' for r in rows))
+
+    def test_37_a_da_number_one_letter_off_is_flagged(self):
+        d, cl = self.bare('SYN-40038934NOV')
+        supplier, pin = self.parties()
+        self.assertEqual([x['name'] for x in self.desk.da_similar('SYN-40038934NV', supplier.id)], ['SYN-40038934NOV'])
+        self.bare('SYN-1670061')
+        self.assertEqual(self.desk.da_similar('SYN-1670062', supplier.id), [])   # the mill's next DA is not a typing slip

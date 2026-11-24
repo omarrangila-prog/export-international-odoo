@@ -190,6 +190,9 @@ class EiDaLine(models.Model):
     def _formula_for(self, cl, lab=False):
         f = cl.formula_id
         if not f:
+            if cl.contract_id.contract_type == 'feeding':
+                raise fe.FeedingError(_("%s has no approved rate formula yet, so Commission based cannot be worked out. Choose Direct and "
+                                        "type both rates, or ask the accountant to set the mill's rate formula.", cl.contract_id.parent_partner_id.name))
             raise fe.FeedingError(_("Contract line '%s' has no rate formula. Use the direct method, or ask for the contract to be corrected.",
                                     cl.product_id.display_name))
         if f.state != 'approved' and not lab:

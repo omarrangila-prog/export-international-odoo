@@ -1,6 +1,6 @@
 {
     'name': 'Export International ERP',
-    'version': '20.0.1.0.13',
+    'version': '20.0.1.0.14',
     'category': 'Accounting',
     'summary': 'The whole Export International system in one install: contracts, orders, trucks, bank, cash, invoices, parent statements, reports and close.',
     'author': 'Odoovations',

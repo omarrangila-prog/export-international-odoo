@@ -2,3 +2,8 @@ id,name,model_id,group_id/id,operation,domain
 access_ei_feeding_quota_auditor,ei.feeding.quota auditor,ei.feeding.quota,ei_legacy_master.group_ei_auditor,r,
 access_ei_feeding_quota_staff,ei.feeding.quota staff,ei.feeding.quota,ei_contract_da.group_ei_contract_staff,crud,
 rule_ei_feeding_quota_company,Contract quantity: own companies,ei.feeding.quota,,crud,"[('company_id', 'in', company_ids)]"
+access_ei_code_pair_auditor,ei.code.pair auditor,ei.code.pair,ei_legacy_master.group_ei_auditor,r,
+access_ei_code_pair_staff,ei.code.pair staff,ei.code.pair,ei_contract_da.group_ei_contract_staff,r,
+access_ei_code_pair_mapper,ei.code.pair accountant,ei.code.pair,ei_legacy_master.group_ei_mapping_approver,crud,
+access_ei_code_pair_formula,ei.code.pair formula approver,ei.code.pair,ei_contract_da.group_ei_formula_approver,crud,
+rule_ei_code_pair_company,Code pair: own companies,ei.code.pair,,crud,"[('company_id', 'in', company_ids)]"

@@ -104,7 +104,7 @@ module.exports = {
         await q.locator('.ei-fd-darow', { hasText: da }).first().click(); await q.waitForSelector('.ei-fd-table');
         await q.locator('.ei-fd-table tbody tr').first().getByRole('button', { name: 'Edit' }).click(); await q.waitForSelector('.ei-fd-savebtn'); await q.waitForTimeout(900);
         const r = await q.evaluate(() => {
-          const sc = document.querySelector('.ei-fd'); const before = sc.scrollTop; sc.scrollTop = sc.scrollHeight; const scrolled = sc.scrollTop > before || sc.scrollHeight <= sc.clientHeight;
+          const sc = document.querySelector('.ei-fd'); const before = sc.scrollTop; sc.scrollTop = sc.scrollHeight; const scrolled = (sc.scrollTop > before || sc.scrollHeight <= sc.clientHeight) && /auto|scroll/.test(getComputedStyle(sc).overflowY);   // scrollable by the person, not only by code (24 Nov)
           const btn = document.querySelector('.ei-fd-savebtn'); btn.scrollIntoView({ block: 'center' });
           const b = btn.getBoundingClientRect(); const hit = document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2);
           const inputs = [...document.querySelectorAll('.ei-fd-editor input:not([type=checkbox]):not([type=file])')].filter((e) => e.offsetParent);

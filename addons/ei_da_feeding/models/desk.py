@@ -20,6 +20,7 @@ LAB_FORMULA = 'ISL_ASML_DEALER_NET'
 LAB_DEFAULTS = {'basic_rate': '229500', 'weight_kg': '4574.00', 'cn_amount': '1000', 'direct_purchase': '229500', 'direct_sale': '230500',
                 'params': {'sales_tax_pct': '18', 'additional_pct': '0.1', 'commission_pct': '1.32', 'cn_commission_pct': '1.32'},
                 'offsets': {k: str(v[2]) for k, v in fe.METHODS.items() if v[2] is not None}}
+ITEM_MSG = "Choose the item (material) of this coil from the list under the Item box. A new item is added with its Add button."
 SMALL_KG = 100           # a coil lighter than this is almost always tons typed into kg (4.574 kg vs 4,574 kg): confirm first
 SHEETS = {'customer': 'CUSTOMER', 'trade': 'FOR PURCHASE', 'pl': 'PROFIT & LOSS'}
 DIMS = re.compile(r'(?<![0-9.])(\d*\.\d+|\d+)\s*[xX\u00d7]\s*(\d+(?:\.\d+)?)')
@@ -81,6 +82,18 @@ def local_to_utc(env, text):
         raise UserError(_("Order date and time: %r is not like 2026-11-06 16:03.", text))
     tz = pytz.timezone(env.user.tz or env.context.get('tz') or 'Asia/Karachi')
     return tz.localize(naive).astimezone(pytz.utc).replace(tzinfo=None)
+
+
+def _one_edit(a, b):
+    """True when a and b differ by exactly one inserted, removed or changed character."""
+    if abs(len(a) - len(b)) > 1:
+        return False
+    if len(a) > len(b):
+        a, b = b, a
+    i = 0
+    while i < len(a) and a[i] == b[i]:
+        i += 1
+    return a[i + (len(a) == len(b)):] == b[i + 1:]
 
 
 class EiFeedingDesk(models.AbstractModel):
@@ -226,7 +239,8 @@ class EiFeedingDesk(models.AbstractModel):
                           'rate_note': l.rate_note or '', 'spread': l.spread_per_mtl, 'gross': l.gross_spread, 'code_issue': l.code_issue or '',
                           'thickness': l.coil_thickness or '', 'width': l.coil_width or '', 'sale_amount': l.sale_amount,
                           'purchase_amount': l.purchase_amount,
-                          'override': l.code_override_reason or ''})
+                          'override': l.code_override_reason or '', 'pair_issue': l._pair_problem(),
+                          'pair_allowed': l.pair_override_reason or ''})
         return {
             'id': d.id, 'name': d.name, 'state': d.state, 'state_label': dict(d._fields['state'].selection).get(d.state),
             'editable': d.state == 'draft' and d.has_access('write'), 'parent': d.parent_partner_id.name,
@@ -241,6 +255,7 @@ class EiFeedingDesk(models.AbstractModel):
             'quota': d.quota_id and d.quota_id.summary() or None,
             'quota_options': self._quota_options(d.parent_partner_id, d.purchase_in_id),
             'can_adjust_quota': self.env['ei.feeding.quota'].can_adjust(),
+            'auto_codes': self._auto_codes(d),
             'contract_lines': [{'id': cl.id, 'name': '%s%s' % (cl.product_id.display_name, ' (%s)' % cl.grade if cl.grade else ''),
                                 'basic_rate': cl.basic_rate, 'formula': cl.formula_id and '%s v%s' % (cl.formula_id.code, cl.formula_id.version) or '',
                                 'formula_state': cl.formula_id.state or '', 'free_mtl': d._available(cl),
@@ -276,7 +291,7 @@ class EiFeedingDesk(models.AbstractModel):
         d = self._da(da_id)
         cl = d.contract_id.line_ids.filtered(lambda x: x.id == int(vals.get('contract_line_id') or 0))
         if not cl:
-            return {'ok': False, 'error': _("Choose the contract line (material) first.")}
+            return {'ok': False, 'error': ITEM_MSG}
         try:
             r = self.env['ei.da.line']._feed(cl, self._clean(vals))
         except fe.FeedingError as e:
@@ -319,7 +334,7 @@ class EiFeedingDesk(models.AbstractModel):
     def _write_line(self, d, line_id, vals):
         cl = d.contract_id.line_ids.filtered(lambda x: x.id == int(vals.get('contract_line_id') or 0))
         if not cl:
-            raise UserError(_("Choose the contract line (material) first."))
+            raise UserError(ITEM_MSG)
         if not (vals.get('coil_no') or '').strip():
             raise UserError(_("Type the coil number exactly as printed."))
         if d.line_ids.filtered(lambda x: x.coil_no == vals['coil_no'].strip() and x.id != int(line_id or 0)):
@@ -352,7 +367,7 @@ class EiFeedingDesk(models.AbstractModel):
             'purchase_rate': float(r['purchase_rate']), 'sale_rate': float(r['sale_rate']),
             'coil_thickness': (vals.get('thickness') or '').strip() or False, 'coil_width': (vals.get('width') or '').strip() or False,
             'loss_reason': (vals.get('loss_reason') or '').strip() or False, 'rate_note': (vals.get('rate_note') or '').strip() or False,
-            'customer_id': int(vals['customer_id']) if vals.get('customer_id') else False,
+            'customer_id': int(vals['customer_id']) if vals.get('customer_id') else d.sold_out_id.id or False,
             'customer_code_id': int(vals['customer_code_id']) if vals.get('customer_code_id') else False,
             'trade_code_id': int(vals['trade_code_id']) if vals.get('trade_code_id') else False,
             'pl_code_id': int(vals['pl_code_id']) if vals.get('pl_code_id') else False,
@@ -371,7 +386,93 @@ class EiFeedingDesk(models.AbstractModel):
                 line.with_context(ei_system=True).write({'code_override_reason': False, 'code_override_by': False})
         else:
             line = Line.create(dict(write, da_id=d.id))
+        if line.trade_code_id and line.pl_code_id:
+            self.env['ei.code.pair'].record_use(d.parent_partner_id, d.purchase_in_id, line.trade_code_id, line.pl_code_id)
         return line
+
+    # ------------------------------------------------------------------ codes (24 Nov 2026): filled by themselves, checked together
+    def _auto_codes(self, d):
+        """Codes a new coil can start with, only from verified links: the Sold To party's own customer code (when it has exactly
+        one), and the supplier's one approved purchase / P&L pair. Nothing is guessed from names."""
+        out = {'customer_code': None, 'trade_code': None, 'pl_code': None}
+        Code = self.env['ei.legacy.code'].sudo()
+        if d.sold_out_id:
+            cs = Code.search([('source_sheet_key', '=', 'CUSTOMER'), ('linked_model', '=', 'res.partner'), ('linked_res_id', '=', d.sold_out_id.id),
+                              ('verification_status', '!=', 'rejected')])
+            if len(cs) == 1:
+                out['customer_code'] = self._code_out(cs)
+        pair = self.env['ei.code.pair'].single_for(d.parent_partner_id, d.purchase_in_id)
+        if pair:
+            out['trade_code'], out['pl_code'] = self._code_out(pair.trade_code_id), self._code_out(pair.pl_code_id)
+        return out
+
+    @api.model
+    def check_codes(self, da_id, vals):
+        """The screen asks after every code change: do the purchase and P&L codes belong together, and does the sales code belong
+        to the coil's customer? Answers in plain words with the eligible codes to choose from."""
+        d = self._da(da_id)
+        Code = self.env['ei.legacy.code']
+        g = lambda k: Code.browse(int(vals[k])).exists() if vals.get(k) else Code
+        r = self.env['ei.code.pair'].check(d.parent_partner_id, d.purchase_in_id, g('trade_code_id'), g('pl_code_id'))
+        customer = self.env['res.partner'].browse(int(vals['customer_id'])).exists() if vals.get('customer_id') else d.sold_out_id
+        r['sales'] = self.env['ei.da.line']._code_problem_for(g('customer_code_id'), customer, d.printed_customer) if vals.get('customer_code_id') else ''
+        r['can_allow'] = self.env['ei.code.pair'].can_decide() or self.env.user.has_group('ei_contract_da.group_ei_contract_approver')
+        return r
+
+    @api.model
+    def allow_pair(self, da_id, line_id, reason):
+        """A legitimate exception: a person with the right allows this purchase / P&L pair on this one coil, with a reason."""
+        d = self._da(da_id, write=True)
+        if not (self.env['ei.code.pair'].can_decide() or self.env.user.has_group('ei_contract_da.group_ei_contract_approver')):
+            raise AccessError(_("Only the accountant or a contract approver allows a code pair that is not in the list."))
+        if not (reason or '').strip():
+            raise UserError(_("Write why these codes are right for this coil."))
+        line = d.line_ids.filtered(lambda x: x.id == int(line_id))
+        if not line:
+            raise UserError(_("Save the coil first, then allow its codes."))
+        line.with_context(ei_system=True).write({'pair_override_reason': reason.strip(), 'pair_override_by': self.env.user.id})
+        d.message_post(body=_("Codes %(t)s + %(p)s allowed on coil %(c)s by %(u)s: %(r)s", t=line.trade_code_id.legacy_code,
+                              p=line.pl_code_id.legacy_code, c=line.coil_no, u=self.env.user.name, r=reason.strip()))
+        return self.da_load(d.id)
+
+    @api.model
+    def da_similar(self, name, supplier_id=False):
+        """DA numbers with one character missing or extra (40038934NV / 40038934NOV): very often a typing slip. Numbers that only
+        differ in one digit (1670061 / 1670062) are the mill's next DA and are not flagged."""
+        key = re.sub(r'\s+', '', (name or '')).upper()
+        if len(key) < 5:
+            return []
+        dom = [('state', '!=', 'cancelled'), ('create_date', '>=', fields.Datetime.subtract(fields.Datetime.now(), days=90))]
+        if supplier_id:
+            dom.append(('parent_partner_id', '=', int(supplier_id)))
+        out = []
+        for d in self.env['ei.da'].search(dom, order='id desc', limit=400):
+            other = re.sub(r'\s+', '', d.name or '').upper()
+            if abs(len(other) - len(key)) == 1 and _one_edit(key, other):     # one letter missing or extra; 1670061 / 1670062 are just the next DA
+                out.append({'id': d.id, 'name': d.name, 'state': d.state, 'state_label': dict(d._fields['state'].selection).get(d.state),
+                            'supplier': d.parent_partner_id.name, 'supplier_id': d.parent_partner_id.id, 'coils': len(d.line_ids),
+                            'date': fields.Date.to_string(d.date), 'similar': True})
+        return out[:5]
+
+    @api.model
+    def da_set_sold_out(self, da_id, row, apply='all'):
+        """Sold To changed on a draft DA. apply='all': coils that were sold to the old customer (or to nobody) follow, and their sales
+        code is cleared when it was the old customer's; 'new': only coils added from now on. A coil changed on purpose keeps its own."""
+        d = self._da(da_id, write=True)
+        old = d.sold_out_id
+        new = self.env['res.partner'].browse(self.party_take('customer', row)['id']) if row else self.env['res.partner']
+        d.write({'sold_out_id': new.id or False})
+        moved = 0
+        if apply == 'all':
+            for l in d.line_ids.filtered(lambda x: not x.customer_id or x.customer_id == old):
+                vals = {'customer_id': new.id or False}
+                if l.customer_code_id and l.customer_code_id.linked_res_id == old.id:
+                    vals['customer_code_id'] = False
+                l.write(vals)
+                moved += 1
+        d.message_post(body=_("Sold To changed from %(o)s to %(n)s by %(u)s; %(m)s coil(s) follow.", o=old.display_name or '-',
+                              n=new.display_name or '-', u=self.env.user.name, m=moved))
+        return self.da_load(d.id)
 
     # ------------------------------------------------------------------ many coils at once (client, 22 Nov 2026)
     SHARED = ('contract_line_id', 'grade', 'thickness', 'width', 'method', 'basic_rate', 'sale_offset', 'sale_typed', 'sale_rate',
@@ -482,7 +583,12 @@ class EiFeedingDesk(models.AbstractModel):
             return []
         term = (term or '').strip()
         dom = ['|', ('name', 'ilike', term), ('default_code', 'ilike', term)] if term else []
-        rows = [{'id': p.id, 'key': 'p%d' % p.id, 'name': p.display_name} for p in Pr.search(dom, limit=20)]
+        found = Pr.search(dom, limit=20)
+        rows = [{'id': p.id, 'key': 'p%d' % p.id, 'name': p.display_name} for p in found]
+        size = DIMS.search(term) if term else None
+        if size and len(found) < 20:             # 'GP 1.50X1219 (P)' also offers the existing items of size 1.50X1219, to click (never taken by Enter)
+            similar = Pr.search([('name', 'ilike', '%sX%s' % (size.group(1), size.group(2))), ('id', 'not in', found.ids)], limit=20 - len(found))
+            rows += [{'id': p.id, 'key': 'p%d' % p.id, 'name': p.display_name, 'similar': True} for p in similar]
         # an item that is not in the system yet is added as typed (17 Nov 2026: nothing to set up first)
         if term and not any(r['name'].strip().lower() == term.lower() for r in rows):
             rows.append({'id': 0, 'key': 'new', 'kind': 'new', 'name': term})
@@ -547,6 +653,10 @@ class EiFeedingDesk(models.AbstractModel):
         if unsold:
             raise UserError(_("%(n)s coil(s) are not sold yet (%(c)s). Keep the DA as a draft, and choose Sold (OUT) on them before submitting.",
                               n=len(unsold), c=', '.join(unsold.mapped(lambda l: l.coil_no or '?'))))
+        pairs = [(l.coil_no, l._pair_problem()) for l in d.line_ids]
+        pairs = [(c, p) for c, p in pairs if p]
+        if pairs:                                     # codes that contradict the accountant's list never leave the draft unchecked
+            raise UserError(_("Coil %(c)s: %(p)s", c=pairs[0][0], p=pairs[0][1]))
         d.write({'review_requested': bool(review)})
         d.action_confirm()
         nxt = None
