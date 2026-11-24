@@ -46,9 +46,10 @@ module.exports = {
     ctx.check(/4,574 kg = 4\.574 MTL/.test(await p.locator('.ei-fd-qty .ei-fd-hint').innerText()), 'T13 4.574 MTL is shown as 4,574 kg');
     await p.keyboard.press('Enter'); await p.waitForTimeout(500);
     ctx.check(/ei-fd-btn/.test(await focused()), 'T03 Enter after the weight goes to the first code to choose', await focused());
-    await p.keyboard.press('Enter'); await p.waitForSelector('#ei-fd-look'); await typeEnter('D.01');
+    // since 24 Nov the sales code fills itself from the customer's verified code link; type it only when it is not there
+    if (!/D\.01/.test(await p.locator('.ei-fd-pick[data-f="customer_code"]').innerText())) { await p.keyboard.press('Enter'); await p.waitForSelector('#ei-fd-look'); await typeEnter('D.01'); }
     const codeTxt = await p.locator('.ei-fd-picks').innerText().catch(() => '');
-    ctx.check(/D\.01/.test(await p.locator('.ei-fd-pick[data-f="customer_code"]').innerText()), 'T18 the sales code is chosen by its exact text D.01 with its name', codeTxt.replace(/\s+/g, ' ') + ' | focus ' + await focused());
+    ctx.check(/D\.01/.test(await p.locator('.ei-fd-pick[data-f="customer_code"]').innerText()), 'T18 the sales code D.01 with its name (filled by itself from the customer\'s verified link, or typed exactly)', codeTxt.replace(/\s+/g, ' ') + ' | focus ' + await focused());
     await p.getByRole('radio', { name: /Direct \(no commission\)/ }).click(); await p.waitForTimeout(500);
     await p.keyboard.type('229500', { delay: 30 }); await p.keyboard.press('Enter'); await p.waitForTimeout(300);
     await p.keyboard.type('230500', { delay: 30 }); await p.waitForTimeout(1500); await p.keyboard.press('Enter'); await p.waitForTimeout(400);

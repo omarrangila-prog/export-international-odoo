@@ -39,7 +39,8 @@ module.exports = {
       await p.locator('#ei-fd-coil').click(); await typeEnter(coil);
       await p.keyboard.press('Enter'); await p.keyboard.press('Enter'); await p.keyboard.press('Enter'); await p.waitForTimeout(300);
       await p.keyboard.type(mtl, { delay: 30 }); await p.keyboard.press('Enter'); await p.waitForTimeout(400);
-      await p.keyboard.press('Enter'); await p.waitForSelector('#ei-fd-look'); await typeEnter('D.01');
+      // since 24 Nov the sales code fills itself from the customer's verified code link; type it only when it is not there
+      if (!/D\.01/.test(await p.locator('.ei-fd-pick[data-f="customer_code"]').innerText())) { await p.keyboard.press('Enter'); await p.waitForSelector('#ei-fd-look'); await typeEnter('D.01'); }
       await p.getByRole('radio', { name: /Direct \(no commission\)/ }).click(); await p.waitForTimeout(400);
       await p.keyboard.type('229500', { delay: 25 }); await p.keyboard.press('Enter'); await p.waitForTimeout(300);
       await p.keyboard.type('230500', { delay: 25 }); await p.waitForTimeout(1300);
