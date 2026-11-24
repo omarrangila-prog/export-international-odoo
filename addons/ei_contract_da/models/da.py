@@ -192,8 +192,10 @@ class EiDaLine(models.Model):
     product_id = fields.Many2one(related='contract_line_id.product_id', store=True)
     mtl = fields.Float('MTL', digits=(16, 3), required=True)
     customer_id = fields.Many2one('res.partner', string='Customer')
-    purchase_rate = fields.Monetary(currency_field='currency_id')
-    sale_rate = fields.Monetary(currency_field='currency_id')
+    # a rate per MTL is never added up in a group row (58 coils at 268,051.41 do not make a rate of 15.5 million); the totals are
+    # the purchase and sale amounts
+    purchase_rate = fields.Monetary(currency_field='currency_id', aggregator=False)
+    sale_rate = fields.Monetary(currency_field='currency_id', aggregator=False)
     rate_note = fields.Char()
     override_reason = fields.Char(readonly=True, help="Special authorisation to exceed the free contract quantity.")
     override_by = fields.Many2one('res.users', readonly=True)
