@@ -1,4 +1,4 @@
-from odoo import Command
+from odoo import Command, fields
 
 
 def give_the_administrator_the_app(env):
@@ -40,9 +40,8 @@ def open_everything(env):
     # Approval: client_data/approvals.json decides (the client-confirmed maker-checker, 20 Nov 2026). Without that file the
     # owner's 17 Nov 2026 setting stays: one person may enter and confirm, no workflow waits for approval.
     _feeding_formulas(env, log)        # before maker-checker is switched on below: the system's own approval is not a maker's
-    appr = _approval_settings(env, log)
-    env['ir.config_parameter'].sudo().set_bool('ei_legacy_master.enforce_maker_checker', bool(appr.get('maker_checker', False)))
-    env['ei.approval.policy'].sudo().set_all(bool(appr.get('approval_on', False)))
+    _apply_approval(env, log, _approval_settings(env, log))
+    _code_pairs(env, log)
     # nor is the DA paper required before Save & Continue (it can still be attached)
     env['ir.config_parameter'].sudo().set_bool('ei_contract_da.require_da_paper', False)
     env['ir.config_parameter'].sudo().set_bool('ei_cashbook.require_receipt', False)    # a cash voucher's receipt: optional too
@@ -91,20 +90,30 @@ def open_everything(env):
     log.info("export_international: %s roles for every user; %s codes verified, %s left", len(roles), done, failed)
 
 
-def _approval_settings(env, log):
+def _approval_settings(env, log, cfg=None):
     """{'maker_checker': bool, 'approval_on': bool, 'checkers': [logins]} from the private package. Named checkers get a
     rule per workflow so their notifications go to them; nobody approves their own entry while maker_checker is on."""
     import json
     import os
-    path = os.path.join(os.path.dirname(__file__), 'client_data', 'approvals.json')
-    if not os.path.isfile(path):
-        return {}
-    cfg = json.load(open(path))
-    logins = cfg.get('checkers') or []
-    users = env['res.users'].sudo().search([('login', 'in', logins)]) if logins else env['res.users']
-    missing = sorted(set(logins) - set(users.mapped('login')))
+    if cfg is None:
+        path = os.path.join(os.path.dirname(__file__), 'client_data', 'approvals.json')
+        if not os.path.isfile(path):
+            return {}
+        cfg = json.load(open(path))
+    cfg = dict(cfg)
+    # each checker is an EXISTING Odoo user, named by login or by the user's full name ("First Last"); nobody shares a
+    # password. A name must match exactly one active user, otherwise it is reported and skipped (never guessed).
+    U = env['res.users'].sudo()
+    users, missing = U.browse(), []
+    for who in cfg.get('checkers') or []:
+        u = U.search([('login', '=', who)], limit=1) or U.search([('name', '=ilike', who), ('share', '=', False)])
+        if len(u) == 1:
+            users |= u
+        else:
+            missing.append('%s (%s)' % (who, 'several users have this name' if len(u) > 1 else 'no such user'))
     if missing:
-        log.warning("export_international: checker logins not found, no rule made for them: %s", ', '.join(missing))
+        log.warning("export_international: checkers not set, no rule made for them: %s", ', '.join(missing))
+    cfg['checkers_found'] = users.ids
     if users:
         R = env['ei.approval.rule'].sudo()
         for flow in ('da', 'order', 'lifting', 'cash', 'daybook', 'contract'):
@@ -113,6 +122,71 @@ def _approval_settings(env, log):
             rule.write(vals) if rule else R.create(vals)
         log.info("export_international: checkers %s set for every workflow", ', '.join(users.mapped('name')))
     return cfg
+
+
+# the roles that decide on someone else's entry; with "only_checkers_approve" only the named checkers hold them
+APPROVER_ROLES = (
+    'ei_contract_da.group_ei_contract_approver', 'ei_contract_da.group_ei_da_override', 'ei_daily_orders.group_ei_order_approver',
+    'ei_cashbook.group_ei_cash_approver', 'ei_bank_operations.group_ei_bank_approver', 'ei_invoice_extensions.group_ei_invoice_approver',
+    'ei_material_lifting.group_ei_lifting_reviewer', 'ei_parent_reconciliation.group_ei_recon_approver',
+)
+
+
+def _apply_approval(env, log, appr):
+    """Switch the approval policy as the private approvals file says, never into a state nobody can work in."""
+    if appr.get('approval_on') and not appr.get('checkers_found'):
+        # approval on with nobody to approve would hold every DA at "Assignment required": keep the current setting instead
+        log.warning("export_international: approval NOT switched on: none of the named checkers is an Odoo user here")
+        return False
+    if 'maker_checker' in appr:
+        env['ir.config_parameter'].sudo().set_bool('ei_legacy_master.enforce_maker_checker', bool(appr['maker_checker']))
+    if 'approval_on' in appr:
+        env['ei.approval.policy'].sudo().set_all(bool(appr['approval_on']))
+    if appr.get('only_checkers_approve') and appr.get('checkers_found'):
+        _only_checkers_approve(env, log, env['res.users'].browse(appr['checkers_found']))
+    return True
+
+
+def _only_checkers_approve(env, log, checkers):
+    """Maker-checker as the client confirmed it: every user keeps the roles to enter work; only the named checkers (and the
+    administrator) hold the approver roles. Nothing else about the users changes."""
+    groups = [g for g in (env.ref(x, raise_if_not_found=False) for x in APPROVER_ROLES) if g]
+    env.ref('base.group_user').write({'implied_ids': [Command.unlink(g.id) for g in groups]})
+    keep = checkers | env.ref('base.user_admin')
+    for g in groups:
+        g.write({'user_ids': [Command.link(u.id) for u in keep]})
+        others = g.user_ids - keep
+        if others:
+            g.write({'user_ids': [Command.unlink(u.id) for u in others]})
+    log.info("export_international: approver roles only for %s", ', '.join(keep.mapped('name')))
+
+
+def _code_pairs(env, log, cfg=None):
+    """Purchase / P&L code pairs the ACCOUNTANT approved in writing (client_data/code_pairs.json, private package only):
+    {"approved_by": "name", "date": "YYYY-MM-DD", "pairs": [["15.01", "7.84"], ...]}. Without the file nothing is approved."""
+    import json
+    import os
+    if 'ei.code.pair' not in env:
+        return
+    if cfg is None:
+        path = os.path.join(os.path.dirname(__file__), 'client_data', 'code_pairs.json')
+        if not os.path.isfile(path):
+            return
+        cfg = json.load(open(path))
+    Code, P = env['ei.legacy.code'].sudo(), env['ei.code.pair'].sudo()
+    done = 0
+    for t_code, p_code in cfg.get('pairs', []):
+        t = Code.search([('legacy_code', '=', t_code), ('source_sheet_key', '=', 'FOR PURCHASE')], limit=1)
+        p = Code.search([('legacy_code', '=', p_code), ('source_sheet_key', '=', 'PROFIT & LOSS')], limit=1)
+        if not (t and p):
+            log.warning("export_international: code pair %s + %s not found in the code list", t_code, p_code)
+            continue
+        pair = P.search([('trade_code_id', '=', t.id), ('pl_code_id', '=', p.id), ('supplier_id', '=', False), ('purchase_in_id', '=', False)], limit=1) \
+            or P.create({'trade_code_id': t.id, 'pl_code_id': p.id})
+        if pair.state != 'approved':
+            pair.write({'state': 'approved', 'approved_at': fields.Datetime.now(), 'note': "Approved in writing by %s on %s" % (cfg.get('approved_by'), cfg.get('date'))})
+            done += 1
+    log.info("export_international: %s code pair(s) approved from the accountant's list (%s, %s)", done, cfg.get('approved_by'), cfg.get('date'))
 
 
 def _feeding_formulas(env, log):
