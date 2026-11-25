@@ -22,7 +22,7 @@ const blankLine = () => ({
     id: false, contract_line_id: "", coil_no: "", grade: "", weight_kg: "", method: "", basic_rate: "", sale_offset: "",
     sale_typed: false, sale_rate: "", purchase_rate: "", cn_amount: "", cn_text: "", loss_reason: "", rate_note: "",
     customer: null, customer_code: null, trade_code: null, pl_code: null, thickness: "", width: "",
-    qty: "", unit: "MTL", small_ok: false,
+    qty: "", unit: "MTL", small_ok: false, size_note: "",
 });
 // the quantity as typed, in its unit, turned into kg without floating-point dust (4.574 MTL -> "4574")
 const kgOf = (qty, unit) => {
@@ -62,7 +62,7 @@ export class EiDaFeeding extends Component {
             review: false, next: null, partyLook: { term: "", rows: [] }, itemLook: null, dupes: null,
             pl: { supplier: { term: "", rows: [] }, pin: { term: "", rows: [] } },
             docsOpen: false, quotaUi: null, quotaMore: false, sel: {}, rate: blankRate(), ratePlan: null, bulk: null,
-            missing: [], itemMsg: "", codeCheck: null, soldChange: null,
+            missing: [], itemMsg: "", codeCheck: null, soldChange: null, itemPrev: null, editDetails: false, lineDirty: false,
         });
         this.lookSeq = 0;
         this.timers = { lab: null, prev: null, look: null, party: null, item: null };
@@ -81,8 +81,10 @@ export class EiDaFeeding extends Component {
             if (ctx.da_id) { await this.openDa(ctx.da_id); }
             else if (ctx.ei_new && this.state.list && this.state.list.can_create) { this.startNewDa(); }
         });
-        onMounted(() => document.addEventListener("keydown", this.onKey));
-        onWillUnmount(() => { document.removeEventListener("keydown", this.onKey); Object.values(this.timers).forEach(clearTimeout); });
+        // unsaved coil changes are not lost by closing the tab or leaving the page (25 Nov 2026)
+        this.onLeave = (ev) => { if (this.state.line && this.state.lineDirty) { ev.preventDefault(); ev.returnValue = ""; } };
+        onMounted(() => { document.addEventListener("keydown", this.onKey); window.addEventListener("beforeunload", this.onLeave); });
+        onWillUnmount(() => { document.removeEventListener("keydown", this.onKey); window.removeEventListener("beforeunload", this.onLeave); Object.values(this.timers).forEach(clearTimeout); });
     }
 
     // ------------------------------------------------------------------ Enter moves to the next box (like FoxPro)
@@ -226,6 +228,8 @@ export class EiDaFeeding extends Component {
     }
     async loadList() { try { this.state.list = await this.call("da_list", []); } catch { this.state.list = { rows: [], contracts: [] }; } }
     async openDa(id) {
+        if (this.state.line && this.state.lineDirty && !window.confirm("Discard the changes to the coil you are editing? They are not saved.")) { return; }
+        this.state.lineDirty = false;
         this.state.newDa = null; this.state.dupes = null;         // a recent entry clicked while a new form is open: show that entry
         this.state.line = null; this.state.preview = null; this.state.docIndex = 0; this.state.next = null; this.state.review = false;
         this.state.docsOpen = false; this.state.quotaUi = null; this.state.sel = {}; this.state.ratePlan = null; this.state.bulk = null;
@@ -333,6 +337,7 @@ export class EiDaFeeding extends Component {
         }, 200);
     }
     async itemKey(ev) {
+        if (ev.key === "Escape" && this.state.itemPrev) { ev.preventDefault(); this.cancelItemChange(); return; }
         if (ev.key === "ArrowDown") { const o = ev.target.parentElement.querySelector(".ei-fd-lookrows button"); if (o) { ev.preventDefault(); o.focus(); } return; }
         if (ev.key !== "Enter" || !this.state.itemLook) { return; }
         ev.preventDefault();
@@ -346,6 +351,42 @@ export class EiDaFeeding extends Component {
             this.state.itemMsg = `“${term}” is not in the item list yet. Pick a similar one below, or press “+ Add new item” to add it.`;
         }
     }
+    changeItem() {
+        const l = this.state.line;
+        this.state.itemPrev = this.cl ? { id: l.contract_line_id, name: this.cl.name, thickness: l.thickness, width: l.width } : null;
+        this.state.editDetails = false;
+        this.openItems();
+    }
+    cancelItemChange() {
+        const prev = this.state.itemPrev, l = this.state.line;
+        if (prev && l) { l.contract_line_id = prev.id; l.thickness = prev.thickness; l.width = prev.width; }
+        this.state.itemLook = null; this.state.itemPrev = null; this.state.itemMsg = "";
+        this.refresh(); this.focusSoon("#ei-fd-coil");
+    }
+    editDetails() {
+        this.state.editDetails = true;
+        this.focusSoon("#ei-fd-grade");
+    }
+    // a thickness or width that differs from the size printed in the item name ("0.50X1219"): said, and needs a reason
+    get sizeDiffers() {
+        const l = this.state.line, cl = this.cl;
+        if (!l || !cl) { return ""; }
+        const m = /(?<![0-9.])(\d*\.\d+|\d+)\s*[xX\u00d7]\s*(\d+(?:\.\d+)?)/.exec(cl.name || "");
+        if (!m) { return ""; }
+        const out = [];
+        if (l.thickness !== "" && l.thickness != null && toNum(l.thickness) !== toNum(m[1])) { out.push(`thickness ${l.thickness}, item ${m[1]}`); }
+        if (l.width !== "" && l.width != null && toNum(l.width) !== toNum(m[2])) { out.push(`width ${l.width}, item ${m[2]}`); }
+        return out.join("; ");
+    }
+    flipSign() {
+        const l = this.state.line, v = (l.sale_offset || "").trim();
+        l.sale_offset = !v || v === "0" ? "-" : v.startsWith("-") ? v.slice(1) : "-" + v;
+        this.state.lineDirty = true; this.refresh(); this.focusSoon(".ei-fd-offset-in");
+    }
+    undoLine() {
+        const row = this.state.da.lines.find((x) => x.id === this.state.line.id);
+        if (row) { this.editLine(row); }          // the saved values are back on screen; no notification over the item row
+    }
     async openItems() {
         // show the list at once, and never wipe what the person already typed while it loads
         if (!this.state.itemLook) { this.state.itemLook = { term: "", rows: [] }; }
@@ -357,11 +398,16 @@ export class EiDaFeeding extends Component {
         if (row.kind === "new") { row = { id: await this.call("product_take", [row.name]), name: row.name }; }
         try {
             const r = await this.call("ensure_line", [this.state.da.id, row.id]);
+            const prev = this.state.itemPrev, l0 = this.state.line;
+            if (prev && r.dims && (this.str(r.dims.thickness) !== this.str(l0.thickness) || this.str(r.dims.width) !== this.str(l0.width))
+                && !window.confirm(`Change the item from ${prev.name} to ${row.name}?\n\nThickness ${l0.thickness || "-"} → ${r.dims.thickness}, width ${l0.width || "-"} → ${r.dims.width}.\nCoil No, weight, grade, codes and rates stay as they are.`)) {
+                this.setDa(r.da); this.cancelItemChange(); return;
+            }
             this.setDa(r.da);
             this.state.line.contract_line_id = String(r.contract_line_id);
             // the size printed in the item's name decides thickness and width: a new item never keeps the previous item's size
             if (r.dims) { this.state.line.thickness = r.dims.thickness; this.state.line.width = r.dims.width; }
-            this.state.itemLook = null; this.state.itemMsg = ""; this.state.error = "";
+            this.state.itemLook = null; this.state.itemMsg = ""; this.state.error = ""; this.state.itemPrev = null; this.state.lineDirty = true;
             this.state.missing = this.state.missing.filter((m) => m.key !== "item");
             this.refresh();
             this.focusSoon("#ei-fd-coil");
@@ -624,7 +670,7 @@ export class EiDaFeeding extends Component {
         }
         const auto = d.auto_codes || {};
         for (const f of ["customer_code", "trade_code", "pl_code"]) { if (!l[f] && auto[f]) { l[f] = auto[f]; } }
-        this.state.line = l; this.state.preview = null; this.state.missing = []; this.state.itemMsg = ""; this.state.error = "";
+        this.state.line = l; this.state.preview = null; this.state.missing = []; this.state.itemMsg = ""; this.state.error = ""; this.state.lineDirty = false; this.state.editDetails = false;
         this.checkCodes();
         this.focusSoon(l.contract_line_id ? "#ei-fd-coil" : "#ei-fd-item");
     }
@@ -635,7 +681,7 @@ export class EiDaFeeding extends Component {
             basic_rate: row.basic_rate ? String(row.basic_rate) : "", sale_offset: String(row.sale_offset || 0), sale_typed: row.sale_typed,
             sale_rate: row.sale_typed ? String(row.sale_rate || "") : "", purchase_rate: row.method === "direct_no_commission" ? String(row.purchase_rate || "") : "",
             customer: row.customer, customer_code: row.customer_code, trade_code: row.trade_code, pl_code: row.pl_code, rate_note: row.rate_note });
-        this.state.line = l; this.state.preview = null; this.state.missing = []; this.state.itemMsg = "";
+        this.state.line = l; this.state.preview = null; this.state.missing = []; this.state.itemMsg = ""; this.state.lineDirty = true;
         this.focusSoon("#ei-fd-coil");
         this.refresh(); this.checkCodes();
     }
@@ -644,13 +690,15 @@ export class EiDaFeeding extends Component {
             unit: "MTL", qty: row.weight_kg ? String(parseFloat((row.weight_kg / 1000).toFixed(6))) : "", small_ok: !!(row.weight_kg && row.weight_kg < SMALL_KG),
             basic_rate: row.basic_rate ? String(row.basic_rate) : "", sale_offset: String(row.sale_offset || 0),
             cn_amount: row.cn_amount ? String(row.cn_amount) : "", sale_rate: String(row.sale_rate || ""), purchase_rate: String(row.purchase_rate || "") };
-        this.state.missing = []; this.state.itemMsg = "";
+        this.state.missing = []; this.state.itemMsg = ""; this.state.lineDirty = false; this.state.editDetails = false;
         this.refresh(); this.checkCodes();
     }
-    closeLine() { this.state.line = null; this.state.preview = null; this.state.missing = []; this.state.itemMsg = ""; this.state.codeCheck = null; this.state.itemLook = null; }
+    closeLine(force = false) {
+        if (!force && this.state.line && this.state.lineDirty && !window.confirm("Discard the changes to this coil? They are not saved.")) { return false; }
+        this.state.lineDirty = false; this.state.editDetails = false; this.state.itemPrev = null; this.state.line = null; this.state.preview = null; this.state.missing = []; this.state.itemMsg = ""; this.state.codeCheck = null; this.state.itemLook = null; }
     setLine(key, ev) {
         const v = ev.target.type === "checkbox" ? ev.target.checked : ev.target.value;
-        this.state.line[key] = v;
+        this.state.line[key] = v; this.state.lineDirty = true;
         const fk = { coil_no: "coil", qty: "weight", basic_rate: "rate", purchase_rate: "rate", sale_rate: "rate", loss_reason: "loss" }[key];
         if (fk && this.state.missing.length) { this.state.missing = this.state.missing.filter((m) => m.key !== fk); }
         if (key === "qty") { this.state.line.weight_kg = kgOf(v, this.state.line.unit); this.state.line.small_ok = false; }
@@ -659,12 +707,12 @@ export class EiDaFeeding extends Component {
     }
     setUnit(unit) {
         const l = this.state.line;
-        l.unit = unit; l.weight_kg = kgOf(l.qty, unit); l.small_ok = false;
+        l.unit = unit; l.weight_kg = kgOf(l.qty, unit); l.small_ok = false; this.state.lineDirty = true;
         this.refresh();
     }
     pickMethod(key) {
         const l = this.state.line;
-        l.method = key;
+        l.method = key; this.state.lineDirty = true;
         this.state.missing = this.state.missing.filter((m) => m.key !== "method");
         this.refresh();
         this.focusSoon(".ei-fd-editor .ei-fd-rate input");
@@ -675,7 +723,7 @@ export class EiDaFeeding extends Component {
             basic_rate: l.basic_rate, sale_offset: l.sale_offset, sale_typed: l.sale_typed, sale_rate: l.sale_rate, purchase_rate: l.purchase_rate,
             cn_amount: l.cn_amount, cn_text: l.cn_text, loss_reason: l.loss_reason, rate_note: l.rate_note,
             customer_id: l.customer && l.customer.id, customer_code_id: l.customer_code && l.customer_code.id,
-            trade_code_id: l.trade_code && l.trade_code.id, pl_code_id: l.pl_code && l.pl_code.id, small_weight_ok: !!l.small_ok };
+            trade_code_id: l.trade_code && l.trade_code.id, pl_code_id: l.pl_code && l.pl_code.id, small_weight_ok: !!l.small_ok, size_note: l.size_note || "" };
     }
     refresh() {
         clearTimeout(this.timers.prev);
@@ -701,12 +749,13 @@ export class EiDaFeeding extends Component {
             const saved = r.da.lines.find((x) => x.id === r.line_id);
             this.toast(saved && saved.code_issue ? "Saved. Check the code warning before submitting." : `Saved: coil ${saved ? saved.coil_no : ""}, ${saved ? fmt(saved.mtl, 3) : ""} MTL.`,
                 saved && saved.code_issue ? "warning" : "success");
-            if (addNext) { this.newLine(); } else { this.closeLine(); }
+            this.state.lineDirty = false;
+            if (addNext) { this.newLine(); } else { this.closeLine(true); }
         } catch { /* shown */ } finally { this.state.busy = false; }
     }
     async deleteLine(row) {
         if (!window.confirm(`Remove coil ${row.coil_no || ""} from this draft?`)) { return; }
-        try { this.setDa(await this.call("delete_line", [this.state.da.id, row.id])); this.closeLine(); } catch { /* shown */ }
+        try { this.setDa(await this.call("delete_line", [this.state.da.id, row.id])); this.closeLine(true); } catch { /* shown */ }
     }
 
     // ------------------------------------------------------------------ look-ups (customer and the three code lists)
@@ -737,7 +786,7 @@ export class EiDaFeeding extends Component {
             if (!p) { return; }
             row = p;
         }
-        this.state.line[f] = f === "customer" ? { id: row.id, name: row.name } : row;
+        this.state.line[f] = f === "customer" ? { id: row.id, name: row.name } : row; this.state.lineDirty = true;
         this.state.look = { field: null, term: "", rows: [], busy: false }; this.state.error = "";
         this.refresh(); this.checkCodes();
         this.advanceSoon(`.ei-fd-pick[data-f="${f}"] .ei-fd-link`);

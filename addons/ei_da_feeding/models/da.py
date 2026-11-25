@@ -102,6 +102,8 @@ class EiDaLine(models.Model):
     customer_code_id = fields.Many2one('ei.legacy.code', string='Customer code', domain="[('source_sheet_key', '=', 'CUSTOMER')]")
     trade_code_id = fields.Many2one('ei.legacy.code', string='Purchase / sale code', domain="[('source_sheet_key', '=', 'FOR PURCHASE')]")
     pl_code_id = fields.Many2one('ei.legacy.code', string='P&L code', domain="[('source_sheet_key', '=', 'PROFIT & LOSS')]")
+    size_note = fields.Char("Why this coil's size differs from the item", help="Edit details (25 Nov 2026): a coil whose thickness or width "
+                            "differs from the size printed in the item name is saved only with this reason, which stays on the coil.")
     code_override_reason = fields.Char('Why the printed name may differ', readonly=True)
     code_override_by = fields.Many2one('res.users', readonly=True)
     code_issue = fields.Char(compute='_compute_code_issue')

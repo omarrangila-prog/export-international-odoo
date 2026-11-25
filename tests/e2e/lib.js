@@ -26,6 +26,8 @@ class Session {
     const p = this.page = await this.bctx.newPage();
     p.setDefaultTimeout(this.opts.timeout || 10000);
     p.on('pageerror', e => this.problems.push({ kind: 'pageerror', text: e.message.slice(0, 200) }));
+    // a confirm box a test does not answer itself (e.g. "Discard the changes to this coil?") is accepted, as the person would
+    p.on('dialog', async (d) => { await new Promise((r) => setTimeout(r, 60)); try { await d.accept(); } catch (e) { /* already answered by the test */ } });
     // Firefox logs these itself when a page is left while a request is still loading (the tests navigate on purpose); nobody sees them
     const engineNoise = process.env.EI_BROWSER === 'firefox' ? /^XML Parsing Error: (no root element found|junk after document element)|^downloadable font: download failed/ : null;
     p.on('console', m => { if (m.type() === 'error' && !(engineNoise && engineNoise.test(m.text().replace(/^\[JavaScript Error: "/, '')))) this.problems.push({ kind: 'console', text: m.text().slice(0, 200) }); });

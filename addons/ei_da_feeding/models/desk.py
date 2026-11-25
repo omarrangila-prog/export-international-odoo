@@ -240,7 +240,7 @@ class EiFeedingDesk(models.AbstractModel):
                           'thickness': l.coil_thickness or '', 'width': l.coil_width or '', 'sale_amount': l.sale_amount,
                           'purchase_amount': l.purchase_amount,
                           'override': l.code_override_reason or '', 'pair_issue': l._pair_problem(),
-                          'pair_allowed': l.pair_override_reason or ''})
+                          'pair_allowed': l.pair_override_reason or '', 'size_note': l.size_note or ''})
         return {
             'id': d.id, 'name': d.name, 'state': d.state, 'state_label': dict(d._fields['state'].selection).get(d.state),
             'editable': d.state == 'draft' and d.has_access('write'), 'parent': d.parent_partner_id.name,
@@ -341,8 +341,8 @@ class EiFeedingDesk(models.AbstractModel):
             raise UserError(_("Coil %s is already on this DA.", vals['coil_no'].strip()))
         clean = self._clean(vals)
         size = dims_problem(cl.product_id.display_name, vals.get('thickness'), vals.get('width'))
-        if size:
-            raise UserError(size)
+        if size and not (vals.get('size_note') or '').strip():
+            raise UserError(_("%s If this coil really has another size, write why in \"Why this coil's size differs\" (it stays on the coil).", size))
         if not clean['weight_kg'] or clean['weight_kg'] <= 0:
             raise UserError(_("Type the coil's weight (in MTL, or in kg) as printed."))
         if clean['weight_kg'] < SMALL_KG and not vals.get('small_weight_ok'):
@@ -355,6 +355,8 @@ class EiFeedingDesk(models.AbstractModel):
         except fe.FeedingError as e:
             raise UserError(str(e))
         clean['feeding_method'] = r['method']            # "Commission based" is stored as what it worked out to (CN, normal, ...)
+        if clean['sale_typed'] and r['formula'] and not (vals.get('rate_note') or '').strip():
+            raise UserError(_("The sale rate is typed instead of mill rate +/-. Write why in \"Why the sale rate is typed\" (it stays on the coil)."))
         if r['spread_per_mtl'] < 0 and not (vals.get('loss_reason') or '').strip():
             raise UserError(_("This coil is sold below cost (%s per MTL). Write why; an approver will check it.", r['spread_per_mtl']))
         write = {
@@ -367,6 +369,7 @@ class EiFeedingDesk(models.AbstractModel):
             'purchase_rate': float(r['purchase_rate']), 'sale_rate': float(r['sale_rate']),
             'coil_thickness': (vals.get('thickness') or '').strip() or False, 'coil_width': (vals.get('width') or '').strip() or False,
             'loss_reason': (vals.get('loss_reason') or '').strip() or False, 'rate_note': (vals.get('rate_note') or '').strip() or False,
+            'size_note': ((vals.get('size_note') or '').strip() or False) if size else False,
             'customer_id': int(vals['customer_id']) if vals.get('customer_id') else d.sold_out_id.id or False,
             'customer_code_id': int(vals['customer_code_id']) if vals.get('customer_code_id') else False,
             'trade_code_id': int(vals['trade_code_id']) if vals.get('trade_code_id') else False,
@@ -475,7 +478,7 @@ class EiFeedingDesk(models.AbstractModel):
         return self.da_load(d.id)
 
     # ------------------------------------------------------------------ many coils at once (client, 22 Nov 2026)
-    SHARED = ('contract_line_id', 'grade', 'thickness', 'width', 'method', 'basic_rate', 'sale_offset', 'sale_typed', 'sale_rate',
+    SHARED = ('contract_line_id', 'grade', 'thickness', 'width', 'size_note', 'method', 'basic_rate', 'sale_offset', 'sale_typed', 'sale_rate',
               'purchase_rate', 'loss_reason', 'rate_note', 'customer_id', 'customer_code_id', 'trade_code_id', 'pl_code_id')
 
     @api.model
@@ -513,7 +516,7 @@ class EiFeedingDesk(models.AbstractModel):
         return {'contract_line_id': l.contract_line_id.id, 'coil_no': l.coil_no, 'grade': l.coil_grade or '', 'thickness': l.coil_thickness or '',
                 'width': l.coil_width or '', 'weight_kg': l.weight_kg, 'method': l.feeding_method, 'basic_rate': l.basic_rate or '',
                 'sale_offset': l.sale_offset, 'sale_typed': l.sale_typed, 'sale_rate': l.sale_rate, 'purchase_rate': l.purchase_rate,
-                'cn_amount': l.cn_amount, 'cn_text': l.cn_text or '', 'loss_reason': l.loss_reason or '', 'rate_note': l.rate_note or '',
+                'cn_amount': l.cn_amount, 'cn_text': l.cn_text or '', 'loss_reason': l.loss_reason or '', 'rate_note': l.rate_note or '', 'size_note': l.size_note or '',
                 'customer_id': l.customer_id.id, 'customer_code_id': l.customer_code_id.id, 'trade_code_id': l.trade_code_id.id,
                 'pl_code_id': l.pl_code_id.id, 'small_weight_ok': True}
 

@@ -239,7 +239,7 @@
                                 </dl>
                             </t>
                             <t t-else="">
-                                <span class="ei-fd-muted">No contract quantity linked.</span>
+                                <span class="ei-fd-muted">Contract quantity not recorded.</span>
                                 <button t-if="d.editable" type="button" class="ei-fd-link ei-fd-qset" t-on-click="() => this.quotaStart(d.quota_options.length ? 'link' : 'new')">Set contract quantity</button>
                             </t>
                             <div t-if="this.state.quotaUi" class="ei-fd-qform">
@@ -435,12 +435,14 @@
                                         <div t-if="d.is_feeding" class="ei-fd-field is-wide ei-fd-item"><span>Item</span>
                                             <em t-if="this.fieldErr.item" class="ei-fd-ferr" role="alert" t-out="this.fieldErr.item"/>
                                             <div t-if="this.cl and !this.state.itemLook" class="ei-fd-picked"><span t-out="this.cl.name"/><small t-if="this.cl.formula" class="ei-fd-muted"> · <t t-out="this.cl.formula"/></small>
-                                                <button class="ei-fd-link" t-on-click="() => this.openItems()">Change</button></div>
+                                                <button class="ei-fd-link ei-fd-chgitem" t-on-click="() => this.changeItem()">Change item</button>
+                                                <button class="ei-fd-link ei-fd-editdet" t-on-click="() => this.editDetails()">Edit details</button></div>
                                             <t t-else="">
                                                 <input id="ei-fd-item" class="ei-fd-in" autocomplete="off" placeholder="Type the item name…" t-att-value="this.state.itemLook ? this.state.itemLook.term : ''" t-on-focus="() => this.state.itemLook or this.openItems()" t-on-input="(ev) => this.itemLookInput(ev)" t-on-keydown="(ev) => this.itemKey(ev)"/>
                                                 <ul t-if="this.state.itemLook and this.state.itemLook.rows.length" class="ei-fd-lookrows" role="listbox">
                                                     <li t-foreach="this.state.itemLook.rows" t-as="o" t-key="o.key or o.id"><button role="option" t-att-class="o.kind === 'new' ? 'is-new' : ''" t-on-click="() => this.pickItem(o)"><t t-if="o.kind === 'new'">+ Add new item “</t><t t-out="o.name"/><t t-if="o.kind === 'new'">”</t><small t-if="o.similar" class="ei-fd-muted"> · same size</small></button></li>
                                                 </ul>
+                                                <p t-if="this.state.itemPrev and this.state.itemLook" class="ei-fd-muted">Choosing another item keeps the coil number, weight, grade, codes and rates. <button class="ei-fd-link" t-on-click="() => this.cancelItemChange()">Keep <t t-out="this.state.itemPrev.name"/></button></p>
                                             </t>
                                         </div>
                                         <label t-else="" class="ei-fd-field is-wide"><span>Material (contract line)</span>
@@ -449,9 +451,9 @@
                                                 <option t-foreach="d.contract_lines" t-as="c" t-key="c.id" t-att-value="c.id" t-att-selected="this.str(c.id) === this.str(l.contract_line_id)" t-out="c.name + ' · ' + this.fmt(c.free_mtl, 3) + ' MTL free' + (c.formula ? ' · ' + c.formula : '')"/>
                                             </select></label>
                                         <label class="ei-fd-field"><span>Coil No</span><input id="ei-fd-coil" t-att-class="'ei-fd-in' + (this.fieldErr.coil ? ' is-bad' : '')" t-att-value="l.coil_no" t-on-input="(ev) => this.setLine('coil_no', ev)"/><em t-if="this.fieldErr.coil" class="ei-fd-ferr" t-out="this.fieldErr.coil"/></label>
-                                        <label class="ei-fd-field is-short"><span>Grade</span><input class="ei-fd-in" t-att-value="l.grade" t-on-input="(ev) => this.setLine('grade', ev)"/></label>
-                                        <label class="ei-fd-field is-short"><span>Thickness</span><input class="ei-fd-in" t-att-value="l.thickness" t-on-input="(ev) => this.setLine('thickness', ev)"/></label>
-                                        <label class="ei-fd-field is-short"><span>Width</span><input class="ei-fd-in" t-att-value="l.width" t-on-input="(ev) => this.setLine('width', ev)"/></label>
+                                        <label class="ei-fd-field is-short"><span>Grade</span><input id="ei-fd-grade" class="ei-fd-in" t-att-value="l.grade" t-on-input="(ev) => this.setLine('grade', ev)"/></label>
+                                        <label class="ei-fd-field is-short"><span>Thickness</span><input id="ei-fd-thick" class="ei-fd-in" t-att-value="l.thickness" t-on-input="(ev) => this.setLine('thickness', ev)"/></label>
+                                        <label class="ei-fd-field is-short"><span>Width</span><input id="ei-fd-width" class="ei-fd-in" t-att-value="l.width" t-on-input="(ev) => this.setLine('width', ev)"/></label>
                                         <div class="ei-fd-field ei-fd-qty"><span>Weight</span>
                                             <div class="ei-fd-qtyrow">
                                                 <input id="ei-fd-qty" class="ei-fd-in is-num" inputmode="decimal" t-att-value="l.qty" t-on-input="(ev) => this.setLine('qty', ev)" t-att-aria-label="'Weight in ' + l.unit"/>
@@ -470,6 +472,9 @@
                                             </div>
                                         </div>
                                     </div>
+                                    <p t-if="this.state.editDetails and this.cl" class="ei-fd-okline ei-fd-detnote">Edit details: grade, thickness, width and weight change for this coil only. The item stays <b t-out="this.cl.name"/>.</p>
+                                    <label t-if="this.sizeDiffers" class="ei-fd-field is-wide ei-fd-sizenote"><span>Why this coil's size differs from the item (<t t-out="this.sizeDiffers"/>) <small class="ei-fd-muted">stays on the coil</small></span>
+                                        <input class="ei-fd-in" t-att-value="l.size_note" t-on-input="(ev) => this.setLine('size_note', ev)"/></label>
                                     <div class="ei-fd-picks">
                                         <div t-foreach="['customer', 'customer_code', 'trade_code', 'pl_code']" t-as="f" t-key="f" class="ei-fd-pick" t-att-data-f="f">
                                             <span class="ei-fd-picklabel" t-out="this.lookLabel(f)"/>
@@ -529,13 +534,16 @@
                                         <t t-else="">
                                             <label class="ei-fd-field ei-fd-rate"><span>Basic rate / MTL</span><input class="ei-fd-in is-num" inputmode="decimal" t-att-value="l.basic_rate" t-on-input="(ev) => this.setLine('basic_rate', ev)"/><em t-if="this.cl and this.cl.basic_rate and this.str(this.cl.basic_rate) !== this.str(l.basic_rate)" class="ei-fd-hint is-warn">Contract says <t t-out="this.fmt(this.cl.basic_rate)"/></em></label>
                                             <label class="ei-fd-field ei-fd-check"><input type="checkbox" t-att-checked="l.sale_typed" t-on-change="(ev) => this.setLine('sale_typed', ev)"/><span>Type the sale rate instead</span></label>
-                                            <label t-if="!l.sale_typed" class="ei-fd-field"><span>Sale = mill rate +/−</span><input class="ei-fd-in is-num ei-fd-lastrate" inputmode="decimal" t-att-value="l.sale_offset" t-on-input="(ev) => this.setLine('sale_offset', ev)"/></label>
+                                            <div t-if="!l.sale_typed" class="ei-fd-field ei-fd-adj"><span>Sale = mill rate +/− <small class="ei-fd-muted">per MTL</small></span>
+                                                <div class="ei-fd-qtyrow"><input class="ei-fd-in is-num ei-fd-lastrate ei-fd-offset-in" inputmode="decimal" t-att-value="l.sale_offset" t-on-input="(ev) => this.setLine('sale_offset', ev)" aria-label="Amount added to (+) or taken from (−) the mill rate"/>
+                                                    <button type="button" class="ei-fd-btn is-sm ei-fd-flip" title="Change + / −" t-on-click="() => this.flipSign()">±</button></div>
+                                                <em t-if="this.state.preview and this.state.preview.ok and this.state.preview.mill_rate" class="ei-fd-hint ei-fd-adjhint">Mill <t t-out="this.fmt(this.state.preview.mill_rate)"/> <t t-out="this.toNum(this.state.preview.sale_offset) lt 0 ? '−' : '+'"/> <t t-out="this.fmt(Math.abs(this.toNum(this.state.preview.sale_offset)))"/> = sale <b t-out="this.fmt(this.state.preview.sale_rate)"/></em></div>
                                             <label t-else="" class="ei-fd-field"><span>Sale rate / MTL</span><input class="ei-fd-in is-num ei-fd-lastrate" inputmode="decimal" t-att-value="l.sale_rate" t-on-input="(ev) => this.setLine('sale_rate', ev)"/></label>
                                             <t t-if="this.lineBasis === 'commission'">
                                                 <label class="ei-fd-field"><span>Credit note on this coil <small class="ei-fd-muted">(optional)</small></span><input class="ei-fd-in is-num ei-fd-cn" inputmode="decimal" t-att-value="l.cn_amount" t-on-input="(ev) => this.setLine('cn_amount', ev)"/></label>
                                                 <label t-if="this.toNum(l.cn_amount) gt 0" class="ei-fd-field is-wide"><span>Credit note text <small class="ei-fd-muted">(optional)</small></span><input class="ei-fd-in" t-att-value="l.cn_text" t-on-input="(ev) => this.setLine('cn_text', ev)"/></label>
                                             </t>
-                                            <label t-if="this.cl and this.cl.basic_rate and this.str(this.cl.basic_rate) !== this.str(l.basic_rate)" class="ei-fd-field is-wide"><span>Why the basic rate differs from the contract</span><input class="ei-fd-in" t-att-value="l.rate_note" t-on-input="(ev) => this.setLine('rate_note', ev)"/></label>
+                                            <label t-if="l.sale_typed or (this.cl and this.cl.basic_rate and this.str(this.cl.basic_rate) !== this.str(l.basic_rate))" class="ei-fd-field is-wide ei-fd-ratenote"><span t-out="l.sale_typed ? 'Why the sale rate is typed (stays on the coil)' : 'Why the basic rate differs from the contract'"/><input class="ei-fd-in" t-att-value="l.rate_note" t-on-input="(ev) => this.setLine('rate_note', ev)"/></label>
                                         </t>
                                     </div>
 
@@ -573,6 +581,7 @@
                                     <div class="ei-fd-actions is-sticky">
                                         <button t-if="l.id" class="ei-fd-btn is-ghost ei-fd-danger" t-on-click="() => this.deleteLine(l)">Remove coil</button>
                                         <span class="ei-fd-spacer"/>
+                                        <button t-if="l.id and this.state.lineDirty" class="ei-fd-btn is-ghost ei-fd-undo" t-on-click="() => this.undoLine()">Undo changes</button>
                                         <button class="ei-fd-btn" t-on-click="() => this.closeLine()">Close</button>
                                         <button class="ei-fd-btn" t-att-disabled="this.state.busy" t-on-click="() => this.saveLine(true)">Save &amp; Add Next Coil</button>
                                         <button class="ei-fd-btn is-primary ei-fd-savebtn" t-att-disabled="this.state.busy" t-on-click="() => this.saveLine()" title="Ctrl+S">Save Entry</button>

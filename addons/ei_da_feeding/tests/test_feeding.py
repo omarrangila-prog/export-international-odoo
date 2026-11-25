@@ -658,3 +658,43 @@ class TestFeeding(TransactionCase):
         self.assertEqual([x['name'] for x in self.desk.da_similar('SYN-40038934NV', supplier.id)], ['SYN-40038934NOV'])
         self.bare('SYN-1670061')
         self.assertEqual(self.desk.da_similar('SYN-1670062', supplier.id), [])   # the mill's next DA is not a typing slip
+
+    # ------------------------------------------------------------------ 25 Nov 2026: edit details, signed rates, typed sale rate
+    def test_38_edit_details_size_and_signed_rates(self):
+        d, cl = self.bare('SYN-EDIT-1')
+        sized = self.env['product.product'].create({'name': 'SYN GP 0.50X1219', 'uom_id': self.env.ref('uom.product_uom_ton').id})
+        cl = self.desk.ensure_line(d.id, sized.id)['contract_line_id']
+        base = dict(self.shared(cl), coil_no='ED-1', weight_kg='5600', thickness='0.50', width='1219', grade='SEC')
+        lid = self.desk.save_line(d.id, False, base)['line_id']
+        l = self.env['ei.da.line'].browse(lid)
+        self.assertEqual((l.mtl, l.coil_grade, l.coil_thickness, l.coil_width), (5.6, 'SEC', '0.50', '1219'))           # 5.600 MTL = 5,600 kg
+        with self.assertRaisesRegex(UserError, 'write why'):
+            self.desk.save_line(d.id, lid, dict(base, width='1250'))                                                 # size off the item: a reason first
+        self.desk.save_line(d.id, lid, dict(base, width='1250', size_note='Mill cut this coil to 1250 (paper)'))
+        self.assertEqual((l.coil_width, l.size_note, l.product_id), ('1250', 'Mill cut this coil to 1250 (paper)', sized))   # the item stays
+        for off, sale in (('-1000', 270080.81), ('10000', 281080.81), ('-10000', 261080.81), ('1000', 272080.81)):
+            vals = dict(base, width='1219', sale_offset=off, loss_reason='market' if off == '-10000' else '')
+            self.desk.save_line(d.id, lid, vals)
+            self.assertEqual((l.sale_offset, l.sale_rate, l.coil_no, l.mtl), (float(off), sale, 'ED-1', 5.6), off)    # sign kept, coil unchanged
+        self.assertFalse(l.size_note)                                                                                 # back to the item's size: no reason kept
+        with self.assertRaisesRegex(UserError, 'sale rate is typed'):
+            self.desk.save_line(d.id, lid, dict(base, sale_typed=True, sale_rate='271500'))
+        self.desk.save_line(d.id, lid, dict(base, sale_typed=True, sale_rate='271500', rate_note='Agreed with the buyer on the phone'))
+        self.assertEqual((l.sale_rate, l.sale_typed, l.rate_note), (271500, True, 'Agreed with the buyer on the phone'))
+        # an item whose name holds "10000" never turns into a rate
+        named = self.env['product.product'].create({'name': 'SYN GP 0.50X1219 10000 CSAH (P)', 'uom_id': self.env.ref('uom.product_uom_ton').id})
+        cl2 = self.desk.ensure_line(d.id, named.id)['contract_line_id']
+        l2 = self.env['ei.da.line'].browse(self.desk.save_line(d.id, False, dict(self.shared(cl2), coil_no='ED-2', weight_kg='5600'))['line_id'])
+        self.assertEqual((l2.sale_offset, l2.sale_rate), (-1000.0, 270080.81))
+
+    def test_39_a_minus_1000_adjustment_goes_only_to_the_selected_draft_coils(self):
+        d, cl = self.bare('SYN-NEG-1')
+        self.desk.save_lines(d.id, self.shared(cl, basic_rate='229500', sale_offset='0'), [{'coil_no': 'N-%d' % i, 'weight_kg': '4574'} for i in range(1, 5)])
+        sel = d.line_ids.filtered(lambda l: l.coil_no in ('N-1', 'N-3'))
+        rest = d.line_ids - sel
+        before = [(l.purchase_rate, l.sale_rate, l.sale_offset) for l in rest]
+        r = self.desk.apply_rates(d.id, sel.ids, {'basic_rate': '229500', 'sale_offset': '-1000'}, True)
+        self.assertTrue(r['applied'])
+        self.assertTrue(all((l.sale_offset, l.sale_rate, l.purchase_rate) == (-1000, 270080.81, 268051.41) for l in sel))
+        self.assertEqual([(l.purchase_rate, l.sale_rate, l.sale_offset) for l in rest], before)       # not selected: untouched
+        self.assertTrue(all(l.sale_rate == 271080.81 for l in rest))
