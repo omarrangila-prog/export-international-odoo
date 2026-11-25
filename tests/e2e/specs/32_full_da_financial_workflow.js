@@ -112,7 +112,8 @@ module.exports = {
     for (const [act, what] of [['ei_ledger_supplier_action', 'supplier'], ['ei_ledger_pin_action', 'Purchase (IN)'], ['ei_ledger_customer_action', 'customer'], ['ei_ledger_pl_action', 'P&L']]) {
       await cp.goto(`${ctx.base}/odoo/action-ei_da_feeding.${act}`); await cp.waitForSelector('.o_list_view', { timeout: 30000 }); await cp.waitForTimeout(800);
       await searchFor(cp, DA);
-      const t = (await cp.locator('.o_list_view').innerText()).replace(/\s+/g, ' ');
+      let t = '';                                      // the grouped rows load after the filter: wait for them (up to 15 s) before reading
+      for (let i = 0; i < 30; i++) { t = (await cp.locator('.o_list_view').innerText()).replace(/\s+/g, ' '); if (t.includes(P) && t.includes(S) && t.includes(G)) break; await cp.waitForTimeout(500); }
       ctx.check(t.includes(P) && t.includes(S) && t.includes(G), `7 ${what} ledger: purchase ${P}, sale ${S}, gross spread ${G} for this DA`, t.slice(0, 240));
     }
     await ctx.shot(cp, '32_pl_ledger');
